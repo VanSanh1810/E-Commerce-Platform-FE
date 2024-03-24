@@ -1,0 +1,52 @@
+[
+    {
+        "title": "main_pages",
+        "menus": [
+            { 
+                "icon": "dashboard", 
+                "text": "dashboard",
+                "submenus": [
+                    { "path": "/", "text": "ecommerce" }
+                ]
+            },
+            { 
+                "icon": "account_circle", 
+                "text": "users", 
+                "badge": { "text": "hot", "variant": "red square" },
+                "submenus": [
+                    { "path": "/user", "text": "user_list" }
+                ]
+            },
+            { 
+                "icon": "pix", 
+                "text": "products",
+                "badge": { "text": "new", "variant": "purple square" },
+                "submenus": [
+                    { "path": "/product", "text": "product_list" },
+                    { "path": "/product-upload", "text": "product_upload" },
+                    { "path": "/category", "text": "category" }
+                ]
+            },
+            { 
+                "path": "#",
+                "icon": "article", 
+                "text": "invoices",
+                "submenus": [
+                    { "path": "/invoice", "text": "invoice_list" }
+                ]
+            },
+            { 
+                "path": "/order",
+                "icon": "shopping_cart", 
+                "text": "orders",
+                "badge": { "count": 5, "variant": "primary round" }
+            },
+            { 
+                "path": "/notification",
+                "icon": "notifications", 
+                "text": "notifications",
+                "badge": { "count": 9, "variant": "primary round" }
+            }
+        ]
+    }
+]
