@@ -1,0 +1,22 @@
+.cate-container {
+    min-width: 25%;
+    border-left : 1px solid #BFBFBF;
+    padding-left: 3px;
+}
+
+.cate-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px;
+    cursor: pointer;
+    padding: 5px 6px 5px 10px;
+    border-radius: 5px;
+}
+
+.cate-item:hover {
+    background-color: #ebebeb;
+}
+
+.cate-item.selected {
+    background-color: #ebebeb;
+}

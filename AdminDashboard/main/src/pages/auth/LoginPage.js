@@ -4,7 +4,7 @@ import { ButtonComponent } from '../../components/elements';
 import IconFieldComponent from '../../components/fields/IconFieldComponent';
 import LogoComponent from '../../components/LogoComponent';
 import { useDispatch } from 'react-redux';
-import { setAdminToken } from '../../store/reducers/authReducer';
+import { setAdminToken, setRole } from '../../store/reducers/authReducer';
 import { Toast } from 'react-bootstrap';
 import axiosInstance from '../../configs/axiosInstance';
 
@@ -28,6 +28,7 @@ export default function LoginPage() {
             });
             console.log(result.data);
             dispatch(setAdminToken(result.data.token));
+            dispatch(setRole(result.data.data.role));
         } catch (e) {
             console.log(e);
         }

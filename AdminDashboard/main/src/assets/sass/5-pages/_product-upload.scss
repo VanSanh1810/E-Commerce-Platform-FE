@@ -128,3 +128,13 @@
 
     i { font-size: 20px; }
 }
+
+.variant-detail-table {
+    width: 100%;
+    margin-top: 30px;
+}
+
+.variant-detail-table td, .variant-detail-table th {
+    border: 1px solid #3a3a3a;
+    padding: 8px;
+  }

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Row, Col, Dropdown } from 'react-bootstrap';
@@ -11,6 +11,7 @@ import axiosInstance from '../../configs/axiosInstance';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { setToastState, toastType } from '../../store/reducers/toastReducer';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function ProductUploadPage() {
     const dispatch = useDispatch();
@@ -92,28 +93,56 @@ export default function ProductUploadPage() {
         setProductImages(newArray);
     };
 
-    const createProductHanddler = async (e) => {
-        const form = new FormData();
-        form.append('name', productTitle);
-        form.append('stock', productStock);
-        form.append('price', productRePrice);
-        form.append('discountPrice', productDisPrice);
-        form.append('description', productDesc);
-        form.append('categoryId', productCate);
-        const arr = Object.values(productImages);
-
-        arr.forEach((file) => {
-            form.append('images', file);
-        });
-
-        try {
-            const result = await axiosInstance.post('/api/product', form, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            console.log(result);
-        } catch (err) {
-            console.error(err);
+    const validateVariantData = (node) => {
+        if (node.child) {
+            let result = true;
+            for (let child of node.child) {
+                result = validateVariantData(child);
+                if (!result) {
+                    break;
+                }
+            }
+            return result;
+        } else {
+            if (node.detail.stock !== null && node.detail.price !== null && node.detail.disPrice !== null) {
+                return true;
+            } else {
+                return false;
+            }
         }
+    };
+
+    const createProductHanddler = async (e) => {
+        let result = true;
+        for (let i of variantDetail.current) {
+            result = validateVariantData(i);
+            if (!result) {
+                break;
+            }
+        }
+        console.log(result);
+        console.log(variantDetail.current);
+        // const form = new FormData();
+        // form.append('name', productTitle);
+        // form.append('stock', productStock);
+        // form.append('price', productRePrice);
+        // form.append('discountPrice', productDisPrice);
+        // form.append('description', productDesc);
+        // form.append('categoryId', productCate);
+        // const arr = Object.values(productImages);
+
+        // arr.forEach((file) => {
+        //     form.append('images', file);
+        // });
+
+        // try {
+        //     const result = await axiosInstance.post('/api/product', form, {
+        //         headers: { 'Content-Type': 'multipart/form-data' },
+        //     });
+        //     console.log(result);
+        // } catch (err) {
+        //     console.error(err);
+        // }
     };
 
     const updateProductHanddler = async (e) => {
@@ -140,12 +169,204 @@ export default function ProductUploadPage() {
             console.log(result);
             dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.message }));
             setTimeout(() => {
-                navigate('/product')
-            }, 1500)
+                navigate('/product');
+            }, 1500);
         } catch (err) {
             console.error(err);
         }
     };
+
+    // ** ===================  PRODUCT VARIANT   ===================
+    const [variantData, setVariantData] = useState([]);
+    // const [variantDetail, setVariantDetail] = useState({});
+    const variantDetail = useRef([]);
+
+    const [tableToRender, setTableToRender] = useState();
+
+    const accessVariantDetail = useCallback((node, indexArr, depth, field, value) => {
+        let isFound = false;
+        if (depth === indexArr.length - 1) {
+            //found node
+            node.detail[field] = value;
+            console.log(value);
+            return true;
+        } else {
+            //not found
+            for (const child of node.child) {
+                if (child._id === indexArr[depth + 1]) {
+                    isFound = accessVariantDetail(child, indexArr, depth + 1, field, value);
+                    break;
+                }
+            }
+            return isFound;
+        }
+    }, []);
+
+    useEffect(() => {
+        const createVariantDetail = () => {
+            let variantHolders = [];
+            for (var i = variantData.length - 1; i >= 0; i = i - 1) {
+                if (i === variantData.length - 1) {
+                    const newArr = variantData[i].data.map((vari, index) => {
+                        return {
+                            _id: vari._id,
+                            detail: {
+                                stock: null,
+                                price: null,
+                                disPrice: null,
+                            },
+                        };
+                    });
+                    variantHolders = newArr;
+                } else {
+                    let temp = [...variantHolders];
+                    const newArr = variantData[i].data.map((vari, index) => {
+                        return {
+                            _id: vari._id,
+                            child: temp,
+                        };
+                    });
+                    variantHolders = newArr;
+                }
+            }
+            variantDetail.current = [...variantHolders];
+            // setVariantDetail([...variantHolders]);
+            console.log(variantHolders);
+            console.log(variantData);
+        };
+        const createVarianTable = async () => {
+            setTableToRender(null);
+            variantData.map(async (vari, index) => {
+                if (index !== 0) {
+                    return null;
+                }
+                const variantChild = [];
+                for (let i = 0; i < variantData.length; i++) {
+                    variantChild.push(variantData[i].data.length);
+                }
+
+                const result = await variantChild.reduce((accumulator, currentValue) => accumulator * currentValue, 1);
+
+                var rowSpanRequired = [];
+                for (let i = 0; i < variantChild.length; i++) {
+                    let product = 1;
+                    if (i < variantChild.length - 1) {
+                        for (let j = i + 1; j < variantChild.length; j++) {
+                            product *= variantChild[j];
+                        }
+                    }
+                    rowSpanRequired.push(product);
+                }
+                const tableRender = [];
+                for (let i = 0; i < result; i++) {
+                    const abc = (
+                        <tr key={i}>
+                            {variantData.map((varData, j) => {
+                                if (i % rowSpanRequired[j] === 0) {
+                                    return (
+                                        <td rowSpan={rowSpanRequired[j]}>
+                                            {
+                                                varData.data[
+                                                    i / rowSpanRequired[j] >= variantChild[j]
+                                                        ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                        : i / rowSpanRequired[j]
+                                                ]?.name
+                                            }
+                                        </td>
+                                    );
+                                } else {
+                                    return null;
+                                }
+                            })}
+
+                            <td>
+                                <input
+                                    // key={`input-price-${i}`}
+                                    defaultValue={variantData.length - variantData.length}
+                                    placeholder="price"
+                                    onBlur={(e) => {
+                                        const data = variantData.map((varData, j) => {
+                                            return varData.data[
+                                                i / rowSpanRequired[j] >= variantChild[j]
+                                                    ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                    : i / rowSpanRequired[j]
+                                            ]._id;
+                                        });
+                                        console.log(data);
+                                        ////////////////////////////////////////////////////////////////////////
+                                        let flag = false;
+                                        for (const v of variantDetail.current) {
+                                            if (v._id === data[0]) {
+                                                flag = accessVariantDetail(v, data, 0, 'price', e.currentTarget.value);
+                                                break;
+                                            }
+                                        }
+                                    }}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    // key={`input-disPrice-${i}`}
+                                    defaultValue={variantData.length - variantData.length}
+                                    placeholder="discount price"
+                                    type="number"
+                                    onBlur={(e) => {
+                                        const data = variantData.map((varData, j) => {
+                                            return varData.data[
+                                                i / rowSpanRequired[j] >= variantChild[j]
+                                                    ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                    : i / rowSpanRequired[j]
+                                            ]._id;
+                                        });
+                                        console.log(data);
+                                        ////////////////////////////////////////////////////////////////////////
+                                        let flag = false;
+                                        for (const v of variantDetail.current) {
+                                            if (v._id === data[0]) {
+                                                flag = accessVariantDetail(v, data, 0, 'disPrice', e.currentTarget.value);
+                                                break;
+                                            }
+                                        }
+                                    }}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    // key={`input-stock-${i}`}
+                                    defaultValue={variantData.length - variantData.length}
+                                    placeholder="stock"
+                                    type="number"
+                                    onBlur={(e) => {
+                                        const data = variantData.map((varData, j) => {
+                                            return varData.data[
+                                                i / rowSpanRequired[j] >= variantChild[j]
+                                                    ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                    : i / rowSpanRequired[j]
+                                            ]._id;
+                                        });
+                                        console.log(data);
+                                        ////////////////////////////////////////////////////////////////////////
+                                        let flag = false;
+                                        for (const v of variantDetail.current) {
+                                            if (v._id === data[0]) {
+                                                flag = accessVariantDetail(v, data, 0, 'stock', e.currentTarget.value);
+                                                break;
+                                            }
+                                        }
+                                    }}
+                                />
+                            </td>
+                        </tr>
+                    );
+                    await tableRender.push(abc);
+                }
+                setTableToRender(tableRender);
+                return null;
+            });
+        };
+        createVarianTable();
+        createVariantDetail();
+    }, [variantData, accessVariantDetail]);
 
     useEffect(() => {
         const fetchCateData = async () => {
@@ -224,7 +445,7 @@ export default function ProductUploadPage() {
                         </div>
                     </div>
                 </Col>
-                <Col xl={7}>
+                <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
                             <h4 className="mc-card-title">{t('basic_information')}</h4>
@@ -264,10 +485,6 @@ export default function ProductUploadPage() {
                                 <CKEditor
                                     editor={ClassicEditor}
                                     data={productDesc}
-                                    // onReady={(editor) => {
-                                    //     // You can store the "editor" and use when it is needed.
-                                    //     console.log('Editor is ready to use!', editor);
-                                    // }}
                                     onChange={(event, editor) => {
                                         // console.log(event);
                                         // console.log(editor.getData());
@@ -277,7 +494,16 @@ export default function ProductUploadPage() {
                             </Col>
                             <Col xl={12} className="mt-3">
                                 <LabelFieldComponent
-                                    label={t('category')}
+                                    label={t('Classify')}
+                                    option={[...selectionCateArr]}
+                                    fieldSize="mb-1 w-100 h-md"
+                                    onChange={selectionCateHandler}
+                                    defaultSelection={''}
+                                />
+                            </Col>
+                            <Col xl={12} className="mt-3">
+                                <LabelFieldComponent
+                                    label={t('Category')}
                                     option={[...selectionCateArr]}
                                     fieldSize="mb-4 w-100 h-md"
                                     onChange={selectionCateHandler}
@@ -285,24 +511,7 @@ export default function ProductUploadPage() {
                                 />
                             </Col>
                             {/* <Col xl={6}><LabelFieldComponent label={t('brand')} option={['richman', 'lubana', 'ecstasy']} fieldSize="mb-4 w-100 h-md" /></Col> */}
-                            <Col xl={6}>
-                                <LabelFieldComponent
-                                    type="text"
-                                    label={t('regular_price')}
-                                    fieldSize="mb-4 w-100 h-md"
-                                    onChange={(e) => setProductRePrice(e.target.value)}
-                                    defaultValue={productRePrice}
-                                />
-                            </Col>
-                            <Col xl={6}>
-                                <LabelFieldComponent
-                                    type="text"
-                                    label={t('discount_price')}
-                                    fieldSize="mb-4 w-100 h-md"
-                                    onChange={(e) => setProductDisPrice(e.target.value)}
-                                    defaultValue={productDisPrice}
-                                />
-                            </Col>
+
                             {/* <Col xl={6}><LabelFieldComponent type="text" label={t('shipping_fee')} fieldSize="mb-4 w-100 h-md" /></Col>
                             <Col xl={6}><LabelFieldComponent type="text" label={t('tax_rate')} fieldSize="mb-4 w-100 h-md" /></Col> */}
                             <Col xl={12}>
@@ -311,62 +520,7 @@ export default function ProductUploadPage() {
                         </Row>
                     </div>
                 </Col>
-                <Col xl={5}>
-                    <div className="mc-card mb-4">
-                        <div className="mc-card-header">
-                            <h4 className="mc-card-title">{t('organization')}</h4>
-                            <Dropdown bsPrefix="mc-dropdown">
-                                <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                    <i className="material-icons">more_horiz</i>
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                    <button type="button" className="mc-dropdown-menu">
-                                        <i className="material-icons">edit</i>
-                                        <span>{t('edit')}</span>
-                                    </button>
-                                    <button type="button" className="mc-dropdown-menu">
-                                        <i className="material-icons">delete</i>
-                                        <span>{t('delete')}</span>
-                                    </button>
-                                    <button type="button" className="mc-dropdown-menu">
-                                        <i className="material-icons">download</i>
-                                        <span>{t('download')}</span>
-                                    </button>
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        </div>
-                        <Row>
-                            <Col xl={12}>
-                                <div className="mc-product-upload-organize mb-4">
-                                    <LabelFieldComponent
-                                        type="text"
-                                        label={t('add_category')}
-                                        fieldSize="w-100 h-sm"
-                                        onChange={(e) => {
-                                            setCateName(e.target.value);
-                                        }}
-                                    />
-                                    {cateName.trim() ? (
-                                        <ButtonComponent className="mc-btn primary" onClick={createCateHandler}>
-                                            {t('add')}
-                                        </ButtonComponent>
-                                    ) : null}
-                                </div>
-                                {/* <div className="mc-product-upload-organize mb-4">
-                                    <LabelFieldComponent type="text" label={t('add_brand')} fieldSize="w-100 h-sm" />
-                                    <ButtonComponent className="mc-btn primary">{t('add')}</ButtonComponent>
-                                </div> */}
-                                {/* <div className="mc-product-upload-organize mb-4">
-                                    <LabelFieldComponent type="text" label={t('add_color')} fieldSize="w-100 h-sm" />
-                                    <ButtonComponent className="mc-btn primary">{t('add')}</ButtonComponent>
-                                </div>
-                                <div className="mc-product-upload-organize">
-                                    <LabelFieldComponent type="text" label={t('add_size')} fieldSize="w-100 h-sm" />
-                                    <ButtonComponent className="mc-btn primary">{t('add')}</ButtonComponent>
-                                </div> */}
-                            </Col>
-                        </Row>
-                    </div>
+                <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
                             <h4 className="mc-card-title">{t('specification')}</h4>
@@ -391,25 +545,225 @@ export default function ProductUploadPage() {
                             </Dropdown>
                         </div>
                         <Row>
-                            {/* <Col xl={12}>
-                                <LabelFieldComponent
-                                    label={t('size')}
-                                    option={['sm', 'md', 'lg', 'xl', 'xxl']}
-                                    fieldSize="mb-4 w-100 h-multiple"
-                                    multiple
-                                />
-                            </Col> */}
-                            {/* <Col xl={6}><LabelFieldComponent label={t('color')} option={['red', 'green', 'blue', 'pink', 'black']} fieldSize="mb-4 w-100 h-multiple" multiple/></Col> */}
+                            {variantData.length === 0 ? (
+                                <>
+                                    <Col xl={6}>
+                                        <LabelFieldComponent
+                                            type="text"
+                                            label={t('regular_price')}
+                                            fieldSize="mb-4 w-100 h-md"
+                                            onChange={(e) => setProductRePrice(e.target.value)}
+                                            defaultValue={productRePrice}
+                                        />
+                                    </Col>
+                                    <Col xl={6}>
+                                        <LabelFieldComponent
+                                            type="text"
+                                            label={t('discount_price')}
+                                            fieldSize="mb-4 w-100 h-md"
+                                            onChange={(e) => setProductDisPrice(e.target.value)}
+                                            defaultValue={productDisPrice}
+                                        />
+                                    </Col>
+                                    <Col xl={12}>
+                                        <LabelFieldComponent
+                                            type="text"
+                                            label={t('stock')}
+                                            fieldSize="mb-4 w-100 h-md"
+                                            onChange={(e) => setProductStock(e.target.value)}
+                                            defaultValue={productStock}
+                                        />
+                                    </Col>
+                                </>
+                            ) : null}
+
                             <Col xl={12}>
-                                <LabelFieldComponent
-                                    type="text"
-                                    label={t('stock')}
-                                    fieldSize="mb-4 w-100 h-md"
-                                    onChange={(e) => setProductStock(e.target.value)}
-                                    defaultValue={productStock}
+                                {variantData.map((variant, index) => {
+                                    return (
+                                        <div className="mc-card" style={{ backgroundColor: '#e8e8e8' }} key={variant._id}>
+                                            <div
+                                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                            >
+                                                <p
+                                                    style={{ display: 'none', cursor: 'default', minWidth: '50%' }}
+                                                    onClick={(e) => {
+                                                        const rootNode = e.currentTarget.parentNode;
+                                                        var childElements = rootNode.querySelectorAll('*');
+                                                        childElements[1].style.display = 'unset';
+                                                        childElements[1].value = variant.name;
+                                                        childElements[1].focus();
+                                                        childElements[0].style.display = 'none';
+                                                    }}
+                                                >
+                                                    {variant.name}
+                                                </p>
+                                                <input
+                                                    style={{
+                                                        padding: '3px 3px 3px 5px',
+                                                        width: '100%',
+                                                        borderBottom: '1px solid black',
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const rootNode = e.currentTarget.parentNode;
+                                                        const childElements = rootNode.querySelectorAll('*');
+                                                        if (e.currentTarget.value.trim().length > 0) {
+                                                            const arr = [...variantData];
+                                                            arr[index].name = e.currentTarget.value.trim();
+                                                            setVariantData([...arr]);
+                                                            ////////////////////////////////
+                                                            childElements[0].style.display = 'unset';
+                                                            childElements[1].style.display = 'none';
+                                                            childElements[1].style.border = 'none';
+                                                            childElements[1].style.color = 'unset';
+                                                        } else {
+                                                            //empty value
+                                                            childElements[1].style.borderBottom = '1px solid red';
+                                                            // childElements[0].style.display = 'unset';
+                                                            // childElements[1].style.display = 'none';
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                    placeholder="The box cannot be left blank"
+                                                ></input>
+                                                <i
+                                                    style={{ cursor: 'pointer' }}
+                                                    className="material-icons"
+                                                    onClick={() => {
+                                                        const arr = [...variantData];
+                                                        arr.splice(index, 1);
+                                                        setVariantData(arr);
+                                                    }}
+                                                >
+                                                    close
+                                                </i>
+                                            </div>
+                                            <hr />
+                                            <div>
+                                                <ButtonComponent
+                                                    type="button"
+                                                    title="Delete"
+                                                    className="material-icons add"
+                                                    onClick={() => {
+                                                        const arr = [...variantData];
+                                                        arr[index].data.push({
+                                                            _id: uuidv4(),
+                                                            name: '',
+                                                        });
+                                                        setVariantData([...arr]);
+                                                    }}
+                                                >
+                                                    {'add'}
+                                                </ButtonComponent>
+                                                <Row>
+                                                    {variant.data.map((varD, i) => {
+                                                        return (
+                                                            <Col xl={3}>
+                                                                <div
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        justifyContent: 'space-between',
+                                                                        alignItems: 'center',
+                                                                        width: '100%',
+                                                                    }}
+                                                                >
+                                                                    <p
+                                                                        style={{
+                                                                            display: 'none',
+                                                                            cursor: 'default',
+                                                                            width: '100%',
+                                                                        }}
+                                                                        onClick={(e) => {
+                                                                            const rootNode = e.currentTarget.parentNode;
+                                                                            var childElements = rootNode.querySelectorAll('*');
+                                                                            childElements[1].style.display = 'unset';
+                                                                            childElements[1].value = varD.name;
+                                                                            childElements[1].focus();
+                                                                            childElements[0].style.display = 'none';
+                                                                        }}
+                                                                    >
+                                                                        {varD.name}
+                                                                    </p>
+                                                                    <input
+                                                                        style={{
+                                                                            padding: '3px 3px 3px 5px',
+                                                                            width: '100%',
+                                                                            borderBottom: '1px solid black',
+                                                                        }}
+                                                                        onBlur={(e) => {
+                                                                            const rootNode = e.currentTarget.parentNode;
+                                                                            const childElements = rootNode.querySelectorAll('*');
+                                                                            if (e.currentTarget.value.trim().length > 0) {
+                                                                                const arr = [...variantData];
+                                                                                arr[index].data[i].name =
+                                                                                    e.currentTarget.value.trim();
+                                                                                setVariantData([...arr]);
+                                                                                ////////////////////////////////
+                                                                                childElements[0].style.display = 'unset';
+                                                                                childElements[1].style.display = 'none';
+                                                                                childElements[1].style.border = 'none';
+                                                                                childElements[1].style.color = 'unset';
+                                                                            } else {
+                                                                                //empty value
+                                                                                childElements[1].style.borderBottom =
+                                                                                    '1px solid red';
+                                                                            }
+                                                                        }}
+                                                                        autoFocus
+                                                                        placeholder="The box cannot be left blank"
+                                                                    ></input>
+                                                                    <i
+                                                                        style={{ cursor: 'pointer' }}
+                                                                        className="material-icons"
+                                                                        onClick={() => {
+                                                                            const arr = [...variantData];
+                                                                            if (arr[index].data.length > 1) {
+                                                                                arr[index].data.splice(i, 1);
+                                                                                setVariantData(arr);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        close
+                                                                    </i>
+                                                                </div>
+                                                            </Col>
+                                                        );
+                                                    })}
+                                                </Row>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </Col>
+                            <Col xl={12}>
+                                <ButtonComponent
+                                    className="mc-btn w-100 primary"
+                                    text={t('Add variant')}
+                                    icon="add"
+                                    onClick={() => {
+                                        setVariantData([
+                                            ...variantData,
+                                            { _id: uuidv4(), name: '', data: [{ _id: uuidv4(), name: '' }] },
+                                        ]);
+                                    }}
                                 />
                             </Col>
-                            {/* <Col xl={6}><LabelFieldComponent type="text" label={t('weight')} fieldSize="mb-4 w-100 h-md" /></Col> */}
+                            <Col xl={12}>
+                                <table className="variant-detail-table">
+                                    {variantData.length > 0 ? (
+                                        <>
+                                            <tr>
+                                                {variantData.map((varData, index) => {
+                                                    return <th>{varData.name ? varData.name : `Variant ${index}`}</th>;
+                                                })}
+                                                <th>Price</th>
+                                                <th>Discount Price</th>
+                                                <th>Stock</th>
+                                            </tr>
+                                            <tbody>{tableToRender}</tbody>
+                                        </>
+                                    ) : null}
+                                </table>
+                            </Col>
                         </Row>
                     </div>
                 </Col>
@@ -445,16 +799,6 @@ export default function ProductUploadPage() {
                                     </div>
                                 );
                             })}
-
-                            {/* <div className="mc-product-upload-image">
-                                <img src="images/product/single/02.webp" alt="product" />
-                            </div>
-                            <div className="mc-product-upload-image">
-                                <img src="images/product/single/03.webp" alt="product" />
-                            </div>
-                            <div className="mc-product-upload-image">
-                                <img src="images/product/single/04.webp" alt="product" />
-                            </div> */}
                             <div className="mc-product-upload-file">
                                 <input type="file" id="product" onChange={productImgChangeHandler} multiple />
                                 <label htmlFor="product">
