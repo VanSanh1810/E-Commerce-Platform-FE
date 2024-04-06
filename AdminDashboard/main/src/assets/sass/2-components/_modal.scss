@@ -91,7 +91,7 @@
     padding: 0px 35px 35px;
     text-align: center;
 
-    i {
+    > i {
         font-size: 45px;
         margin-top: -35px;
         @include content-center(80px, 80px, 50%);

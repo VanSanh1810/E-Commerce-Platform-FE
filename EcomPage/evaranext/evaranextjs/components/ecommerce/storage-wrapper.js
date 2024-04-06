@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
-import { connect } from "react-redux";
-import * as Types from "../../redux/constants/actionTypes";
-import storage from "../../util/localStorage";
+import React, { useEffect } from 'react';
+import { connect, useDispatch } from 'react-redux';
+import * as Types from '../../redux/constants/actionTypes';
+import storage from '../../util/localStorage';
+import { authenticateUser } from '../../redux/action/user';
 
 const saveStoredItems = (storedItems) => (dispatch) => {
     dispatch({
@@ -11,12 +12,17 @@ const saveStoredItems = (storedItems) => (dispatch) => {
 };
 
 const StorageWrapper = (props) => {
+    const dispatch = useDispatch();
     useEffect(() => {
-        const cart = storage.get("dokani_cart") || [];
-        const wishlist = storage.get("dokani_wishlist") || [];
-        const compare = storage.get("dokani_compare") || [];
+        dispatch(authenticateUser());
 
-        props.saveStoredItems({ cart, wishlist, compare });
+        // const cart = storage.get('dokani_cart') || [];
+
+
+        // const wishlist = storage.get('dokani_wishlist') || [];
+        // const compare = storage.get('dokani_compare') || [];
+
+        // props.saveStoredItems({ cart, wishlist, compare });
     }, []);
 
     return <>{props.children}</>;

@@ -4,7 +4,7 @@ import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function UsersTableComponent({ thead, tbody }) {
+export default function ShopTableComponent({ thead, tbody }) {
     const { t } = useContext(TranslatorContext);
 
     const [data, setData] = useState([]);
@@ -96,16 +96,16 @@ export default function UsersTableComponent({ thead, tbody }) {
                                     <ButtonComponent
                                         title="Edit"
                                         className="material-icons edit"
-                                        onClick={() => setBlockModal({ _id: item._id, status: item.status })}
+                                        onClick={() => setEditModal(true, setUserData(item))}
                                     >
                                         edit
                                     </ButtonComponent>
                                     <ButtonComponent
                                         title="Delete"
                                         className="material-icons block"
-                                        onClick={() => setEditModal(true, setUserData(item))}
+                                        onClick={() => setBlockModal({ _id: item._id, status: item.status })}
                                     >
-                                        delete
+                                        block
                                     </ButtonComponent>
                                 </div>
                             </td>
@@ -117,15 +117,29 @@ export default function UsersTableComponent({ thead, tbody }) {
             <Modal show={editModal} onHide={() => setEditModal(false, setUserData(''))}>
                 <div className="mc-user-modal">
                     <img src={userData.src} alt={userData?.alt} />
-                    <p>Want to delete this user's account ?</p>
                     <h4>{userData?.name}</h4>
                     <p>{userData?.email}</p>
+                    <Form.Group className="form-group inline mb-4">
+                        <Form.Label>{t('role')}</Form.Label>
+                        <Form.Select>
+                            <option value="admin">{t('admin')}</option>
+                            <option value="user">{t('user')}</option>
+                            <option value="vendor">{t('vendor')}</option>
+                        </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="form-group inline">
+                        <Form.Label>{t('status')}</Form.Label>
+                        <Form.Select>
+                            <option value="approved">{t('active')}</option>
+                            <option value="blocked">{t('banned')}</option>
+                        </Form.Select>
+                    </Form.Group>
                     <Modal.Footer>
                         <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setEditModal(false)}>
-                            {t('close')}
+                            {t('close_popup')}
                         </ButtonComponent>
-                        <ButtonComponent type="button" className="btn btn-danger" onClick={() => setEditModal(false)}>
-                            {t('delete')}
+                        <ButtonComponent type="button" className="btn btn-success" onClick={() => setEditModal(false)}>
+                            {t('save_changes')}
                         </ButtonComponent>
                     </Modal.Footer>
                 </div>
@@ -135,20 +149,20 @@ export default function UsersTableComponent({ thead, tbody }) {
                 <div className="mc-alert-modal">
                     <i className="material-icons">new_releases</i>
                     <h3>are your sure!</h3>
-                    <p>Want to change this user's account status to {blockModal.status === 'active' ? 'banned' : 'active'}?</p>
+                    <p>Want to block this user's account?</p>
                     <Modal.Footer>
                         <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setBlockModal(false)}>
                             {t('close')}
                         </ButtonComponent>
                         <ButtonComponent
                             type="button"
-                            className="btn btn-success"
+                            className="btn btn-danger"
                             onClick={() => {
                                 blockUserHandler(blockModal);
                                 setBlockModal(false);
                             }}
                         >
-                            {t('change')}
+                            {t('block')}
                         </ButtonComponent>
                     </Modal.Footer>
                 </div>

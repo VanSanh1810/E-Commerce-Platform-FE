@@ -5,11 +5,13 @@ import { ButtonComponent } from '../elements';
 import { LabelFieldComponent } from '../fields';
 import { Col } from 'react-bootstrap';
 import axiosInstance from '../../configs/axiosInstance';
+import { useSelector } from 'react-redux';
 
-export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
+export default function ClassifyTableComponent({ thead, tbody, reload, setReload }) {
     const { t } = useContext(TranslatorContext);
+    const { shopId } = useSelector((state) => state.persistedReducer.authReducer);
 
-    const [alertModal, setAlertModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState(false);
     const [editModal, setEditModal] = useState(false);
     const [data, setData] = useState([]);
 
@@ -17,65 +19,44 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
 
     const [editData, setEditData] = useState('');
 
-    const editCateHandler = async () => {
+    const editClassifyHandler = async () => {
         try {
-            const result = await axiosInstance.patch(`/api/category/${editModal?.id}`, {
+            const result = await axiosInstance.patch(`/api/classify/${editModal?.id}`, {
                 name: editData.trim(),
             });
             console.log(result);
             setReloadAction(!reloadAction);
+            setReload(!reload);
         } catch (e) {
             console.log(e);
         }
         setEditModal(false);
     };
 
-    const deleteCateHandler = async () => {
+    const deleteClassifyHandler = async () => {
         try {
-            const result = await axiosInstance.delete(`/api/category/${alertModal}`);
+            const result = await axiosInstance.delete(`/api/classify/${deleteModal}`);
             console.log(result);
-
             setReloadAction(!reloadAction);
+            setReload(!reload);
         } catch (e) {
             console.log(e);
         }
-        setAlertModal(false);
+        setDeleteModal(false);
     };
 
     useEffect(() => {
-        const fetchCateData = async () => {
+        const fetchClassifyData = async () => {
             try {
-                const result = await axiosInstance.get('/api/category');
+                const result = await axiosInstance.get(`/api/classify/${shopId}`);
                 setData(result.data.data);
-                console.log(result.data);
+                // console.log(result.data);
             } catch (e) {
                 console.log(e);
             }
         };
-        fetchCateData();
-    }, [reloadAction]);
-
-    useEffect(() => {
-        if (data.length === 0) {
-            setIsEmpty(true);
-        } else {
-            setIsEmpty(true);
-        }
-    }, [data, setIsEmpty]);
-
-    const handleCheckbox = (event) => {
-        const { name, checked } = event.target;
-
-        if (name === 'allCheck') {
-            const checkData = data?.map((item) => {
-                return { ...item, isChecked: checked };
-            });
-            setData(checkData);
-        } else {
-            const checkData = data?.map((item) => (item.name === name ? { ...item, isChecked: checked } : item));
-            setData(checkData);
-        }
-    };
+        fetchClassifyData();
+    }, [reloadAction, shopId, reload]);
 
     return (
         <div className="mc-table-responsive">
@@ -84,16 +65,10 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
                     <tr>
                         <th>
                             <div className="mc-table-check">
-                                {/* <input 
-                                    type="checkbox" 
-                                    name="allCheck"
-                                    checked={ data?.filter((item)=> item.isChecked !== true).length < 1 } 
-                                    onChange={ handleCheckbox } 
-                                /> */}
                                 <p>uid</p>
                             </div>
                         </th>
-                        <th>{t('Category Name')}</th>
+                        <th>{t('Name')}</th>
                         <th>{t('Created')}</th>
                         <th>{t('Total product')}</th>
                         <th>{t('Action')}</th>
@@ -123,8 +98,8 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
                                     </div>
                                 </div>
                             </td>
-                            <td>{item.createDate}</td>
-                            <td>{item.products.length}</td>
+                            <td>{Date(item.createDate)}</td>
+                            <td>{item.product.length}</td>
                             <td>
                                 <div className="mc-table-action">
                                     {/* <AnchorComponent to="/product-view" title="View" className="material-icons view">{ item.action.view }</AnchorComponent> */}
@@ -144,7 +119,7 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
                                         type="button"
                                         title="Delete"
                                         className="material-icons delete"
-                                        onClick={() => setAlertModal(item._id)}
+                                        onClick={() => setDeleteModal(item._id)}
                                     >
                                         delete
                                     </ButtonComponent>
@@ -155,16 +130,16 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
                 </tbody>
             </table>
 
-            <Modal show={alertModal ? true : false} onHide={() => setAlertModal(false)}>
+            <Modal show={deleteModal ? true : false} onHide={() => setDeleteModal(false)}>
                 <div className="mc-alert-modal">
                     <i className="material-icons">new_releases</i>
                     <h3>are your sure!</h3>
                     <p>Want to delete this category?</p>
                     <Modal.Footer>
-                        <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setAlertModal(false)}>
+                        <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setDeleteModal(false)}>
                             {t('close')}
                         </ButtonComponent>
-                        <ButtonComponent type="button" className="btn btn-danger" onClick={deleteCateHandler}>
+                        <ButtonComponent type="button" className="btn btn-danger" onClick={deleteClassifyHandler}>
                             {t('delete')}
                         </ButtonComponent>
                     </Modal.Footer>
@@ -192,7 +167,7 @@ export default function CategoryTableComponent({ thead, tbody, setIsEmpty }) {
                             {t('close')}
                         </ButtonComponent>
                         {editModal.name?.trim() !== editData?.trim() ? (
-                            <ButtonComponent type="button" className="btn btn-success" onClick={editCateHandler}>
+                            <ButtonComponent type="button" className="btn btn-success" onClick={editClassifyHandler}>
                                 {t('Save')}
                             </ButtonComponent>
                         ) : null}

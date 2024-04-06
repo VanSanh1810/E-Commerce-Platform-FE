@@ -4,7 +4,7 @@ import { ButtonComponent } from '../../components/elements';
 import IconFieldComponent from '../../components/fields/IconFieldComponent';
 import LogoComponent from '../../components/LogoComponent';
 import { useDispatch } from 'react-redux';
-import { setAdminToken, setRole } from '../../store/reducers/authReducer';
+import { setAdminToken, setRole, setShopId } from '../../store/reducers/authReducer';
 import { Toast } from 'react-bootstrap';
 import axiosInstance from '../../configs/axiosInstance';
 
@@ -25,10 +25,12 @@ export default function LoginPage() {
             const result = await axiosInstance.post('/api/auth/login', {
                 email: email.current.value,
                 password: pass.current.value,
+                isAdminPage: true,
             });
             console.log(result.data);
             dispatch(setAdminToken(result.data.token));
             dispatch(setRole(result.data.data.role));
+            dispatch(setShopId(result.data.data.shop));
         } catch (e) {
             console.log(e);
         }

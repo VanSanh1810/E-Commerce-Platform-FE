@@ -1,24 +1,29 @@
-import FeatchTab from "../components/ecommerce/fetchTab";
-import FeatchTab2 from "../components/ecommerce/fetchTabSlider";
-import Banner2 from "../components/elements/Banner2";
-import Bottom from "../components/elements/Bottom";
-import QuickView from "./../components/ecommerce/QuickView";
-import Banner3 from "./../components/elements/Banner3";
-import Banner4 from "./../components/elements/Banner4";
-import Banner5 from "./../components/elements/Banner5";
-import BannerFeatures from "./../components/elements/BannerFeatures";
-import Deals1 from "./../components/elements/Deals1";
-import Deals2 from "./../components/elements/Deals2";
-import HomeBlog from "./../components/elements/HomeBlog";
-import IntroPopup from "./../components/elements/IntroPopup";
-import Layout from "./../components/layout/Layout";
-import BrandSlider from "./../components/sliders/Brand";
-import CategorySlider from "./../components/sliders/Category";
-import Intro1 from "./../components/sliders/Intro1";
-import NewArrival from "./../components/sliders/NewArrival";
-
+import { useEffect } from 'react';
+import FeatchTab from '../components/ecommerce/fetchTab';
+import FeatchTab2 from '../components/ecommerce/fetchTabSlider';
+import Banner2 from '../components/elements/Banner2';
+import Bottom from '../components/elements/Bottom';
+import QuickView from './../components/ecommerce/QuickView';
+import Banner3 from './../components/elements/Banner3';
+import Banner4 from './../components/elements/Banner4';
+import Banner5 from './../components/elements/Banner5';
+import BannerFeatures from './../components/elements/BannerFeatures';
+import Deals1 from './../components/elements/Deals1';
+import Deals2 from './../components/elements/Deals2';
+import HomeBlog from './../components/elements/HomeBlog';
+import IntroPopup from './../components/elements/IntroPopup';
+import Layout from './../components/layout/Layout';
+import BrandSlider from './../components/sliders/Brand';
+import CategorySlider from './../components/sliders/Category';
+import Intro1 from './../components/sliders/Intro1';
+import NewArrival from './../components/sliders/NewArrival';
+import axiosInstance from '../config/axiosInstance';
 
 export default function Home() {
+    useEffect(() => {
+        
+    });
+
     return (
         <>
             <IntroPopup />
@@ -56,10 +61,7 @@ export default function Home() {
                             <span>Popular</span> Categories
                         </h3>
                         <div className="carausel-6-columns-cover position-relative">
-                            <div
-                                className="carausel-6-columns"
-                                id="carausel-6-columns"
-                            >
+                            <div className="carausel-6-columns" id="carausel-6-columns">
                                 <CategorySlider />
                             </div>
                         </div>
@@ -143,7 +145,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                <Bottom/>
+                <Bottom />
 
                 <QuickView />
             </Layout>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Zoom from "react-img-zoom";
 import SwiperCore, { Navigation, Thumbs } from "swiper";
 import "swiper/css/thumbs";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -21,14 +22,14 @@ const ThumbSlider = ({ product }) => {
                 thumbs={{ swiper: thumbsSwiper }}
                 className="mySwiper2"
             >
-                {product.gallery.map((item,i) => (
+                {product.images.map((item,i) => (
                     <SwiperSlide key={i}>
-                        <img src={item.thumb} alt="evara"/>
+                        <img src={item.url} alt="evara"/>
                         {/* <Zoom
-                            img={item.thumb}
+                            img={item.url}
                             zoomScale={5}
-                            width={500}
-                            height={500}
+                            width={200}
+                            height={200}
                             ransitionTime={0.5}
                         /> */}
                     </SwiperSlide>
@@ -43,9 +44,9 @@ const ThumbSlider = ({ product }) => {
                 watchSlidesProgress={true}
                 className="mySwiper"
             >
-                {product.gallery.map((item, i) => (
+                {product.images.map((item, i) => (
                     <SwiperSlide key={i}>
-                        <img src={item.thumb} alt="evara" />
+                        <img src={item.url} alt="evara" />
                     </SwiperSlide>
                 ))}
             </Swiper>

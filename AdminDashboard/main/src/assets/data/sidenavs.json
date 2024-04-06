@@ -27,6 +27,11 @@
                     { "path": "/category", "text": "category" }
                 ]
             },
+            {
+                "icon": "store",
+                "path":  "/shop",
+                "text": "shops"
+            },
             { 
                 "path": "#",
                 "icon": "article", 

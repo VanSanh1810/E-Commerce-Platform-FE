@@ -86,7 +86,7 @@ const Login = ({ user, userLogin, userLogout }) => {
                                                             type="password"
                                                             name="password"
                                                             placeholder="Password"
-                                                            pattern="(?=.*\d)(?=.*[a-z]).{8,}"
+                                                            pattern="(?=.*\d)(?=.*[a-z]).{7,}"
                                                             ref={l_passRef}
                                                         />
                                                     </div>

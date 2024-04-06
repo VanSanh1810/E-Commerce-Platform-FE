@@ -15,11 +15,7 @@ export default function LabelFieldComponent({
     const { t } = useContext(TranslatorContext);
     return (
         <div className={`mc-label-field-group ${label ? labelDir || 'label-col' : ''}`}>
-            {label && (
-                <label className="mc-label-field-title">
-                    {t(label)} {err && <label style={{ color: '#f54242' }}>{t(err)}</label>}
-                </label>
-            )}
+            {label && <label className="mc-label-field-title">{t(label)}</label>}
 
             {type ? (
                 <input
@@ -41,7 +37,7 @@ export default function LabelFieldComponent({
                         {...rest}
                     >
                         {option.map((item, index) => (
-                            <option key={index} value={item}>
+                            <option selected={defaultSelection === item} key={index} value={item}>
                                 {t(item)}
                             </option>
                         ))}

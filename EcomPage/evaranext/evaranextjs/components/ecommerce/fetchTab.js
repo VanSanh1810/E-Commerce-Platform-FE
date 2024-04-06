@@ -4,6 +4,7 @@ import FeaturedTab from './../elements/FeaturedTab';
 import NewArrivalTab from './../elements/NewArrivalTab';
 import TrendingTab from './../elements/TrendingTab';
 import Link from "next/link"
+import axiosInstance from "../../config/axiosInstance";
 
 function FeatchTab() {
     const [active, setActive] = useState("1");
@@ -12,11 +13,22 @@ function FeatchTab() {
     const [newArrival, setNewArrival] = useState([]);
 
     const featuredProduct = async () => {
-        const request = await fetch(`${server}/static/product.json`);
-        const allProducts = await request.json();
-        const featuedItem = allProducts.filter((item) => item.featured);
-        setFeatured(featuedItem);
+        // const request = await fetch(`${server}/static/product.json`);
+        // const allProducts = await request.json();
+        // const featuedItem = allProducts.filter((item) => item.featured);
+        // setFeatured(featuedItem);
         setActive("1");
+
+        const fetchAllProducts = async () => {
+            try {
+                const result = await axiosInstance.get('/api/product');
+                console.log(result.data);
+                setFeatured(result.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchAllProducts();
     };
 
     const trendingProduct = async () => {

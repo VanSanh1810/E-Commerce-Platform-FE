@@ -1,8 +1,22 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const Private = ({ children }) => {
+const Private = ({ children, roleAllow }) => {
+    const XNOR = (a, b) => {
+        return (a && b) || (!a && !b);
+    };
+
     const { adminToken } = useSelector((state) => state.persistedReducer.authReducer);
-    return adminToken ? children : <Navigate to="/login" />;
+    const { isVendor } = useSelector((state) => state.persistedReducer.authReducer);
+    if (roleAllow) {
+        if (XNOR(roleAllow === 'vendor', isVendor)) {
+            return adminToken ? children : <Navigate to="/login" />;
+        } else {
+            return adminToken ? <Navigate to="/" /> : <Navigate to="/login" />;
+        }
+    } else {
+        //all roles can access
+        return adminToken ? children : <Navigate to="/login" />;
+    }
 };
 export default Private;

@@ -7,7 +7,7 @@ import { FloatCardComponent, ActivityCardComponent } from '../../components/card
 import PageLayout from '../../layouts/PageLayout';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function UserProfilePage() {
+export default function ShopProfilePage() {
     const { t } = useContext(TranslatorContext);
     const { uid } = useParams();
 

@@ -7,6 +7,7 @@ import compare from './compare';
 import productFilters from './productFilters';
 import user from './user';
 
+
 const rootReducer = combineReducers({
     products,
     cart,

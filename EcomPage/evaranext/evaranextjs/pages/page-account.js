@@ -5,9 +5,142 @@ import axiosInstance from '../config/axiosInstance';
 import { connect } from 'react-redux';
 import { userLogin, userLogout } from '../redux/action/user';
 import { toast } from 'react-toastify';
+import { Badge, Row, Col } from 'react-bootstrap';
+import { Modal } from 'react-responsive-modal';
+import AddressStaticData from '../public/static/dataprovince';
 
-function Account({ userLogout }) {
+function Account({ userLogout, isLoggedIn }) {
     const [activeIndex, setActiveIndex] = useState(1);
+
+    //****************ADDRESS TAB ******************/
+    const [addressModal, setAddressModal] = useState(false);
+    const [delAddressModal, setDelAddressModal] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState([null, null, null]);
+
+    const [currentDistrict, setCurrentDistrict] = useState([]);
+    const [currentWard, setCurrentWard] = useState([]);
+
+    const [allUserAddresses, setAllUserAddresses] = useState([]);
+
+    const setSelectAd = (code, location) => {
+        let arr = [...selectedAddress];
+        let i = location + 1;
+        while (i < arr.length) {
+            arr[i] = null;
+            i = i + 1;
+        }
+        arr[location] = code;
+        // console.log(arr);
+        setSelectedAddress([...arr]);
+        // console.log(AddressStaticData.dataProvince);
+        // console.log(AddressStaticData.treeDataProvince);
+    };
+
+    const isAllAddressSelected = () => {
+        if (selectedAddress[0] !== null && selectedAddress[1] !== null && selectedAddress[2] !== null) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    const addNewAddressHandler = async (e) => {
+        e.preventDefault();
+        if (!isAllAddressSelected(selectedAddress)) {
+            toast.error('Please select a province, district and ward');
+            return;
+        }
+        try {
+            const response = await axiosInstance.post('/api/address', {
+                name: e.target.name.value,
+                phone: e.target.phone.value,
+                addressData: {
+                    province: selectedAddress[0],
+                    district: selectedAddress[1],
+                    ward: selectedAddress[2],
+                    detail: e.target.adDetail.value,
+                },
+                isHome: e.target.isHome.checked,
+                isWork: e.target.isWork.checked,
+            });
+            console.log(response);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const updateAddressHandler = async (e) => {
+        e.preventDefault();
+        if (!isAllAddressSelected(selectedAddress)) {
+            toast.error('Please select a province, district and ward');
+            return;
+        }
+        if (
+            addressModal.name === e.target.name.value &&
+            addressModal.phone === e.target.phone.value &&
+            addressModal.detail === e.target.adDetail.value &&
+            addressModal.isWork === e.target.isWork.checked &&
+            addressModal.isHome === e.target.isHome.checked &&
+            addressModal.address[0] === selectedAddress[0] &&
+            addressModal.address[1] === selectedAddress[1] &&
+            addressModal.address[2] === selectedAddress[2]
+        ) {
+            // nothing changed
+            return;
+        }
+        try {
+            const response = await axiosInstance.patch(`/api/address/${addressModal._id}`, {
+                name: e.target.name.value,
+                phone: e.target.phone.value,
+                addressData: {
+                    province: selectedAddress[0],
+                    district: selectedAddress[1],
+                    ward: selectedAddress[2],
+                    detail: e.target.adDetail.value,
+                },
+                isHome: e.target.isHome.checked,
+                isWork: e.target.isWork.checked,
+            });
+            console.log(response);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const deleteAddressHandler = async (e) => {
+        try {
+            const response = await axiosInstance.delete(`/api/address/${delAddressModal}`);
+            console.log(response);
+            setDelAddressModal(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    //****************ACOUNT DETAIL TAB ******************/
+    const [userName, setUserName] = useState();
+    const [userEmail, setUserEmail] = useState();
+    const [userStatus, setUserStatus] = useState('active');
+
+    const updateAccountDetailHandler = async (e) => {
+        e.preventDefault();
+        console.log(e.target.dname.value);
+        console.log(e.target.email.value);
+        if (e.target.dname.value.trim() === userName && e.target.email.value.trim() === userEmail) {
+            toast.info('No data changed !');
+        } else {
+            try {
+                const result = await axiosInstance.patch('/api/user/0', {
+                    name: e.target.dname.value,
+                    email: e.target.email.value,
+                    b: 1322,
+                });
+                console.log(result.data);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    };
 
     const handleOnClick = (index) => {
         setActiveIndex(index); // remove the curly braces
@@ -23,25 +156,67 @@ function Account({ userLogout }) {
         }
     };
 
-    useEffect(() => {
-        switch (activeIndex) {
-            case 2: //orders
-                toast.success('2');
-                break;
-            case 3: // track orders
-                toast.success('3');
-                break;
-            case 4: //my address
-                toast.success('4');
-                break;
-            case 5: //account details
-                toast.success('5');
-                break;
-            case 6: //change password
-                toast.success('6');
-                break;
-            default:
+    const changePasswordHandler = async (e) => {
+        e.preventDefault();
+        if (e.target.password.value?.trim() === '') {
+            toast.error('Current password must not be empty');
+            return;
         }
+        if (e.target.npassword.value?.trim() === '') {
+            toast.error('New password must not be empty');
+            return;
+        }
+        if (e.target.npassword.value?.trim() === e.target.cpassword.value?.trim()) {
+            try {
+                const result = await axiosInstance.patch('/api/user/updateUserPassword', {
+                    oldPassword: e.target.password.value?.trim(),
+                    newPassword: e.target.npassword.value?.trim(),
+                });
+                console.log(result.data);
+            } catch (e) {
+                console.log(e);
+            }
+        } else {
+            toast.error('New password and comfirm password must be the same !');
+        }
+    };
+
+    useEffect(() => {
+        console.log(isLoggedIn);
+        const tabAction = async () => {
+            switch (activeIndex) {
+                case 2: //orders
+                    toast.success('2');
+                    break;
+                case 3: // track orders
+                    toast.success('3');
+                    break;
+                case 4: //my address
+                    try {
+                        const result = await axiosInstance.get('/api/address/0');
+                        console.log(result.data);
+                        setAllUserAddresses([...result.data.data.addressList]);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    break;
+                case 5: //account details
+                    try {
+                        const result = await axiosInstance.get('/api/user/0');
+                        console.log(result.data);
+                        setUserName(result.data.data.name);
+                        setUserEmail(result.data.data.email);
+                        setUserStatus(result.data.data.status);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    break;
+                case 6: //change password
+                    break;
+                default:
+            }
+        };
+        tabAction();
     }, [activeIndex]);
 
     return (
@@ -55,12 +230,12 @@ function Account({ userLogout }) {
                                     <div className="col-md-4">
                                         <div className="dashboard-menu">
                                             <ul className="nav flex-column" role="tablist">
-                                                {/* <li className="nav-item" onClick={() => handleOnClick(1)}>
+                                                <li className="nav-item" onClick={() => handleOnClick(1)}>
                                                     <a className={activeIndex === 1 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-settings-sliders mr-10"></i>
                                                         Dashboard
                                                     </a>
-                                                </li> */}
+                                                </li>
                                                 <li className="nav-item" onClick={() => handleOnClick(2)}>
                                                     <a className={activeIndex === 2 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-shopping-bag mr-10"></i>
@@ -121,6 +296,12 @@ function Account({ userLogout }) {
                                                             <a href="#">shipping and billing addresses</a>
                                                             and
                                                             <a href="#">edit your password and account details.</a>
+                                                        </p>
+                                                        <p>
+                                                            And you can easily access to your vendor page{' '}
+                                                            <a href="http://localhost:3006" target="_blank">
+                                                                here
+                                                            </a>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -243,48 +424,105 @@ function Account({ userLogout }) {
                                                 role="tabpanel"
                                                 aria-labelledby="address-tab"
                                             >
+                                                <button
+                                                    className="btn btn-primary mb-2"
+                                                    onClick={() => {
+                                                        setAddressModal(true);
+                                                        setSelectedAddress([...[null, null, null]]);
+                                                    }}
+                                                >
+                                                    add
+                                                </button>
                                                 <div className="row">
-                                                    <div className="col-lg-12">
-                                                        <div className="card mb-3 mb-lg-0">
-                                                            <div className="card-header">
-                                                                <h5 className="mb-0">Billing Address</h5>
+                                                    {allUserAddresses.map((addressData) => {
+                                                        const province =
+                                                            AddressStaticData.treeDataProvince[addressData.address.province];
+                                                        const district =
+                                                            AddressStaticData.treeDataProvince[addressData.address.province]
+                                                                .district[addressData.address.district];
+                                                        const ward =
+                                                            AddressStaticData.treeDataProvince[addressData.address.province]
+                                                                .district[addressData.address.district].ward[
+                                                                addressData.address.ward
+                                                            ];
+                                                        return (
+                                                            <div className="col-lg-12">
+                                                                <div className="card mb-3 mb-lg-0">
+                                                                    <div className="card-header">
+                                                                        <h5 className="mb-0">{addressData.name}</h5>
+                                                                    </div>
+                                                                    <div className="card-body">
+                                                                        <address>
+                                                                            {addressData.address.detail}
+                                                                            <br />
+                                                                            {addressData.phone}
+                                                                            <br />
+                                                                            {ward.label}
+                                                                            <br />
+                                                                            {district.label}
+                                                                            <br />
+                                                                            {province.label}
+                                                                        </address>
+                                                                        {!addressData.isHome && !addressData.isWork ? null : (
+                                                                            <Badge
+                                                                                bg={addressData.isHome ? 'success' : 'primary'}
+                                                                            >
+                                                                                {addressData.isHome ? 'Home' : 'Work'}
+                                                                            </Badge>
+                                                                        )}
+                                                                        <br />
+                                                                        <a
+                                                                            href="#"
+                                                                            className="btn-small"
+                                                                            onClick={() => {
+                                                                                setCurrentDistrict(
+                                                                                    AddressStaticData.treeDataProvince[
+                                                                                        addressData.address.province
+                                                                                    ].district,
+                                                                                );
+                                                                                setCurrentWard(
+                                                                                    AddressStaticData.treeDataProvince[
+                                                                                        addressData.address.province
+                                                                                    ].district[addressData.address.district].ward,
+                                                                                );
+                                                                                setSelectedAddress([
+                                                                                    province.value,
+                                                                                    district.value,
+                                                                                    ward.value,
+                                                                                ]);
+                                                                                setAddressModal({
+                                                                                    _id: addressData._id,
+                                                                                    phone: addressData.phone,
+                                                                                    address: [
+                                                                                        addressData.address.province,
+                                                                                        addressData.address.district,
+                                                                                        addressData.address.ward,
+                                                                                    ],
+                                                                                    name: addressData.name,
+                                                                                    detail: addressData.address.detail,
+                                                                                    isWork: addressData.isWork,
+                                                                                    isHome: addressData.isHome,
+                                                                                });
+                                                                            }}
+                                                                        >
+                                                                            Edit
+                                                                        </a>
+                                                                        {'   '}|{'   '}
+                                                                        <a
+                                                                            style={{ color: 'red' }}
+                                                                            href="#"
+                                                                            className="btn-small"
+                                                                            onClick={() => {
+                                                                                setDelAddressModal(addressData._id);
+                                                                            }}
+                                                                        >
+                                                                            Delete
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div className="card-body">
-                                                                <address>
-                                                                    3522 Interstate
-                                                                    <br /> 75 Business Spur,
-                                                                    <br /> Sault Ste. <br />
-                                                                    Marie, MI 49783
-                                                                </address>
-                                                                <p>New York</p>
-                                                                <a href="#" className="btn-small">
-                                                                    Edit
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-lg-12">
-                                                        <div className="card">
-                                                            <div className="card-header">
-                                                                <h5 className="mb-0">Shipping Address</h5>
-                                                            </div>
-                                                            <div className="card-body">
-                                                                <address>
-                                                                    4299 Express Lane
-                                                                    <br />
-                                                                    Sarasota,
-                                                                    <br />
-                                                                    FL 34249 USA
-                                                                    <br />
-                                                                    Phone: 1.941.227.4444
-                                                                </address>
-                                                                <p>Sarasota</p>
-                                                                <a href="#" className="btn-small">
-                                                                    Edit
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                             <div
@@ -298,31 +536,8 @@ function Account({ userLogout }) {
                                                         <h5>Account Details</h5>
                                                     </div>
                                                     <div className="card-body">
-                                                        <form method="post" name="enq">
+                                                        <form method="post" name="enq" onSubmit={updateAccountDetailHandler}>
                                                             <div className="row">
-                                                                {/* <div className="form-group col-md-6">
-                                                                    <label>
-                                                                        First Name
-                                                                        <span className="required">*</span>
-                                                                    </label>
-                                                                    <input
-                                                                        required=""
-                                                                        className="form-control square"
-                                                                        name="name"
-                                                                        type="text"
-                                                                    />
-                                                                </div>
-                                                                <div className="form-group col-md-6">
-                                                                    <label>
-                                                                        Last Name
-                                                                        <span className="required">*</span>
-                                                                    </label>
-                                                                    <input
-                                                                        required=""
-                                                                        className="form-control square"
-                                                                        name="phone"
-                                                                    />
-                                                                </div> */}
                                                                 <div className="form-group col-md-12">
                                                                     <label>
                                                                         Display Name
@@ -333,6 +548,7 @@ function Account({ userLogout }) {
                                                                         className="form-control square"
                                                                         name="dname"
                                                                         type="text"
+                                                                        defaultValue={userName}
                                                                     />
                                                                 </div>
                                                                 <div className="form-group col-md-12">
@@ -345,16 +561,18 @@ function Account({ userLogout }) {
                                                                         className="form-control square"
                                                                         name="email"
                                                                         type="email"
+                                                                        defaultValue={userEmail}
                                                                     />
                                                                 </div>
                                                                 <div className="form-group col-md-12">
-                                                                    <label>Status</label>
-                                                                    {/* <input
-                                                                        required=""
-                                                                        className="form-control square"
-                                                                        name="email"
-                                                                        type="email"
-                                                                    /> */}
+                                                                    <label>
+                                                                        Status :{' '}
+                                                                        <Badge
+                                                                            bg={userStatus === 'active' ? 'success' : 'danger'}
+                                                                        >
+                                                                            {userStatus}
+                                                                        </Badge>
+                                                                    </label>
                                                                 </div>
                                                                 <div className="col-md-12">
                                                                     <button
@@ -382,7 +600,7 @@ function Account({ userLogout }) {
                                                         <h5>Change Password</h5>
                                                     </div>
                                                     <div className="card-body">
-                                                        <form method="post" name="enq">
+                                                        <form method="post" name="enq" onSubmit={changePasswordHandler}>
                                                             <div className="row">
                                                                 <div className="form-group col-md-12">
                                                                     <label>
@@ -442,9 +660,235 @@ function Account({ userLogout }) {
                         </div>
                     </div>
                 </section>
+                <Modal
+                    open={addressModal ? true : false}
+                    onClose={() => {
+                        setSelectedAddress([...[null, null, null]]);
+                        setCurrentDistrict([]);
+                        setCurrentWard([]);
+                        setAddressModal(false);
+                    }}
+                >
+                    <p className="pb-3">Add new address</p>
+                    <div style={{ width: '400px' }} className="row">
+                        <form onSubmit={addressModal._id ? updateAddressHandler : addNewAddressHandler}>
+                            <div className="form-group col-md-12">
+                                <label>
+                                    Name
+                                    <span className="required">*</span>
+                                </label>
+                                <input
+                                    required
+                                    className="form-control square"
+                                    name="name"
+                                    type="text"
+                                    defaultValue={addressModal?.name}
+                                />
+                                <label>
+                                    Phone
+                                    <span className="required">*</span>
+                                </label>
+                                <input
+                                    required
+                                    className="form-control square"
+                                    name="phone"
+                                    type="text"
+                                    defaultValue={addressModal?.phone}
+                                />
+                                <label className="pt-2">
+                                    Province
+                                    <span className="required">*</span>
+                                </label>
+                                <select
+                                    className="form-control select-active"
+                                    onChange={async (e) => {
+                                        try {
+                                            const data = JSON.parse(e.target.value);
+                                            setSelectAd(data.value, 0);
+                                            setCurrentDistrict(data.district);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    }}
+                                >
+                                    <option value="">Select an option...</option>
+                                    {Object.keys(AddressStaticData.treeDataProvince)?.map((key) => {
+                                        return (
+                                            <option
+                                                selected={selectedAddress[0] === AddressStaticData.treeDataProvince[key].value}
+                                                value={JSON.stringify(AddressStaticData.treeDataProvince[key])}
+                                            >
+                                                {AddressStaticData.treeDataProvince[key].label}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+
+                                {selectedAddress[0] ? (
+                                    <>
+                                        <label className="pt-2">
+                                            District
+                                            <span className="required">*</span>
+                                        </label>
+                                        <select
+                                            key={selectedAddress[0]}
+                                            className="form-control select-active"
+                                            onChange={async (e) => {
+                                                try {
+                                                    const data = JSON.parse(e.target.value);
+                                                    setSelectAd(data.value, 1);
+                                                    setCurrentWard(data.ward);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                }
+                                            }}
+                                        >
+                                            <option value="">Select an option...</option>
+                                            {Object.keys(currentDistrict).map((key) => {
+                                                return (
+                                                    <option
+                                                        selected={selectedAddress[1] === currentDistrict[key].value}
+                                                        value={JSON.stringify(currentDistrict[key])}
+                                                    >
+                                                        {currentDistrict[key].label}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </>
+                                ) : null}
+
+                                {selectedAddress[1] > 0 ? (
+                                    <>
+                                        <label className="pt-2">
+                                            Ward
+                                            <span className="required">*</span>
+                                        </label>
+                                        <select
+                                            key={selectedAddress[1]}
+                                            className="form-control select-active"
+                                            onChange={async (e) => {
+                                                try {
+                                                    const data = JSON.parse(e.target.value);
+                                                    setSelectAd(data.value, 2);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                }
+                                            }}
+                                        >
+                                            <option value="">Select an option...</option>
+                                            {Object.keys(currentWard)?.map((key) => {
+                                                return (
+                                                    <option
+                                                        selected={selectedAddress[2] === currentWard[key].value}
+                                                        value={JSON.stringify(currentWard[key])}
+                                                    >
+                                                        {currentWard[key].label}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </>
+                                ) : null}
+                                <label>
+                                    Detail
+                                    <span className="required mt-2">*</span>
+                                </label>
+                                <textarea
+                                    required
+                                    className="form-control square"
+                                    name="adDetail"
+                                    type="text"
+                                    value={addressModal?.detail}
+                                />
+                                <div className="custome-checkbox mt-2">
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        name="isHome"
+                                        id="HomeCheckbox"
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                console.log();
+                                                const otherCheckbox = document.getElementById('WorkCheckbox');
+                                                otherCheckbox.checked = !e.target.checked;
+                                            }
+                                        }}
+                                        defaultChecked={addressModal?.isHome}
+                                    />
+                                    <label style={{ userSelect: 'none' }} className="form-check-label" htmlFor="HomeCheckbox">
+                                        <span>Home</span>
+                                    </label>
+                                </div>
+                                <div className="custome-checkbox">
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        name="isWork"
+                                        id="WorkCheckbox"
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                console.log();
+                                                const otherCheckbox = document.getElementById('HomeCheckbox');
+                                                otherCheckbox.checked = !e.target.checked;
+                                            }
+                                        }}
+                                        defaultChecked={addressModal?.isWork}
+                                    />
+                                    <label style={{ userSelect: 'none' }} className="form-check-label" htmlFor="WorkCheckbox">
+                                        <span>Work</span>
+                                    </label>
+                                </div>
+                                <button type="submit" className="btn btn-primary mt-2">
+                                    Save
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </Modal>
+                <Modal
+                    open={delAddressModal ? true : false}
+                    onClose={() => {
+                        setDelAddressModal(false);
+                    }}
+                >
+                    <p className="pb-3">Delete address</p>
+                    <div style={{ width: '400px' }} className="row">
+                        <div className="row w-100">
+                            <p className="pb-3">Are you sure you want to delete this address. This action cant be undo.</p>
+                            <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
+                                <button
+                                    style={{ backgroundColor: '#ff3d3d' }}
+                                    className="btn btn-danger mt-2 mx-3"
+                                    onClick={deleteAddressHandler}
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    style={{ backgroundColor: 'gray' }}
+                                    className="btn btn-secondary mt-2"
+                                    onClick={() => {
+                                        setDelAddressModal(false);
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
             </Layout>
         </>
     );
+}
+
+export async function getServerSideProps(context) {
+    // Thực hiện kiểm tra điều kiện, ví dụ: xác định xem người dùng đã đăng nhập hay chưa
+    const isLoggedIn = true; // Đây là ví dụ, bạn cần thay đổi logic này theo ứng dụng của bạn
+    // console.log(context);
+    return {
+        props: { isLoggedIn },
+    };
 }
 
 const mapStateToProps = (state) => ({

@@ -19,6 +19,8 @@ import {
 } from '../pages/main';
 import Private2 from './Private2';
 import { LoginPage, RegisterPage } from '../pages/auth';
+import ShopListPage from '../pages/main/ShopListPage';
+import ShopProfilePage from '../pages/main/ShopProfilePage';
 
 function Routing() {
     return (
@@ -56,6 +58,23 @@ function Routing() {
                         element={
                             <Private>
                                 <UserListPage />
+                            </Private>
+                        }
+                    />
+
+                    <Route
+                        path="shop/:uid"
+                        element={
+                            <Private>
+                                <ShopProfilePage />
+                            </Private>
+                        }
+                    />
+                    <Route
+                        path="shop"
+                        element={
+                            <Private>
+                                <ShopListPage />
                             </Private>
                         }
                     />

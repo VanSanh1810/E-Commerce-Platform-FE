@@ -1,16 +1,31 @@
-import { connect } from "react-redux";
-import Layout from "../components/layout/Layout";
+import { connect } from 'react-redux';
+import Layout from '../components/layout/Layout';
 
-import Link from "next/link";
-import { clearCart, closeCart, decreaseQuantity, deleteFromCart, increaseQuantity, openCart } from "../redux/action/cart";
+import Link from 'next/link';
+import { clearCart, closeCart, decreaseQuantity, deleteFromCart, increaseQuantity, openCart } from '../redux/action/cart';
+import { useEffect } from 'react';
 
-const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, decreaseQuantity, deleteFromCart, clearCart }) => {
+const Cart = ({
+    openCart,
+    cartItems,
+    activeCart,
+    closeCart,
+    increaseQuantity,
+    decreaseQuantity,
+    deleteFromCart,
+    clearCart,
+    user,
+}) => {
     const price = () => {
         let price = 0;
         cartItems.forEach((item) => (price += item.price * item.quantity));
 
         return price;
     };
+
+    useEffect(() => {
+        console.log(user);
+    }, []);
 
     return (
         <>
@@ -20,12 +35,15 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                         <div className="row">
                             <div className="col-12">
                                 <div className="table-responsive">
-                                    {cartItems.length <= 0 && "No Products"}
-                                    <table className={cartItems.length > 0 ? "table shopping-summery text-center clean" : "d-none"}>
+                                    {cartItems.length <= 0 && 'No Products'}
+                                    <table
+                                        className={cartItems.length > 0 ? 'table shopping-summery text-center clean' : 'd-none'}
+                                    >
                                         <thead>
                                             <tr className="main-heading">
                                                 <th scope="col">Image</th>
                                                 <th scope="col">Name</th>
+                                                <th scope="col">Variant</th>
                                                 <th scope="col">Price</th>
                                                 <th scope="col">Quantity</th>
                                                 <th scope="col">Subtotal</th>
@@ -35,40 +53,48 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                                         <tbody>
                                             {cartItems.map((item, i) => (
                                                 <tr key={i}>
-                                                    <td className="image product-thumbnail">
-                                                        <img src={item.images[0].img} />
+                                                    <td className="price" data-title="Price">
+                                                        <span>${item.product}</span>
+                                                    </td>
+                                                    <td className="price" data-title="Price">
+                                                        <span>${item.variant}</span>
+                                                    </td>
+                                                    <td className="price" data-title="Price">
+                                                        <span>${item.quantity}</span>
+                                                    </td>
+                                                    {/* <td className="image product-thumbnail">
+                                                        <img src={item.images[0].url} />
                                                     </td>
 
                                                     <td className="product-des product-name">
                                                         <h5 className="product-name">
                                                             <Link href="/products">
-                                                                <a>{item.title}</a>
+                                                                <a>{item.name}</a>
                                                             </Link>
                                                         </h5>
-                                                        <p className="font-xs">
-                                                            Maboriosam in a tonto nesciung eget
-                                                            <br /> distingy magndapibus.
-                                                        </p>
                                                     </td>
                                                     <td className="price" data-title="Price">
-                                                        <span>${item.price}</span>
+                                                        <span>${item.discountPrice}</span>
                                                     </td>
                                                     <td className="text-center" data-title="Stock">
                                                         <div className="detail-qty border radius  m-auto">
-                                                            <a onClick={(e) => decreaseQuantity(item.id)} className="qty-down">
+                                                            <a onClick={(e) => decreaseQuantity(item._id)} className="qty-down">
                                                                 <i className="fi-rs-angle-small-down"></i>
                                                             </a>
                                                             <span className="qty-val">{item.quantity}</span>
-                                                            <a onClick={(e) => increaseQuantity(item.id)} className="qty-up">
+                                                            <a onClick={(e) => increaseQuantity(item._id)} className="qty-up">
                                                                 <i className="fi-rs-angle-small-up"></i>
                                                             </a>
                                                         </div>
                                                     </td>
                                                     <td className="text-right" data-title="Cart">
                                                         <span>${item.quantity * item.price}</span>
-                                                    </td>
+                                                    </td> */}
                                                     <td className="action" data-title="Remove">
-                                                        <a onClick={(e) => deleteFromCart(item.id)} className="text-muted">
+                                                        <a
+                                                            onClick={(e) => deleteFromCart(item.product, user)}
+                                                            className="text-muted"
+                                                        >
                                                             <i className="fi-rs-trash"></i>
                                                         </a>
                                                     </td>
@@ -77,7 +103,7 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                                             <tr>
                                                 <td colSpan="6" className="text-end">
                                                     {cartItems.length > 0 && (
-                                                        <a onClick={clearCart} className="text-muted">
+                                                        <a onClick={() => clearCart(user)} className="text-muted">
                                                             <i className="fi-rs-cross-small"></i>
                                                             Clear Cart
                                                         </a>
@@ -88,7 +114,7 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                                     </table>
                                 </div>
                                 <div className="cart-action text-end">
-                                    <a className="btn ">
+                                    <a className="btn " href="/">
                                         <i className="fi-rs-shopping-bag mr-10"></i>
                                         Continue Shopping
                                     </a>
@@ -361,10 +387,20 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                                             </div>
                                             <div className="form-row row">
                                                 <div className="form-group col-lg-6">
-                                                    <input required="required" placeholder="State / Country" name="name" type="text" />
+                                                    <input
+                                                        required="required"
+                                                        placeholder="State / Country"
+                                                        name="name"
+                                                        type="text"
+                                                    />
                                                 </div>
                                                 <div className="form-group col-lg-6">
-                                                    <input required="required" placeholder="PostCode / ZIP" name="name" type="text" />
+                                                    <input
+                                                        required="required"
+                                                        placeholder="PostCode / ZIP"
+                                                        name="name"
+                                                        type="text"
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="form-row">
@@ -386,7 +422,11 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
                                                         <form action="#" target="_blank">
                                                             <div className="form-row row justify-content-center">
                                                                 <div className="form-group col-lg-6">
-                                                                    <input className="font-medium" name="Coupon" placeholder="Enter Your Coupon" />
+                                                                    <input
+                                                                        className="font-medium"
+                                                                        name="Coupon"
+                                                                        placeholder="Enter Your Coupon"
+                                                                    />
                                                                 </div>
                                                                 <div className="form-group col-lg-6">
                                                                     <button className="btn  btn-sm">
@@ -451,7 +491,8 @@ const Cart = ({ openCart, cartItems, activeCart, closeCart, increaseQuantity, de
 
 const mapStateToProps = (state) => ({
     cartItems: state.cart,
-    activeCart: state.counter
+    activeCart: state.counter,
+    user: state.user,
 });
 
 const mapDispatchToProps = {
@@ -460,7 +501,7 @@ const mapDispatchToProps = {
     decreaseQuantity,
     deleteFromCart,
     openCart,
-    clearCart
+    clearCart,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Cart);
