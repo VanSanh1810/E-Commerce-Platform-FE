@@ -34,10 +34,11 @@ export const authenticateUser = () => {
                 if (response.status === 200) {
                     console.log(response.data);
                     const serverCart = await response.data.data.cart.items;
+                    console.log(serverCart);
                     dispatch({ type: Types.USER_LOGIN, payload: { userToken: storedToken } }); // Cập nhật token vào Redux state
                     dispatch({
                         type: Types.INIT_LOCALSTORAGE,
-                        payload: { cart: serverCart.length === 0 ? [] : [...serverCart], wishlist: [], compare: [] },
+                        payload: { cart: serverCart ? [...serverCart] : [], wishlist: [], compare: [] },
                     }); // Cập nhật token vào Redux state
                 } else {
                     localStorage.removeItem('dokani_user');

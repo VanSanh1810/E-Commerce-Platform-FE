@@ -10,15 +10,11 @@ export default (state = [], action) => {
             return [...action.payload.cart];
 
         case Types.ADD_TO_CART:
-            // index = findProductIndexById(state, action.payload.product.id);
             index = state.findIndex(
                 (product) =>
                     product.product === action.payload.product.product &&
                     arraysAreEqual(product.variant, action.payload.product.variant),
             );
-            // console.log(index);
-            // console.log(state);
-            // console.log(action.payload.product.product);
 
             if (index !== -1) {
                 state[index].quantity += action.payload.product.quantity ? action.payload.product.quantity : 1;
@@ -35,27 +31,43 @@ export default (state = [], action) => {
             }
 
         case Types.DELETE_FROM_CART:
-            const newCartItems = state.filter((item) => item.product !== action.payload.productId);
+            const newCartItems = state.filter(
+                (item) =>
+                    item.product !== action.payload.productId || !arraysAreEqual(item.variant, action.payload.productVariant),
+            );
             //  deleteProduct(state, action.payload.productId);
             storage.set('dokani_cart', newCartItems);
 
             return [...newCartItems];
 
         case Types.INCREASE_QUANTITY:
-            index = findProductIndexById(state, action.payload.productId);
+            index = state.findIndex(
+                (product) =>
+                    product.product === action.payload.productId && arraysAreEqual(product.variant, action.payload.variant),
+            );
+            // index = findProductIndexById(state, action.payload.productId);
             if (index === -1) return state;
 
-            state[index].quantity += 1;
+            state[index].quantity += action.payload.gap ? action.payload.gap : 0;
             storage.set('dokani_cart', [...state]);
 
             return [...state];
 
         case Types.DECREASE_QUANTITY:
-            index = findProductIndexById(state, action.payload.productId);
+            index = state.findIndex(
+                (product) =>
+                    product.product === action.payload.productId && arraysAreEqual(product.variant, action.payload.variant),
+            );
+            // index = findProductIndexById(state, action.payload.productId);
             if (index === -1) return state;
 
-            const quantity = state[index].quantity;
-            if (quantity > 1) state[index].quantity -= 1;
+            const quantity = state[index].quantity + (action.payload.gap ? action.payload.gap : 0);
+            console.log(quantity);
+            if (quantity >= 1) {
+                state[index].quantity = quantity;
+            } else {
+                state[index].quantity = 1;
+            }
             storage.set('dokani_cart', [...state]);
 
             return [...state];

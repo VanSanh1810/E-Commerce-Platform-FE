@@ -3,9 +3,11 @@ import { TranslatorContext } from '../../context/Translator';
 import Modal from 'react-bootstrap/Modal';
 import { AnchorComponent, ButtonComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
+import { useSelector } from 'react-redux';
 
 export default function ProductsTableComponent({ thead, tbody }) {
     const { t } = useContext(TranslatorContext);
+    const { shopId } = useSelector((state) => state.persistedReducer.authReducer);
 
     const [alertModal, setAlertModal] = useState(false);
     const [data, setData] = useState([]);
@@ -17,14 +19,20 @@ export default function ProductsTableComponent({ thead, tbody }) {
             try {
                 const results = await axiosInstance.get('/api/product/');
                 console.log(results);
-
-                setData(results.data.data);
+                const listProducts = [...results.data.data];
+                if (shopId) {
+                    const shopProduct = listProducts.filter((product) => product.shop._id === shopId);
+                    setData(shopProduct);
+                } else {
+                    setData(listProducts);
+                }
+                // setData(listProducts);
             } catch (err) {
                 console.log(err);
             }
         };
         fetchAllProducts();
-    }, []);
+    }, [shopId]);
 
     return (
         <div className="mc-table-responsive">

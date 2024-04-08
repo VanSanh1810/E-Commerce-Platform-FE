@@ -19,7 +19,7 @@ const authReducer = createSlice({
             state.isVendor = action.payload === 'vendor' ? true : false;
             localStorage.setItem('adminToken', action.payload);
         },
-        setShopId: (state, action) => {
+        setShopId: (state, action) =>  {
             state.shopId = action.payload;
         },
         logout: (state, { payload }) => {

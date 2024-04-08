@@ -48,7 +48,7 @@ function Routing() {
                     <Route
                         path="user/:uid"
                         element={
-                            <Private>
+                            <Private roleAllow={'admin'}>
                                 <UserProfilePage />
                             </Private>
                         }
@@ -56,7 +56,7 @@ function Routing() {
                     <Route
                         path="user"
                         element={
-                            <Private>
+                            <Private roleAllow={'admin'}>
                                 <UserListPage />
                             </Private>
                         }
@@ -65,7 +65,7 @@ function Routing() {
                     <Route
                         path="shop/:uid"
                         element={
-                            <Private>
+                            <Private roleAllow={'admin'}>
                                 <ShopProfilePage />
                             </Private>
                         }
@@ -73,7 +73,7 @@ function Routing() {
                     <Route
                         path="shop"
                         element={
-                            <Private>
+                            <Private roleAllow={'admin'}>
                                 <ShopListPage />
                             </Private>
                         }
@@ -81,7 +81,7 @@ function Routing() {
                     <Route
                         path="my-account"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <MyAccountPage />
                             </Private>
                         }
@@ -107,7 +107,7 @@ function Routing() {
                     <Route
                         path="product-upload/:productId"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <ProductUploadPage />
                             </Private>
                         }
@@ -116,7 +116,7 @@ function Routing() {
                     <Route
                         path="product-upload"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <ProductUploadPage />
                             </Private>
                         }
@@ -125,7 +125,7 @@ function Routing() {
                     <Route
                         path="invoice/:invoiceId"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <InvoiceDetailsPage />
                             </Private>
                         }
@@ -133,7 +133,7 @@ function Routing() {
                     <Route
                         path="invoice"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <InvoiceListPage />
                             </Private>
                         }
@@ -141,7 +141,7 @@ function Routing() {
                     <Route
                         path="order"
                         element={
-                            <Private>
+                            <Private roleAllow={'vendor'}>
                                 <OrderListPage />
                             </Private>
                         }
@@ -158,7 +158,7 @@ function Routing() {
                     <Route
                         path="category"
                         element={
-                            <Private>
+                            <Private roleAllow={'admin'}>
                                 <CategoryPage />
                             </Private>
                         }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { addToCart, decreaseQuantity, increaseQuantity } from '../../redux/action/cart';
@@ -31,7 +31,9 @@ const ProductDetails = ({
         // Kiểm tra xem độ dài của hai mảng có bằng nhau không
 
         if (!arr1 || !arr2) {
-            return false;
+            if (!arr1 && !arr2) {
+                return true;
+            }
         }
         if (arr1.length !== arr2.length) {
             return false;
@@ -51,36 +53,44 @@ const ProductDetails = ({
 
     const [selectedVariant, setSelectedVariant] = useState([]);
     const [inCart, setInCart] = useState(false);
+    const [productPrice, setProductPrice] = useState();
+    const [producDistPrice, setProductDisPrice] = useState();
+    const [productStock, setProductStock] = useState();
+    const [priceRange, setPriceRange] = useState();
+
+    const [productVariantDetailTable, setProductVariantDetailTable] = useState([]);
 
     useEffect(() => {
         const arr = product.variantData?.map((element) => {
             return null;
         });
-        setInCart(
-            cartItems.some((cartItem) => {
-                if (cartItem._id === product._id) {
-                    // check if product have the same id with product in cart
-                    if (!product.variantData) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            }),
-        );
-        console.log(cartItems);
-        setSelectedVariant(arr);
+
+        // setInCart(
+        //     cartItems.some((cartItem) => {
+        //         if (cartItem.product === product._id) {
+        //             // check if product have the same id with product in cart
+        //             if (!product.variantData) {
+        //                 return true;
+        //             } else {
+        //                 return false;
+        //             }
+        //         } else {
+        //             return false;
+        //         }
+        //     }),
+        // );
+        console.log(arr);
+        setSelectedVariant(arr); // initialize selected variant. [] for product with no variants
+        //and array of null values for product with variants (arr length size is product.variantData.length)
     }, []);
 
     useEffect(() => {
         if (selectedVariant?.every((varD) => varD !== null) && selectedVariant.length > 0) {
             const result = cartItems.some((cartItem) => {
                 // check if product have the same id with product in cart
-                if (cartItem._id === product._id) {
+                if (cartItem.product === product._id) {
                     // check if product have the same variantData with product in cart
-                    if (arraysAreEqual(cartItem.variantData, selectedVariant)) {
+                    if (arraysAreEqual(cartItem.variant, selectedVariant)) {
                         return true;
                     } else {
                         return false;
@@ -91,13 +101,90 @@ const ProductDetails = ({
             });
             console.log(result);
             setInCart(result);
+            ////////////////////////////////
+            if (productVariantDetailTable.length > 0) {
+                productVariantDetailTable.forEach((obj) => {
+                    if (arraysAreEqual(obj.routeMap, selectedVariant)) {
+                        setProductPrice(obj.detail.price);
+                        setProductDisPrice(obj.detail.disPrice);
+                        setProductStock(obj.detail.stock);
+                    }
+                });
+            }
+        } else {
+            // no select variants
+            if (productVariantDetailTable.length > 0) {
+                let max = null;
+                let min = null;
+                let totalStock = 0;
+
+                // Duyệt qua mỗi object trong danh sách và cộng giá trị quantity lại
+                productVariantDetailTable.forEach((obj) => {
+                    totalStock += parseFloat(obj.detail.stock);
+                    if (max) {
+                        if (parseFloat(obj.detail.disPrice) !== 0) {
+                            max = parseFloat(obj.detail.disPrice) > max ? parseFloat(obj.detail.disPrice) : max;
+                        } else {
+                            max = parseFloat(obj.detail.price) > max ? parseFloat(obj.detail.price) : max;
+                        }
+                    } else {
+                        max =
+                            parseFloat(obj.detail.disPrice) !== 0
+                                ? parseFloat(obj.detail.disPrice)
+                                : parseFloat(obj.detail.price);
+                    }
+                    if (min) {
+                        if (parseFloat(obj.detail.disPrice) !== 0) {
+                            min = parseFloat(obj.detail.disPrice) < min ? parseFloat(obj.detail.disPrice) : min;
+                        } else {
+                            min = parseFloat(obj.detail.price) < min ? parseFloat(obj.detail.price) : min;
+                        }
+                    } else {
+                        min =
+                            parseFloat(obj.detail.disPrice) !== 0
+                                ? parseFloat(obj.detail.disPrice)
+                                : parseFloat(obj.detail.price);
+                    }
+                });
+                setPriceRange(min === max ? `${min}` : `${min} - $${max}`);
+                setProductStock(totalStock);
+            }
         }
     }, [selectedVariant]);
 
+    const initProductVariantDetailTable = useCallback((node, depth, routeMap) => {
+        if (node.detail) {
+            const detail = {
+                routeMap: routeMap,
+                detail: node.detail,
+            };
+            setProductVariantDetailTable((tb) => [...tb, detail]);
+            return;
+        } else {
+            for (let i = 0; i < node.child.length; i++) {
+                const newRouteMap = [...routeMap, node.child[i]._id];
+                initProductVariantDetailTable(node.child[i], depth + 1, newRouteMap);
+            }
+            return;
+        }
+    }, []);
+
     useEffect(() => {
-        console.log(inCart);
-        console.log(user);
-    }, [inCart]);
+        const startInitProductVariantDetailTable = () => {
+            for (let i = 0; i < product.variantDetail.length; i++) {
+                initProductVariantDetailTable(product.variantDetail[i], 0, [product.variantDetail[i]._id]);
+            }
+        };
+        if (product.variantDetail) {
+            setProductVariantDetailTable([]);
+            startInitProductVariantDetailTable();
+        }
+        console.log(product.variantDetail);
+    }, [product, initProductVariantDetailTable]);
+
+    useEffect(() => {
+        console.log(productVariantDetailTable);
+    }, [productVariantDetailTable]);
 
     return (
         <>
@@ -153,8 +240,8 @@ const ProductDetails = ({
                                                 <div className="pro-details-brand">
                                                     <span>
                                                         Shop:
-                                                        <Link href="/products">
-                                                            <a>{product.shop.name}</a>
+                                                        <Link href={`/shop/${product.shop._id}`}>
+                                                            <a>1{product.shop.name}</a>
                                                         </Link>
                                                     </span>
                                                 </div>
@@ -171,17 +258,58 @@ const ProductDetails = ({
                                                 </div>
                                             </div>
                                             <div className="clearfix product-price-cover">
-                                                <div className="product-price primary-color float-left">
-                                                    <ins>
-                                                        <span className="text-brand">${product.discountPrice}</span>
-                                                    </ins>
-                                                    <ins>
-                                                        <span className="old-price font-md ml-15">${product.price}</span>
-                                                    </ins>
-                                                    <span className="save-price  font-md color3 ml-15">
-                                                        {((product.price - product.discountPrice) / product.price) * 100}% Off
-                                                    </span>
-                                                </div>
+                                                {!product.variantData ? (
+                                                    <div className="product-price primary-color float-left">
+                                                        <ins>
+                                                            <span className="text-brand">
+                                                                $
+                                                                {product.discountPrice === 0
+                                                                    ? product.price
+                                                                    : product.discountPrice}
+                                                            </span>
+                                                        </ins>
+                                                        {product.discountPrice !== 0 && product.price !== product.disPrice ? (
+                                                            <>
+                                                                <ins>
+                                                                    <span className="old-price font-md ml-15">
+                                                                        ${product.price}
+                                                                    </span>
+                                                                </ins>
+                                                                <span className="save-price  font-md color3 ml-15">
+                                                                    {((product.price - product.discountPrice) / product.price) *
+                                                                        100}
+                                                                    % Off
+                                                                </span>
+                                                            </>
+                                                        ) : null}
+                                                    </div>
+                                                ) : selectedVariant.every((varD) => varD !== null) ? (
+                                                    <div className="product-price primary-color float-left">
+                                                        <ins>
+                                                            <span className="text-brand">
+                                                                ${producDistPrice !== 0 ? producDistPrice : productPrice}
+                                                            </span>
+                                                        </ins>
+                                                        {producDistPrice !== 0 && productPrice !== producDistPrice ? (
+                                                            <>
+                                                                <ins>
+                                                                    <span className="old-price font-md ml-15">
+                                                                        ${productPrice}
+                                                                    </span>
+                                                                </ins>
+                                                                <span className="save-price  font-md color3 ml-15">
+                                                                    {((productPrice - producDistPrice) / productPrice) * 100}% Off
+                                                                </span>
+                                                            </>
+                                                        ) : null}
+                                                    </div>
+                                                ) : (
+                                                    <div className="product-price primary-color float-left">
+                                                        <ins>
+                                                            <span className="text-brand">${priceRange}</span>
+                                                        </ins>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="bt-1 border-color-1 mt-15 mb-15"></div>
                                             <div className="short-desc mb-30">
@@ -256,7 +384,7 @@ const ProductDetails = ({
                                                                         quantity: quantity || 1,
                                                                     });
                                                                 } else {
-                                                                    toast.error('Please select all variant');
+                                                                    toast.error('Please select product variant');
                                                                 }
                                                             } else {
                                                                 handleCart({
@@ -300,7 +428,7 @@ const ProductDetails = ({
                                                 <li>
                                                     Availability:
                                                     <span className="in-stock text-success ml-5">
-                                                        {product.stock} Items In Stock
+                                                        {product.variantData ? productStock : product.stock} Items In Stock
                                                     </span>
                                                 </li>
                                             </ul>

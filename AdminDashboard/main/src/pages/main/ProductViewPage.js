@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link, useParams } from 'react-router-dom';
 import { Row, Col, Dropdown } from 'react-bootstrap';
@@ -13,6 +13,9 @@ export default function ProductViewPage() {
     const { productId } = useParams();
 
     const { t } = useContext(TranslatorContext);
+    const [productVariantDetailTable, setProductVariantDetailTable] = useState([]);
+    const [productStock, setProductStock] = useState();
+    const [priceRange, setPriceRange] = useState();
 
     const a = [
         { icon: 'store', title: 'brand', text: 'ecstasy' },
@@ -54,7 +57,7 @@ export default function ProductViewPage() {
             try {
                 const results = await axiosInstance.get(`/api/review/product/${productId}`);
                 console.log(results.data);
-                setReviewData(results.data)
+                setReviewData(results.data);
             } catch (err) {
                 console.log(err);
             }
@@ -63,6 +66,69 @@ export default function ProductViewPage() {
 
         fetchProductReview();
     }, [productId]);
+
+    const initProductVariantDetailTable = useCallback((node, depth, routeMap) => {
+        if (node.detail) {
+            const detail = {
+                routeMap: routeMap,
+                detail: node.detail,
+            };
+            setProductVariantDetailTable((tb) => [...tb, detail]);
+            return;
+        } else {
+            for (let i = 0; i < node.child.length; i++) {
+                const newRouteMap = [...routeMap, node.child[i]._id];
+                initProductVariantDetailTable(node.child[i], depth + 1, newRouteMap);
+            }
+            return;
+        }
+    }, []);
+
+    useEffect(() => {
+        const startInitProductVariantDetailTable = () => {
+            for (let i = 0; i < productData.variantDetail.length; i++) {
+                initProductVariantDetailTable(productData.variantDetail[i], 0, [productData.variantDetail[i]._id]);
+            }
+        };
+        if (productData?.variantDetail) {
+            setProductVariantDetailTable([]);
+            startInitProductVariantDetailTable();
+        }
+        // console.log(productData.variantDetail);
+    }, [productData, initProductVariantDetailTable]);
+
+    useEffect(() => {
+        if (productVariantDetailTable.length > 0) {
+            let max = null;
+            let min = null;
+            let totalStock = 0;
+
+            // Duyệt qua mỗi object trong danh sách và cộng giá trị quantity lại
+            productVariantDetailTable.forEach((obj) => {
+                totalStock += parseFloat(obj.detail.stock);
+                if (max) {
+                    if (parseFloat(obj.detail.disPrice) !== 0) {
+                        max = parseFloat(obj.detail.disPrice) > max ? parseFloat(obj.detail.disPrice) : max;
+                    } else {
+                        max = parseFloat(obj.detail.price) > max ? parseFloat(obj.detail.price) : max;
+                    }
+                } else {
+                    max = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
+                }
+                if (min) {
+                    if (parseFloat(obj.detail.disPrice) !== 0) {
+                        min = parseFloat(obj.detail.disPrice) < min ? parseFloat(obj.detail.disPrice) : min;
+                    } else {
+                        min = parseFloat(obj.detail.price) < min ? parseFloat(obj.detail.price) : min;
+                    }
+                } else {
+                    min = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
+                }
+            });
+            setPriceRange(min === max ? `${min}` : `${min} - $${max}`);
+            setProductStock(totalStock);
+        }
+    }, [productVariantDetailTable]);
 
     return (
         <PageLayout>
@@ -114,9 +180,14 @@ export default function ProductViewPage() {
                                     <i className="material-icons">{a[5].icon}</i>
                                     <h5>{a[5].title}</h5>
                                     <span>:</span>
-                                    <p>
-                                        {productData.discountPrice} $ <del>{productData.price} $</del>
-                                    </p>
+                                    {productData.variantData ? (
+                                        <p>
+                                            {productData.discountPrice !== 0 ? productData.discountPrice : productData.price} ${' '}
+                                            {productData.discountPrice === 0 ? null : <del>{productData.price} $</del>}
+                                        </p>
+                                    ) : (
+                                        <p>{priceRange} $</p>
+                                    )}
                                 </div>
                                 <div className="mc-product-view-meta">
                                     <i className="material-icons">{a[6].icon}</i>
@@ -130,25 +201,26 @@ export default function ProductViewPage() {
                                     <span>:</span>
                                     <p>({reviewData.total_reviews}) review</p>
                                 </div>
-                                {/* <div className="mc-product-view-meta">
-                                <i className="material-icons">{a[8].icon}</i>
-                                <h5>{a[8].title}</h5>
-                                <span>:</span>
-                                <p>{productData.modifyDate}</p>
-                                {specific.text && <p>{specific.text}</p>}
-                                {specific.price && (
-                                    <p>
-                                        {specific.price.now} <del>{specific.price.old}</del>
-                                    </p>
-                                )}
-                                {specific.list && (
-                                    <ul>
-                                        {specific.list.map((item, index) => (
-                                            <li key={index}>{item}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div> */}
+                                <div className="mc-product-view-meta">
+                                    <i className="material-icons">{a[8].icon}</i>
+                                    <h5>{a[8].title}</h5>
+                                    <span>:</span>
+                                    <p>{Date(productData.modifyDate)}</p>
+                                </div>
+                                {productData.variantData?.map((varD) => {
+                                    return (
+                                        <div className="mc-product-view-meta">
+                                            <i className="material-icons">{a[4].icon}</i>
+                                            <h5>{varD.name}</h5>
+                                            <span>:</span>
+                                            <ul>
+                                                {varD.data?.map((v) => {
+                                                    return <li key={1}>{v.name}</li>;
+                                                })}
+                                            </ul>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </Col>
                         <Col xl={12}>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
 import { Row, Col, Tab, Tabs, Form } from 'react-bootstrap';
@@ -6,9 +6,102 @@ import { LegendFieldComponent, LegendTextareaComponent, IconFieldComponent } fro
 import { ButtonComponent } from '../../components/elements';
 import { FileUploadComponent } from '../../components';
 import PageLayout from '../../layouts/PageLayout';
+import { useSelector } from 'react-redux';
+import axiosInstance from '../../configs/axiosInstance';
+import AddressStaticData from '../../assets/data/static/dataprovince';
 
 export default function MyAccountPage() {
     const { t } = useContext(TranslatorContext);
+    const { shopId } = useSelector((state) => state.persistedReducer.authReducer);
+    //****************SHOP DATA CHANGES ******************/
+    const [shopName, setShopName] = useState('');
+    const [shopEmail, setShopEmail] = useState('');
+    const [shopDes, setShopDes] = useState('');
+    const [shopAdDetail, setShopAdDetail] = useState('');
+
+    const saveShopChanges = async () => {
+        if (isAllAddressSelected() && shopAdDetail) {
+            try {
+                const response = await axiosInstance.patch(`/api/shop`, {
+                    name: shopName,
+                    email: shopEmail,
+                    description: shopDes,
+                    addressData: {
+                        province: selectedAddress[0],
+                        district: selectedAddress[0],
+                        ward: selectedAddress[0],
+                        detail: shopAdDetail,
+                    },
+                });
+                console.log(response);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            console.log('No change');
+        }
+    };
+
+    //****************ADDRESS ******************/
+    const [addressModal, setAddressModal] = useState(false);
+    const [delAddressModal, setDelAddressModal] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState([null, null, null]);
+
+    const [currentDistrict, setCurrentDistrict] = useState([]);
+    const [currentWard, setCurrentWard] = useState([]);
+
+    const [allUserAddresses, setAllUserAddresses] = useState([]);
+
+    const setSelectAd = (code, location) => {
+        let arr = [...selectedAddress];
+        let i = location + 1;
+        while (i < arr.length) {
+            arr[i] = null;
+            i = i + 1;
+        }
+        arr[location] = code;
+        // console.log(arr);
+        setSelectedAddress([...arr]);
+        // console.log(AddressStaticData.dataProvince);
+        // console.log(AddressStaticData.treeDataProvince);
+    };
+
+    const isAllAddressSelected = () => {
+        if (selectedAddress[0] !== null && selectedAddress[1] !== null && selectedAddress[2] !== null) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    ////////////////////////////////
+    const [shopData, setShopData] = useState();
+    useEffect(() => {
+        const fetchShopData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/shop/${shopId}`);
+                setShopData(response.data.data.shop);
+                console.log(response.data.data.shop);
+                const currentAddress = response.data.data.shop.addresses;
+                if (currentAddress) {
+                    setSelectedAddress([
+                        currentAddress.address.province,
+                        currentAddress.address.district,
+                        currentAddress.address.ward,
+                    ]);
+                    setShopAdDetail(currentAddress.address.detail);
+                    setCurrentDistrict(AddressStaticData.treeDataProvince[currentAddress.address.province].district);
+                    setCurrentWard(
+                        AddressStaticData.treeDataProvince[currentAddress.address.province].district[
+                            currentAddress.address.district
+                        ].ward,
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchShopData();
+    }, [shopId]);
 
     return (
         <PageLayout>
@@ -38,7 +131,10 @@ export default function MyAccountPage() {
                                         <Col xl={4}>
                                             <div className="mc-user-avatar-upload">
                                                 <div className="mc-user-avatar">
-                                                    <img src="/images/avatar/01.webp" alt="avatar" />
+                                                    <img
+                                                        src={shopData?.avatar ? shopData?.avatar : '/images/avatar/01.webp'}
+                                                        alt="avatar"
+                                                    />
                                                 </div>
                                                 <FileUploadComponent icon="cloud_upload" text={t('upload')} />
                                             </div>
@@ -49,22 +145,31 @@ export default function MyAccountPage() {
                                                     <LegendFieldComponent
                                                         type="text"
                                                         title={t('Name')}
-                                                        value="miron mahmud"
+                                                        value={shopData?.name}
                                                         className="mb-4"
+                                                        onChange={(e) => {
+                                                            setShopName(e.target.value);
+                                                        }}
                                                     />
                                                 </Col>
                                                 <Col xl={12}>
                                                     <LegendFieldComponent
                                                         type="email"
                                                         title={t('Email')}
-                                                        value="miron mahmud"
+                                                        value={shopData?.email}
                                                         className="mb-4"
+                                                        onChange={(e) => {
+                                                            setShopEmail(e.target.value);
+                                                        }}
                                                     />
                                                 </Col>
                                                 <Col xl={12}>
                                                     <LegendTextareaComponent
-                                                        title={t('Information')}
-                                                        longText="I consider myself as a creative, professional and a flexible person. I can adapt with any kind of brief and design style"
+                                                        title={t('Description')}
+                                                        longText={shopData?.description}
+                                                        onChange={(e) => {
+                                                            setShopDes(e.target.value);
+                                                        }}
                                                     />
                                                 </Col>
                                             </Row>
@@ -74,114 +179,116 @@ export default function MyAccountPage() {
                                 <div className="mc-tab-card">
                                     <h6 className="mc-tab-card-title">{t('Shop Address')}</h6>
                                     <Row>
-                                        {/* <Col xl={4}><LegendFieldComponent className="mb-4" type="text" title={t('unique_id')} value="#783404edft97e3445" /></Col>
-                                        <Col xl={4}><LegendFieldComponent className="mb-4" title={t('role')} option={["member", "admin", "vendor", "founder"]} /></Col>
-                                        <Col xl={4}><LegendFieldComponent className="mb-4" title={t('status')} option={["approved", "pending", "blocked"]} /></Col> */}
                                         <Col xl={4}>
-                                            <LegendFieldComponent
-                                                className="mb-4"
-                                                type="text"
-                                                title={t('province')}
-                                                value="demo@example.com"
-                                            />
+                                            <fieldset className={`mc-fieldset ${'mb-4'}`}>
+                                                <legend>{'province'}</legend>
+                                                <select
+                                                    style={{ outline: 'none' }}
+                                                    className={`${'w-100 h-md'}`}
+                                                    onChange={async (e) => {
+                                                        try {
+                                                            const data = JSON.parse(e.target.value);
+                                                            setSelectAd(data.value, 0);
+                                                            setCurrentDistrict(data.district);
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        }
+                                                    }}
+                                                >
+                                                    <option>{'Select Option'}</option>
+                                                    {Object.keys(AddressStaticData.treeDataProvince)?.map((key) => {
+                                                        return (
+                                                            <option
+                                                                selected={
+                                                                    selectedAddress[0] ===
+                                                                    AddressStaticData.treeDataProvince[key].value
+                                                                }
+                                                                value={JSON.stringify(AddressStaticData.treeDataProvince[key])}
+                                                            >
+                                                                {AddressStaticData.treeDataProvince[key].label}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </fieldset>
                                         </Col>
                                         <Col xl={4}>
-                                            <LegendFieldComponent
-                                                className="mb-4"
-                                                type="text"
-                                                title={t('district')}
-                                                value="+8801838288389"
-                                            />
+                                            <fieldset className={`mc-fieldset ${'mb-4'}`}>
+                                                <legend>{'district'}</legend>
+                                                <select
+                                                    style={{ outline: 'none' }}
+                                                    className={`${'w-100 h-md'}`}
+                                                    onChange={async (e) => {
+                                                        try {
+                                                            const data = JSON.parse(e.target.value);
+                                                            setSelectAd(data.value, 1);
+                                                            setCurrentWard(data.ward);
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        }
+                                                    }}
+                                                >
+                                                    <option>{'Select Option'}</option>
+                                                    {Object.keys(currentDistrict).map((key) => {
+                                                        return (
+                                                            <option
+                                                                selected={selectedAddress[1] === currentDistrict[key].value}
+                                                                value={JSON.stringify(currentDistrict[key])}
+                                                            >
+                                                                {currentDistrict[key].label}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </fieldset>
                                         </Col>
                                         <Col xl={4}>
-                                            <LegendFieldComponent
-                                                className="mb-4"
-                                                type="text"
-                                                title={t('ward')}
-                                                value="https://mironmahmud.com/"
-                                            />
+                                            <fieldset className={`mc-fieldset ${'mb-4'}`}>
+                                                <legend>{'district'}</legend>
+                                                <select
+                                                    style={{ outline: 'none' }}
+                                                    className={`${'w-100 h-md'}`}
+                                                    onChange={async (e) => {
+                                                        try {
+                                                            const data = JSON.parse(e.target.value);
+                                                            setSelectAd(data.value, 2);
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        }
+                                                    }}
+                                                >
+                                                    <option>{'Select Option'}</option>
+                                                    {Object.keys(currentWard)?.map((key) => {
+                                                        return (
+                                                            <option
+                                                                selected={selectedAddress[2] === currentWard[key].value}
+                                                                value={JSON.stringify(currentWard[key])}
+                                                            >
+                                                                {currentWard[key].label}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </fieldset>
                                         </Col>
                                         <Col xl={12}>
                                             <LegendTextareaComponent
                                                 title={t('address detail')}
-                                                longText="3379  Monroe Avenue, Fort Myers, Florida(33912)"
+                                                longText={shopData?.addresses?.detail}
+                                                onChange={(e) => {
+                                                    setShopAdDetail(e.target.value);
+                                                }}
                                             />
                                         </Col>
                                     </Row>
                                 </div>
-                                {/* <div className="mc-tab-card">
-                                    <h6 className="mc-tab-card-title">{t('social_inFormation')}</h6>
-                                    <Row xs={1} md={2}>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="facebook" value="https://example.com/"/></Col>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="twitter" value="https://example.com/"/></Col>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="linkedin" value="https://example.com/"/></Col>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="instagram" value="https://example.com/"/></Col>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="youtube" value="https://example.com/"/></Col>
-                                        <Col><LegendFieldComponent className="mb-4" type="url" title="pinterest" value="https://example.com/"/></Col>
-                                    </Row>
-                                </div> */}
-                                <ButtonComponent className="mc-btn primary" icon="verified" text={t('save_changes')} />
+                                <ButtonComponent
+                                    className="mc-btn primary"
+                                    icon="verified"
+                                    text={t('save_changes')}
+                                    onClick={saveShopChanges}
+                                />
                             </Tab>
-                            <Tab eventKey="password" title={t('change_password')} className="mc-tabpane password">
-                                <div className="mc-tab-card">
-                                    <h6 className="mc-tab-card-title">{t('generate_password')}</h6>
-                                    <Row>
-                                        <Col xs={12} md={12}>
-                                            <IconFieldComponent
-                                                icon="lock"
-                                                type="password"
-                                                placeholder={t('current_password')}
-                                                classes="w-100 h-lg mb-4"
-                                                passwordVisible
-                                            />
-                                        </Col>
-                                        <Col xs={12} md={6}>
-                                            <IconFieldComponent
-                                                icon="add_moderator"
-                                                type="password"
-                                                placeholder={t('new_password')}
-                                                classes="w-100 h-lg mb-4"
-                                                passwordVisible
-                                            />
-                                        </Col>
-                                        <Col xs={12} md={6}>
-                                            <IconFieldComponent
-                                                icon="verified_user"
-                                                type="password"
-                                                placeholder={t('confirm_password')}
-                                                classes="w-100 h-lg mb-4"
-                                                passwordVisible
-                                            />
-                                        </Col>
-                                    </Row>
-                                </div>
-                                <ButtonComponent className="mc-btn primary" icon="verified" text={t('save_changes')} />
-                            </Tab>
-                            {/* <Tab eventKey="settings" title={t('other_settings')} className="mc-tabpane settings">
-                                <Row xs={1} md={2}>
-                                    <Col>
-                                        <div className="mc-tab-card">
-                                            <h6 className="mc-tab-card-title">{t('activity_email_settings')}</h6>
-                                            <Form.Check type="switch" id="switch1" label="Someone adds you as a connection" />
-                                            <Form.Check type="switch" id="switch2" label="you're sent a direct message" defaultChecked/>
-                                            <Form.Check type="switch" id="switch3" label="New membership approval" defaultChecked/>
-                                            <Form.Check type="switch" id="switch4" label="Send Copy To Personal Email" defaultChecked/>
-                                            <Form.Check type="switch" id="switch5" label="Tips on getting more out of PCT-themes" />
-                                        </div>
-                                    </Col>
-                                    <Col>
-                                        <div className="mc-tab-card">
-                                            <h6 className="mc-tab-card-title">{t('product_email_settings')}</h6>
-                                            <Form.Check type="checkbox" id="check1" label="Someone adds you as a connection" defaultChecked/>
-                                            <Form.Check type="checkbox" id="check2" label="you're sent a direct message" defaultChecked/>
-                                            <Form.Check type="checkbox" id="check3" label="New membership approval" defaultChecked/>
-                                            <Form.Check type="checkbox" id="check4" label="Send Copy To Personal Email" />
-                                            <Form.Check type="checkbox" id="check5" label="Tips on getting more out of PCT-themes" />
-                                        </div>
-                                    </Col>
-                                </Row>
-                                <ButtonComponent className="mc-btn primary" icon="verified" text={t('update_changes')} />
-                            </Tab> */}
                         </Tabs>
                     </div>
                 </Col>

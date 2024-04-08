@@ -16,8 +16,10 @@ export const findProductIndexById = (list, id) => {
 
 export const arraysAreEqual = (arr1, arr2) => {
     // Kiểm tra xem độ dài của hai mảng có bằng nhau không
-
     if (!arr1 || !arr2) {
+        if (!arr1 && !arr2) {
+            return true;
+        }
         return false;
     }
     if (arr1.length !== arr2.length) {

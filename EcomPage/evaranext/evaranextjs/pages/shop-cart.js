@@ -1,9 +1,135 @@
 import { connect } from 'react-redux';
 import Layout from '../components/layout/Layout';
-
+import debounce from 'lodash.debounce';
 import Link from 'next/link';
 import { clearCart, closeCart, decreaseQuantity, deleteFromCart, increaseQuantity, openCart } from '../redux/action/cart';
 import { useEffect } from 'react';
+import axiosInstance from '../config/axiosInstance';
+import { useState } from 'react';
+import { Badge, Row, Col } from 'react-bootstrap';
+
+const CartItemData = ({ id, variant, quantity, children }) => {
+    const [productData, setProductData] = useState({});
+    const [productSelectedVariant, setProductSelectedVariant] = useState([]);
+    const [productTreeDetail, setProductTreeDetail] = useState({});
+    const [isProductExist, setIsProductExist] = useState(true);
+    useEffect(() => {
+        const accessVariantDetail = (node, indexArr, depth) => {
+            let isFound = false;
+            if (depth === indexArr.length - 1) {
+                //found node
+                setProductTreeDetail({ ...node.detail });
+                console.log(node.detail);
+                return true;
+            } else {
+                //not found
+                for (const child of node.child) {
+                    if (child._id === indexArr[depth + 1]) {
+                        isFound = accessVariantDetail(child, indexArr, depth + 1);
+                        break;
+                    }
+                }
+                return isFound;
+            }
+        };
+        // const setPrice = async (reqData) => {
+
+        // };
+        const initSelectedVariant = async (variantData, selectedVariant) => {
+            if (!variantData || !selectedVariant) {
+                return;
+            }
+            const result = variantData.map((v, index) => {
+                const i = v.data.findIndex((vData) => vData._id === selectedVariant[index]);
+                if (i !== -1) {
+                    return v.data[i].name;
+                } else {
+                    throw Error('Product not exists');
+                }
+            });
+            setProductSelectedVariant([...result]);
+        };
+        const fetchProductData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/product/${id}`);
+                console.log(response);
+                setProductData(response.data.data); // for name img
+                //
+                initSelectedVariant(response.data.data.variantData, variant); // for selected variant name if exists
+                //
+                if (variant.length > 0) {
+                    for (const v of response.data.data.variantDetail) {
+                        if (v._id === variant[0]) {
+                            accessVariantDetail(v, variant, 0);
+                            break;
+                        }
+                    }
+                } else {
+                    setProductTreeDetail({
+                        price: response.data.data.price,
+                        disPrice: response.data.data.discountPrice,
+                        stock: response.data.data.stock,
+                    });
+                }
+                // setPrice(response.data.data);
+            } catch (err) {
+                console.log(err);
+                setIsProductExist(false);
+            }
+        };
+        fetchProductData();
+    }, []);
+    return (
+        <>
+            {isProductExist ? (
+                <>
+                    <td className="image product-thumbnail">
+                        <img src={productData?.images ? productData?.images[0].url : null} />
+                    </td>
+                    <td className="price" data-title="Price">
+                        <span>{productData?.name}</span>
+                    </td>
+                    <td className="price" data-title="Price">
+                        <span>
+                            {productSelectedVariant?.length > 0
+                                ? productSelectedVariant.map((v) => {
+                                      return (
+                                          <Badge bg="secondary" className="me-1">
+                                              {v}
+                                          </Badge>
+                                      );
+                                  })
+                                : 'No variant'}
+                        </span>
+                    </td>
+                    <td className="price" data-title="Price">
+                        <span>
+                            {productTreeDetail?.disPrice
+                                ? productTreeDetail?.disPrice === 0
+                                    ? productTreeDetail?.price
+                                    : productTreeDetail?.disPrice
+                                : productTreeDetail?.price}
+                        </span>
+                    </td>
+                    {children}
+                    <td className="price" data-title="Price">
+                        <span>
+                            {(productTreeDetail?.disPrice
+                                ? productTreeDetail?.disPrice === 0
+                                    ? productTreeDetail?.price
+                                    : productTreeDetail?.disPrice
+                                : productTreeDetail?.price) * quantity}
+                        </span>
+                    </td>
+                </>
+            ) : (
+                <td colSpan={6} className="price" data-title="Price">
+                    <span>productNotAvailable</span>
+                </td>
+            )}
+        </>
+    );
+};
 
 const Cart = ({
     openCart,
@@ -53,15 +179,45 @@ const Cart = ({
                                         <tbody>
                                             {cartItems.map((item, i) => (
                                                 <tr key={i}>
-                                                    <td className="price" data-title="Price">
-                                                        <span>${item.product}</span>
-                                                    </td>
-                                                    <td className="price" data-title="Price">
-                                                        <span>${item.variant}</span>
-                                                    </td>
-                                                    <td className="price" data-title="Price">
-                                                        <span>${item.quantity}</span>
-                                                    </td>
+                                                    <CartItemData
+                                                        id={item.product}
+                                                        variant={item.variant}
+                                                        quantity={item.quantity ? item.quantity : 0}
+                                                    >
+                                                        <td className="price" data-title="Price">
+                                                            <input
+                                                                key={item.product}
+                                                                type="number"
+                                                                defaultValue={item.quantity ? item.quantity : 0}
+                                                                onChange={debounce((e) => {
+                                                                    if (e.target.value) {
+                                                                        const gap = e.target.value - item.quantity;
+                                                                        console.log(gap);
+                                                                        if (gap > 0) {
+                                                                            // increase quantity
+                                                                            increaseQuantity(
+                                                                                item.product,
+                                                                                item.variant,
+                                                                                gap,
+                                                                                user,
+                                                                            );
+                                                                        }
+                                                                        if (gap < 0) {
+                                                                            // decrease quantity
+                                                                            decreaseQuantity(
+                                                                                item.product,
+                                                                                item.variant,
+                                                                                gap,
+                                                                                user,
+                                                                            );
+                                                                        } else {
+                                                                            //no change
+                                                                        }
+                                                                    }
+                                                                }, 500)}
+                                                            />
+                                                        </td>
+                                                    </CartItemData>
                                                     {/* <td className="image product-thumbnail">
                                                         <img src={item.images[0].url} />
                                                     </td>
@@ -92,7 +248,7 @@ const Cart = ({
                                                     </td> */}
                                                     <td className="action" data-title="Remove">
                                                         <a
-                                                            onClick={(e) => deleteFromCart(item.product, user)}
+                                                            onClick={(e) => deleteFromCart(item.product, item.variant, user)}
                                                             className="text-muted"
                                                         >
                                                             <i className="fi-rs-trash"></i>

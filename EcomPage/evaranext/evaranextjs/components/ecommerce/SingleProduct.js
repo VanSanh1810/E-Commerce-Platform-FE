@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useCallback, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 import { addToCart } from '../../redux/action/cart';
@@ -8,8 +9,12 @@ import { openQuickView } from '../../redux/action/quickViewAction';
 import { addToWishlist } from '../../redux/action/wishlistAction';
 import Loader from './../elements/Loader';
 
-const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQuickView }) => {
+const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQuickView, user }) => {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
+
+    const [productVariantDetailTable, setProductVariantDetailTable] = useState([]);
+    const [productPrice, setProductPrice] = useState();
 
     useEffect(() => {
         setLoading(true);
@@ -17,10 +22,78 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
             setLoading(false);
         }, 2000);
     }, []);
+    const initProductVariantDetailTable = useCallback((node, depth, routeMap) => {
+        if (node.detail) {
+            const detail = {
+                routeMap: routeMap,
+                detail: node.detail,
+            };
+            setProductVariantDetailTable((tb) => [...tb, detail]);
+            return;
+        } else {
+            for (let i = 0; i < node.child.length; i++) {
+                const newRouteMap = [...routeMap, node.child[i]._id];
+                initProductVariantDetailTable(node.child[i], depth + 1, newRouteMap);
+            }
+            return;
+        }
+    }, []);
+
+    useEffect(() => {
+        const startInitProductVariantDetailTable = () => {
+            for (let i = 0; i < product.variantDetail.length; i++) {
+                initProductVariantDetailTable(product.variantDetail[i], 0, [product.variantDetail[i]._id]);
+            }
+        };
+        if (product.variantDetail) {
+            setProductVariantDetailTable([]);
+            startInitProductVariantDetailTable();
+        }
+    }, [product, initProductVariantDetailTable]);
+
+    useEffect(() => {
+        const getShowPrice = () => {
+            let max = null;
+            let min = null;
+            let totalStock = 0;
+
+            // Duyệt qua mỗi object trong danh sách và cộng giá trị quantity lại
+            productVariantDetailTable.forEach((obj) => {
+                if (max) {
+                    if (parseFloat(obj.detail.disPrice) !== 0) {
+                        max = parseFloat(obj.detail.disPrice) > max ? parseFloat(obj.detail.disPrice) : max;
+                    } else {
+                        max = parseFloat(obj.detail.price) > max ? parseFloat(obj.detail.price) : max;
+                    }
+                } else {
+                    max = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
+                }
+                if (min) {
+                    if (parseFloat(obj.detail.disPrice) !== 0) {
+                        min = parseFloat(obj.detail.disPrice) < min ? parseFloat(obj.detail.disPrice) : min;
+                    } else {
+                        min = parseFloat(obj.detail.price) < min ? parseFloat(obj.detail.price) : min;
+                    }
+                } else {
+                    min = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
+                }
+            });
+            setProductPrice(min === max ? `${min}` : `${min} - $${max}`);
+        };
+        // console.log(productVariantDetailTable);
+        // console.log(product.name);
+        if (productVariantDetailTable.length > 0) {
+            getShowPrice();
+        }
+    }, [productVariantDetailTable]);
 
     const handleCart = (product) => {
-        addToCart(product);
-        toast.success('Add to Cart !');
+        if (!product.variantData) {
+            addToCart({ product: product._id, variant: [], quantity: 1 }, user);
+            toast.success('Add to Cart !');
+        } else {
+            router.push(`/products/${product._id}`);
+        }
     };
 
     const handleCompare = (product) => {
@@ -96,8 +169,18 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                 </span>
                             </div>
                             <div className="product-price">
-                                <span>${product.price} </span>
-                                <span className="old-price">{product.oldPrice ? `$ ${product.oldPrice}` : null}</span>
+                                {!product.variantData ? (
+                                    <>
+                                        <span>${product.discountPrice !== 0 ? product.discountPrice : product.price} </span>
+                                        {product.discountPrice !== 0 && product.price !== product.discountPrice ? (
+                                            <span className="old-price">
+                                                {product.discountPrice ? `$ ${product.price}` : null}
+                                            </span>
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <span>${productPrice} </span>
+                                )}
                             </div>
                             <div className="product-action-1 show">
                                 <a aria-label="Add To Cart" className="action-btn hover-up" onClick={(e) => handleCart(product)}>
@@ -121,4 +204,8 @@ const mapDispatchToProps = {
     openQuickView,
 };
 
-export default connect(null, mapDispatchToProps)(SingleProduct);
+const mapStateToProps = (state) => ({
+    user: state.user,
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SingleProduct);
