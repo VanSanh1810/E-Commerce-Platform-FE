@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Row, Col, Dropdown, Modal } from 'react-bootstrap';
@@ -24,6 +24,16 @@ export default function ProductUploadPage() {
 
     const [uploadFile, setUploadFile] = React.useState('image upload');
     const [reloadAction, setReloadAction] = React.useState(false);
+
+    const generateRandomString = useCallback((length) => {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }, []);
 
     //** ===================  CATEGORY PRODUCT  ===================
     const [cateModal, setCateModal] = useState(false);
@@ -74,6 +84,7 @@ export default function ProductUploadPage() {
         }
     };
 
+    // classify loading
     useEffect(() => {
         const fetchClassifyData = async () => {
             try {
@@ -97,10 +108,50 @@ export default function ProductUploadPage() {
         fetchClassifyData();
     }, [reloadClassifyData, shopId]);
 
+    // ** ===================  UPDATE PRODUCT  ===================
+
+    const updateProductHanddler = async (e) => {
+        clearErr();
+        console.log(variantData);
+        console.log(variantDetail);
+        return;
+        const form = new FormData();
+        form.append('name', productTitle);
+        form.append('description', productDesc);
+        form.append('classifyId', productClassify);
+        form.append('categoryId', selectedCategory);
+        form.append('price', productRePrice);
+        form.append('discountPrice', productDisPrice);
+        form.append('stock', productStock);
+        form.append('tags', productTag);
+        form.append('variantData', null);
+        form.append('variantDetail', null);
+        const arr = Object.values(productImages);
+
+        arr.forEach((file) => {
+            if (typeof file === 'object') {
+                form.append('images', file);
+            }
+        });
+
+        try {
+            const result = await axiosInstance.post('/api/product', form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            console.log(result);
+            dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.message }));
+            // setTimeout(() => {
+            //     navigate('/product');
+            // }, 1500);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     // ** ===================  PRODUCT VARIANT   ===================
     const [variantData, setVariantData] = useState([]);
-    const variantDetail = useRef([]);
-
+    const oldVariantDetail = useRef([]);
+    const [variantDetail, setVariantDetail] = useState([]);
     const [tableToRender, setTableToRender] = useState();
 
     /* The above code is a JavaScript function named `accessVariantDetail` that is using the
@@ -113,31 +164,244 @@ export default function ProductUploadPage() {
         let isFound = false;
         if (depth === indexArr.length - 1) {
             //found node
-            node.detail[field] = value;
-            console.log(value);
+            try {
+                if (node.detail) {
+                    if (field[0]) {
+                        node.detail[field[0]] = value[0];
+                    }
+                    if (field[1]) {
+                        node.detail[field[1]] = value[1];
+                    }
+                    if (field[2]) {
+                        node.detail[field[2]] = value[2];
+                    }
+                }
+            } catch (e) {
+                console.log(e, 'OK');
+            }
             return true;
         } else {
             //not found
-            for (const child of node.child) {
-                if (child._id === indexArr[depth + 1]) {
-                    isFound = accessVariantDetail(child, indexArr, depth + 1, field, value);
-                    break;
+            if (node.child && node.child.length > 0) {
+                for (const child of node.child) {
+                    if (child._id === indexArr[depth + 1]) {
+                        isFound = accessVariantDetail(child, indexArr, depth + 1, field, value);
+                        break;
+                    }
                 }
             }
             return isFound;
         }
     }, []);
 
-    useEffect(() => {
-        /**
-         * The function `createVariantDetail` generates a nested array structure based on the
-         * `variantData` array.
-         */
-        const createVariantDetail = () => {
+    const getVariantDetail = useCallback((node, indexArr, depth) => {
+        if (depth === indexArr.length - 1) {
+            //found node
+            if (node.detail) {
+                return node.detail;
+            }
+            return false;
+        } else {
+            //not found
+            let isFound = false;
+            if (node.child && node.child.length > 0) {
+                for (const child of node.child) {
+                    if (child._id === indexArr[depth + 1]) {
+                        isFound = getVariantDetail(child, indexArr, depth + 1);
+                        break;
+                    }
+                }
+            }
+            return isFound;
+        }
+    }, []);
+
+    /**
+     * The function `createVarianTable` asynchronously generates a table based on variant data and
+     * allows users to input price, discount price, and stock for each variant.
+     */
+    const createVarianTable = useCallback(async () => {
+        /* The code is creating an empty array called `variantChild` and then iterating over an
+            array called `variantData`. For each element in `variantData`, it is pushing the
+            length of the `data` property of that element into the `variantChild` array. */
+        const variantChild = [];
+        for (let i = 0; i < variantData.length; i++) {
+            variantChild.push(variantData[i].data.length);
+        }
+
+        //combination of posible row
+        const result = await variantChild.reduce((accumulator, currentValue) => accumulator * currentValue, 1);
+
+        let rowSpanRequired = [];
+        for (let i = 0; i < variantChild.length; i++) {
+            let product = 1;
+            if (i < variantChild.length - 1) {
+                for (let j = i + 1; j < variantChild.length; j++) {
+                    product *= variantChild[j];
+                }
+            }
+            rowSpanRequired.push(product);
+        }
+
+        const tableRender = [];
+        for (let i = 0; i < result; i++) {
+            const locations = variantData.map((varData, j) => {
+                return varData.data[
+                    Math.floor(
+                        i / rowSpanRequired[j] >= variantChild[j]
+                            ? (i / rowSpanRequired[j]) % variantChild[j]
+                            : i / rowSpanRequired[j],
+                    )
+                ]?._id;
+            });
+            let currentVariantDetailData = {
+                price: null,
+                disPrice: null,
+                stock: null,
+            };
+
+            for (let i = 0; i < variantDetail.length; i++) {
+                if (variantDetail[i]._id === locations[0]) {
+                    const result = getVariantDetail(variantDetail[i], locations, 0);
+                    if (result) {
+                        currentVariantDetailData = { ...result };
+                    }
+                }
+            }
+            const abc = (
+                <tr key={locations}>
+                    {variantData.map((varData, j) => {
+                        if (i % rowSpanRequired[j] === 0) {
+                            return (
+                                <td
+                                    key={
+                                        varData.data[
+                                            Math.floor(
+                                                i / rowSpanRequired[j] >= variantChild[j]
+                                                    ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                    : i / rowSpanRequired[j],
+                                            )
+                                        ]?._id
+                                    }
+                                    rowSpan={rowSpanRequired[j]}
+                                >
+                                    {
+                                        varData.data[
+                                            Math.floor(
+                                                i / rowSpanRequired[j] >= variantChild[j]
+                                                    ? (i / rowSpanRequired[j]) % variantChild[j]
+                                                    : i / rowSpanRequired[j],
+                                            )
+                                        ]?.name
+                                        // Math.floor(
+                                        //     i / rowSpanRequired[j] >= variantChild[j]
+                                        //         ? (i / rowSpanRequired[j]) % variantChild[j]
+                                        //         : i / rowSpanRequired[j],
+                                        // )
+                                    }
+                                </td>
+                            );
+                        } else {
+                            return null;
+                        }
+                    })}
+                    <td>
+                        <input
+                            key={`input-price-${locations.join(' ')}`}
+                            type="number"
+                            inputMode="none"
+                            placeholder="price"
+                            onBlur={(e) => {
+                                ////////////////////////////////////////////////////////////////////////
+                                let flag = false;
+                                for (const v of variantDetail) {
+                                    if (v._id === locations[0]) {
+                                        flag = accessVariantDetail(v, locations, 0, ['price'], [e.currentTarget.value]);
+                                        break;
+                                    }
+                                }
+                            }}
+                            defaultValue={currentVariantDetailData.price}
+                        />
+                    </td>
+                    <td>
+                        <input
+                            key={`input-disPrice-${locations.join(' ')}`}
+                            inputMode="none"
+                            placeholder="discount price"
+                            type="number"
+                            onBlur={(e) => {
+                                ////////////////////////////////////////////////////////////////////////
+                                let flag = false;
+                                for (const v of variantDetail) {
+                                    if (v._id === locations[0]) {
+                                        flag = accessVariantDetail(v, locations, 0, ['disPrice'], [e.currentTarget.value]);
+                                        break;
+                                    }
+                                }
+                            }}
+                            defaultValue={currentVariantDetailData.disPrice}
+                        />
+                    </td>
+                    <td>
+                        <input
+                            key={`input-stock-${locations.join(' ')}`}
+                            inputMode="none"
+                            placeholder="stock"
+                            type="number"
+                            onBlur={(e) => {
+                                // console.log(data);
+                                ////////////////////////////////////////////////////////////////////////
+                                let flag = false;
+                                for (const v of variantDetail) {
+                                    if (v._id === locations[0]) {
+                                        flag = accessVariantDetail(v, locations, 0, ['stock'], [e.currentTarget.value]);
+                                        break;
+                                    }
+                                }
+                            }}
+                            defaultValue={currentVariantDetailData.stock}
+                        />
+                    </td>
+                </tr>
+            );
+            tableRender.push(abc);
+        }
+        setTableToRender(tableRender);
+        return null;
+    }, [accessVariantDetail, variantData, getVariantDetail, variantDetail]);
+
+    /**
+     * The function `createVariantDetail` generates a nested array structure based on the
+     * `variantData` array.
+     */
+    const createVariantDetail = useCallback(async () => {
+        if (variantData && variantData.length > 0) {
+            console.log('Creating variant');
+            const arraysAreEqual = (arr1, arr2) => {
+                if (!arr1 || !arr2) {
+                    if (!arr1 && !arr2) {
+                        return true;
+                    }
+                    return false;
+                }
+                if (arr1.length !== arr2.length) {
+                    return false;
+                }
+                for (let i = 0; i < arr1.length; i++) {
+                    if (arr1[i] !== arr2[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
             let variantHolders = [];
-            for (var i = variantData.length - 1; i >= 0; i = i - 1) {
+            /// generate New VariantDetail temporary
+            for (var i = variantData.length - 1; i >= 0; i--) {
+                let newArr = [];
                 if (i === variantData.length - 1) {
-                    const newArr = variantData[i].data.map((vari, index) => {
+                    newArr = variantData[i].data.map((vari, index) => {
                         return {
                             _id: vari._id,
                             detail: {
@@ -150,7 +414,7 @@ export default function ProductUploadPage() {
                     variantHolders = newArr;
                 } else {
                     let temp = [...variantHolders];
-                    const newArr = variantData[i].data.map((vari, index) => {
+                    newArr = variantData[i].data.map((vari, index) => {
                         return {
                             _id: vari._id,
                             child: temp,
@@ -159,171 +423,81 @@ export default function ProductUploadPage() {
                     variantHolders = newArr;
                 }
             }
-            variantDetail.current = [...variantHolders];
-            // setVariantDetail([...variantHolders]);
-            console.log(variantHolders);
-            console.log(variantData);
-        };
 
-        /**
-         * The function `createVarianTable` asynchronously generates a table based on variant data and
-         * allows users to input price, discount price, and stock for each variant.
-         */
-        const createVarianTable = async () => {
-            variantData.map(async (vari, index) => {
-                if (index !== 0) {
-                    return null;
-                }
-
-                /* The code is creating an empty array called `variantChild` and then iterating over an
-                array called `variantData`. For each element in `variantData`, it is pushing the
-                length of the `data` property of that element into the `variantChild` array. */
-                const variantChild = [];
-                for (let i = 0; i < variantData.length; i++) {
-                    variantChild.push(variantData[i].data.length);
-                }
-
-                //combination of posible row
-                const result = await variantChild.reduce((accumulator, currentValue) => accumulator * currentValue, 1);
-
-                let rowSpanRequired = [];
-                for (let i = 0; i < variantChild.length; i++) {
-                    let product = 1;
-                    if (i < variantChild.length - 1) {
-                        for (let j = i + 1; j < variantChild.length; j++) {
-                            product *= variantChild[j];
+            /// update the temporary with previous variantDetail
+            if (oldVariantDetail.current && oldVariantDetail.current.length > 0) {
+                console.log('oldVariantDetail : ', oldVariantDetail.current);
+                let tableMap = [];
+                const initProductVariantDetailTable = (node, depth, routeMap) => {
+                    if (node.detail) {
+                        const detail = {
+                            routeMap: routeMap,
+                            detail: node.detail,
+                        };
+                        tableMap = [...tableMap, detail];
+                        return;
+                    } else {
+                        for (let i = 0; i < node.child.length; i++) {
+                            const newRouteMap = [...routeMap, node.child[i]._id];
+                            initProductVariantDetailTable(node.child[i], depth + 1, newRouteMap);
                         }
+                        return;
                     }
-                    rowSpanRequired.push(product);
+                };
+                for (let i = 0; i < oldVariantDetail.current.length; i++) {
+                    initProductVariantDetailTable(oldVariantDetail.current[i], 0, [oldVariantDetail.current[i]._id]);
                 }
-                const tableRender = [];
-                for (let i = 0; i < result; i++) {
-                    const locations = variantData.map((varData, j) => {
-                        return varData.data[
-                            Math.floor(
-                                i / rowSpanRequired[j] >= variantChild[j]
-                                    ? (i / rowSpanRequired[j]) % variantChild[j]
-                                    : i / rowSpanRequired[j],
-                            )
-                        ]?._id;
-                    });
-                    const abc = (
-                        <tr key={i}>
-                            {variantData.map((varData, j) => {
-                                if (i % rowSpanRequired[j] === 0) {
-                                    return (
-                                        <td rowSpan={rowSpanRequired[j]}>
-                                            {
-                                                varData.data[
-                                                    Math.floor(
-                                                        i / rowSpanRequired[j] >= variantChild[j]
-                                                            ? (i / rowSpanRequired[j]) % variantChild[j]
-                                                            : i / rowSpanRequired[j],
-                                                    )
-                                                ]?.name
-                                            }
-                                        </td>
-                                    );
-                                } else {
-                                    return null;
-                                }
-                            })}
-                            <td>
-                                <input
-                                    key={`input-price-${locations}`}
-                                    type="number"
-                                    inputMode="none"
-                                    placeholder="price"
-                                    onBlur={(e) => {
-                                        const data = variantData.map((varData, j) => {
-                                            return varData.data[
-                                                Math.floor(
-                                                    i / rowSpanRequired[j] >= variantChild[j]
-                                                        ? (i / rowSpanRequired[j]) % variantChild[j]
-                                                        : i / rowSpanRequired[j],
-                                                )
-                                            ]?._id;
-                                        });
-                                        console.log(data);
-                                        ////////////////////////////////////////////////////////////////////////
-                                        let flag = false;
-                                        for (const v of variantDetail.current) {
-                                            if (v._id === data[0]) {
-                                                flag = accessVariantDetail(v, data, 0, 'price', e.currentTarget.value);
-                                                break;
-                                            }
-                                        }
-                                    }}
-                                    on
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    key={`input-disPrice-${locations}`}
-                                    inputMode="none"
-                                    placeholder="discount price"
-                                    type="number"
-                                    onBlur={(e) => {
-                                        const data = variantData.map((varData, j) => {
-                                            return varData.data[
-                                                Math.floor(
-                                                    i / rowSpanRequired[j] >= variantChild[j]
-                                                        ? (i / rowSpanRequired[j]) % variantChild[j]
-                                                        : i / rowSpanRequired[j],
-                                                )
-                                            ]?._id;
-                                        });
-                                        console.log(data);
-                                        ////////////////////////////////////////////////////////////////////////
-                                        let flag = false;
-                                        for (const v of variantDetail.current) {
-                                            if (v._id === data[0]) {
-                                                flag = accessVariantDetail(v, data, 0, 'disPrice', e.currentTarget.value);
-                                                break;
-                                            }
-                                        }
-                                    }}
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    key={`input-stock-${locations}`}
-                                    inputMode="none"
-                                    placeholder="stock"
-                                    type="number"
-                                    onBlur={(e) => {
-                                        const data = variantData.map((varData, j) => {
-                                            return varData.data[
-                                                Math.floor(
-                                                    i / rowSpanRequired[j] >= variantChild[j]
-                                                        ? (i / rowSpanRequired[j]) % variantChild[j]
-                                                        : i / rowSpanRequired[j],
-                                                )
-                                            ]._id;
-                                        });
-                                        console.log(data);
-                                        ////////////////////////////////////////////////////////////////////////
-                                        let flag = false;
-                                        for (const v of variantDetail.current) {
-                                            if (v._id === data[0]) {
-                                                flag = accessVariantDetail(v, data, 0, 'stock', e.currentTarget.value);
-                                                break;
-                                            }
-                                        }
-                                    }}
-                                />
-                            </td>
-                        </tr>
-                    );
-                    await tableRender.push(abc);
+                console.log('Table map :', tableMap);
+                //iterate through the elements in the temporary detail tree
+                const iterateDetalTree = (node, depth, routeMap) => {
+                    if (node.detail) {
+                        for (let j = 0; j < tableMap.length; j++) {
+                            if (arraysAreEqual(tableMap[j].routeMap, routeMap)) {
+                                node.detail = tableMap[j].detail;
+                                break;
+                            }
+                        }
+                        return;
+                    } else {
+                        for (let i = 0; i < node.child.length; i++) {
+                            const newRouteMap = [...routeMap, node.child[i]._id];
+                            iterateDetalTree(node.child[i], depth + 1, newRouteMap);
+                        }
+                        return;
+                    }
+                };
+                for (let j = 0; j < variantHolders.length; j++) {
+                    iterateDetalTree(variantHolders[j], 0, [variantHolders[j]._id]);
                 }
-                setTableToRender(tableRender);
-                return null;
-            });
-        };
+            }
+            console.log('Set detail :', variantHolders);
+            setVariantDetail([...variantHolders]);
+            oldVariantDetail.current = [...variantHolders];
+        }
+        return null;
+    }, [variantData]);
+
+    useEffect(() => {
+        if (variantData && variantData?.length > 0) {
+            createVariantDetail();
+        }
+    }, [variantData, createVariantDetail]);
+
+    useEffect(() => {
         createVarianTable();
-        createVariantDetail();
-    }, [variantData, accessVariantDetail]);
+    }, [variantDetail, createVarianTable]);
+
+    useEffect(() => {}, []);
+
+    useEffect(() => {
+        console.log('Variant data');
+        console.log(variantData);
+    }, [variantData]);
+
+    useEffect(() => {
+        console.log('Variant detail');
+        console.log(variantDetail);
+    }, [variantDetail]);
 
     useEffect(() => {
         const fetchCate = async () => {
@@ -358,15 +532,16 @@ export default function ProductUploadPage() {
 
                 setProductTag(result.data.data.tag);
 
-                setVariantData(result.data.data.variantData);
-                variantDetail.current = result.data.data.variantDetail;
                 console.log(result.data.data);
                 setProductImages(
                     result.data.data.images.map((image) => {
                         return image.url;
                     }),
                 );
-                // console.log(result.data);
+
+                setVariantData(result.data.data.variantData);
+                setVariantDetail(result.data.data.variantDetail);
+                oldVariantDetail.current = result.data.data.variantDetail;
             } catch (e) {
                 console.log(e);
             }
@@ -379,7 +554,7 @@ export default function ProductUploadPage() {
             //create product
         }
         // console.log(productId);
-    }, [reloadAction, productId]);
+    }, [productId]);
 
     // ** ===================  CREATE PRODUCT  ===================
     const [productTitle, setProductTitle] = React.useState('');
@@ -446,9 +621,12 @@ export default function ProductUploadPage() {
 
     const createProductHanddler = async (e) => {
         clearErr();
+        console.log(variantData);
+        console.log(variantDetail);
+        return;
         if (variantData.length > 0) {
             let result1 = true;
-            for (let i of variantDetail.current) {
+            for (let i of variantDetail) {
                 result1 = validateVariantData(i);
                 if (!result1) {
                     break;
@@ -462,8 +640,8 @@ export default function ProductUploadPage() {
                 }
             }
             console.log(result1 && result2);
-            // console.log(variantDetail.current);
-            // console.log(variantData);
+            console.log(variantDetail);
+            console.log(variantData);
             if (result1 && result2 && validateData(true)) {
                 const form = new FormData();
                 form.append('name', productTitle);
@@ -475,7 +653,7 @@ export default function ProductUploadPage() {
                 form.append('categoryId', selectedCategory);
                 form.append('classifyId', productClassify);
                 form.append('variantData', JSON.stringify(variantData));
-                form.append('variantDetail', JSON.stringify(variantDetail.current));
+                form.append('variantDetail', JSON.stringify(variantDetail));
                 console.log(variantData);
                 console.log(variantDetail);
                 const arr = Object.values(productImages);
@@ -525,37 +703,6 @@ export default function ProductUploadPage() {
             } catch (err) {
                 console.error(err);
             }
-        }
-    };
-
-    const updateProductHanddler = async (e) => {
-        const form = new FormData();
-        form.append('name', productTitle);
-        form.append('stock', productStock);
-        form.append('price', productRePrice);
-        form.append('discountPrice', productDisPrice);
-        form.append('description', productDesc);
-        form.append('categoryId', productCate);
-        form.append('removeImg', productRemoveImages);
-        const arr = Object.values(productImages);
-
-        arr.forEach((file) => {
-            if (typeof file === 'object') {
-                form.append('images', file);
-            }
-        });
-
-        try {
-            const result = await axiosInstance.post('/api/product', form, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            console.log(result);
-            dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.message }));
-            setTimeout(() => {
-                navigate('/product');
-            }, 1500);
-        } catch (err) {
-            console.error(err);
         }
     };
 
@@ -774,7 +921,7 @@ export default function ProductUploadPage() {
                                 </Dropdown>
                             </div>
                             <Row>
-                                {variantData.length === 0 ? (
+                                {variantData?.length === 0 || !variantData ? (
                                     <>
                                         <Col xl={6}>
                                             <LabelFieldComponent
@@ -810,7 +957,7 @@ export default function ProductUploadPage() {
                                 ) : null}
 
                                 <Col xl={12}>
-                                    {variantData.map((variant, index) => {
+                                    {variantData?.map((variant, index) => {
                                         return (
                                             <div className="mc-card" style={{ backgroundColor: '#e8e8e8' }} key={variant._id}>
                                                 <div
@@ -820,19 +967,6 @@ export default function ProductUploadPage() {
                                                         alignItems: 'center',
                                                     }}
                                                 >
-                                                    <p
-                                                        style={{ display: 'none', cursor: 'default', minWidth: '50%' }}
-                                                        onClick={(e) => {
-                                                            const rootNode = e.currentTarget.parentNode;
-                                                            var childElements = rootNode.querySelectorAll('*');
-                                                            childElements[1].style.display = 'unset';
-                                                            childElements[1].value = variant.name;
-                                                            childElements[1].focus();
-                                                            childElements[0].style.display = 'none';
-                                                        }}
-                                                    >
-                                                        {variant.name}
-                                                    </p>
                                                     <input
                                                         style={{
                                                             padding: '3px 3px 3px 5px',
@@ -846,20 +980,14 @@ export default function ProductUploadPage() {
                                                                 const arr = [...variantData];
                                                                 arr[index].name = e.currentTarget.value.trim();
                                                                 setVariantData([...arr]);
-                                                                ////////////////////////////////
-                                                                childElements[0].style.display = 'unset';
-                                                                childElements[1].style.display = 'none';
-                                                                childElements[1].style.border = 'none';
-                                                                childElements[1].style.color = 'unset';
                                                             } else {
                                                                 //empty value
-                                                                childElements[1].style.borderBottom = '1px solid red';
-                                                                // childElements[0].style.display = 'unset';
-                                                                // childElements[1].style.display = 'none';
+                                                                childElements[0].style.borderBottom = '1px solid red';
                                                             }
                                                         }}
                                                         autoFocus
                                                         placeholder="The box cannot be left blank"
+                                                        defaultValue={productId ? variant.name : null}
                                                     ></input>
                                                     <i
                                                         style={{ cursor: 'pointer' }}
@@ -902,24 +1030,6 @@ export default function ProductUploadPage() {
                                                                             width: '100%',
                                                                         }}
                                                                     >
-                                                                        <p
-                                                                            style={{
-                                                                                display: 'none',
-                                                                                cursor: 'default',
-                                                                                width: '100%',
-                                                                            }}
-                                                                            onClick={(e) => {
-                                                                                const rootNode = e.currentTarget.parentNode;
-                                                                                var childElements =
-                                                                                    rootNode.querySelectorAll('*');
-                                                                                childElements[1].style.display = 'unset';
-                                                                                childElements[1].value = varD.name;
-                                                                                childElements[1].focus();
-                                                                                childElements[0].style.display = 'none';
-                                                                            }}
-                                                                        >
-                                                                            {varD.name}
-                                                                        </p>
                                                                         <input
                                                                             style={{
                                                                                 padding: '3px 3px 3px 5px',
@@ -935,19 +1045,15 @@ export default function ProductUploadPage() {
                                                                                     arr[index].data[i].name =
                                                                                         e.currentTarget.value.trim();
                                                                                     setVariantData([...arr]);
-                                                                                    ////////////////////////////////
-                                                                                    childElements[0].style.display = 'unset';
-                                                                                    childElements[1].style.display = 'none';
-                                                                                    childElements[1].style.border = 'none';
-                                                                                    childElements[1].style.color = 'unset';
                                                                                 } else {
                                                                                     //empty value
-                                                                                    childElements[1].style.borderBottom =
+                                                                                    childElements[0].style.borderBottom =
                                                                                         '1px solid red';
                                                                                 }
                                                                             }}
                                                                             autoFocus
                                                                             placeholder="The box cannot be left blank"
+                                                                            defaultValue={productId ? varD.name : null}
                                                                         ></input>
                                                                         <i
                                                                             style={{ cursor: 'pointer' }}
@@ -987,16 +1093,18 @@ export default function ProductUploadPage() {
                                 </Col>
                                 <Col xl={12}>
                                     <table className="variant-detail-table">
-                                        {variantData.length > 0 ? (
+                                        {variantData?.length > 0 ? (
                                             <>
-                                                <tr>
-                                                    {variantData.map((varData, index) => {
-                                                        return <th>{varData.name ? varData.name : `Variant ${index}`}</th>;
-                                                    })}
-                                                    <th>Price</th>
-                                                    <th>Discount Price</th>
-                                                    <th>Stock</th>
-                                                </tr>
+                                                <thead>
+                                                    <tr>
+                                                        {variantData.map((varData, index) => {
+                                                            return <th>{varData.name ? varData.name : `Variant ${index}`}</th>;
+                                                        })}
+                                                        <th>Price</th>
+                                                        <th>Discount Price</th>
+                                                        <th>Stock</th>
+                                                    </tr>
+                                                </thead>
                                                 <tbody>{tableToRender}</tbody>
                                             </>
                                         ) : null}
@@ -1133,7 +1241,7 @@ export default function ProductUploadPage() {
                 <div className="mc-alert-modal" style={{ width: '80vw' }}>
                     <i className="material-icons">account_tree</i>
                     <h3>Manage Classify</h3>
-                    <p>Chose category for your product</p>
+                    {/* <p>Chose category for your product</p> */}
                     <Modal.Body>
                         <Row>
                             <Col xl={12}>

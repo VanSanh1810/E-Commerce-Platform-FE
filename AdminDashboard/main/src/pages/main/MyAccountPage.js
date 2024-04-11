@@ -18,20 +18,29 @@ export default function MyAccountPage() {
     const [shopEmail, setShopEmail] = useState('');
     const [shopDes, setShopDes] = useState('');
     const [shopAdDetail, setShopAdDetail] = useState('');
+    const [shopImage, setShopImage] = useState();
 
     const saveShopChanges = async () => {
         if (isAllAddressSelected() && shopAdDetail) {
             try {
-                const response = await axiosInstance.patch(`/api/shop`, {
-                    name: shopName,
-                    email: shopEmail,
-                    description: shopDes,
-                    addressData: {
-                        province: selectedAddress[0],
-                        district: selectedAddress[0],
-                        ward: selectedAddress[0],
-                        detail: shopAdDetail,
-                    },
+                const form = new FormData();
+                form.append('name', shopName);
+                form.append('email', shopEmail);
+                form.append('description', shopDes);
+                const adData = {
+                    province: selectedAddress[0],
+                    district: selectedAddress[1],
+                    ward: selectedAddress[2],
+                    detail: shopAdDetail,
+                };
+                form.append('addressData', JSON.stringify(adData));
+                // form.append('images', shopImage);
+                if (shopImage) {
+                    form.append('images', shopImage);
+                }
+
+                const response = await axiosInstance.post(`/api/shop`, form, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 console.log(response);
             } catch (e) {
@@ -132,11 +141,25 @@ export default function MyAccountPage() {
                                             <div className="mc-user-avatar-upload">
                                                 <div className="mc-user-avatar">
                                                     <img
-                                                        src={shopData?.avatar ? shopData?.avatar : '/images/avatar/01.webp'}
+                                                        src={
+                                                            typeof shopImage === 'object'
+                                                                ? URL.createObjectURL(shopImage)
+                                                                : shopData?.avatar?.url
+                                                                ? shopData?.avatar?.url
+                                                                : '/images/avatar/01.webp'
+                                                        }
                                                         alt="avatar"
                                                     />
                                                 </div>
-                                                <FileUploadComponent icon="cloud_upload" text={t('upload')} />
+                                                <FileUploadComponent
+                                                    icon="cloud_upload"
+                                                    text={t('upload')}
+                                                    multiple={false}
+                                                    onChange={(e) => {
+                                                        // console.log(e.target.files);
+                                                        setShopImage(e.target.files[0]);
+                                                    }}
+                                                />
                                             </div>
                                         </Col>
                                         <Col xl={8}>
@@ -274,7 +297,7 @@ export default function MyAccountPage() {
                                         <Col xl={12}>
                                             <LegendTextareaComponent
                                                 title={t('address detail')}
-                                                longText={shopData?.addresses?.detail}
+                                                longText={shopData?.addresses?.address.detail}
                                                 onChange={(e) => {
                                                     setShopAdDetail(e.target.value);
                                                 }}

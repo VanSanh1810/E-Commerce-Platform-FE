@@ -19,19 +19,19 @@ export default function ShopProfilePage() {
 
     const [userData, setUserData] = useState();
 
-    useEffect(() => {
-        console.log(uid);
-        const fetchUserData = async () => {
-            try {
-                const result = await axiosInstance.get(`/api/user/${uid}`);
-                console.log(result.data);
-                setUserData(result.data.data);
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        fetchUserData();
-    }, [uid]);
+    // useEffect(() => {
+    //     console.log(uid);
+    //     const fetchUserData = async () => {
+    //         try {
+    //             const result = await axiosInstance.get(`/api/user/${uid}`);
+    //             console.log(result.data);
+    //             setUserData(result.data.data);
+    //         } catch (err) {
+    //             console.log(err);
+    //         }
+    //     };
+    //     fetchUserData();
+    // }, [uid]);
     return (
         <PageLayout>
             <Row>

@@ -10,30 +10,31 @@ export default function ShopTableComponent({ thead, tbody }) {
     const [data, setData] = useState([]);
     const [userData, setUserData] = React.useState('');
     const [editModal, setEditModal] = React.useState(false);
-    const [blockModal, setBlockModal] = React.useState(false);
 
     const [reloadAction, setReloadAction] = useState(false);
 
-    const blockUserHandler = async ({ _id, status }) => {
-        console.log(_id);
-        console.log(status);
-        try {
-            const result = await axiosInstance.patch(`/api/user/${_id}`, {
-                status: status === 'active' ? 'banned' : 'active',
-            });
-            console.log(result.data.data);
-            setReloadAction(!reloadAction);
-        } catch (e) {
-            console.error(e);
+    const [selectedStatus, setSelectedStatus] = useState('');
+
+    const changeShopStatusHandler = async (_id) => {
+        if (selectedStatus) {
+            try {
+                const result = await axiosInstance.patch(`/api/shop/${_id}?status=${selectedStatus}`);
+                console.log(result.data.data);
+                setReloadAction(!reloadAction);
+            } catch (e) {
+                console.error(e);
+            }
         }
+        setEditModal(false);
+        setSelectedStatus('');
     };
 
     useEffect(() => {
         const fetchAllUsers = async () => {
             try {
-                const result = await axiosInstance.get('/api/user/');
+                const result = await axiosInstance.get('/api/shop/');
                 console.log(result.data.data);
-                setData(result.data.data);
+                setData(result.data.data.shops);
             } catch (e) {
                 console.error(e);
             }
@@ -52,7 +53,7 @@ export default function ShopTableComponent({ thead, tbody }) {
                             </div>
                         </th>
                         <th>name</th>
-                        <th>role</th>
+                        <th>owner</th>
                         <th>email</th>
                         <th>status</th>
                         <th>created</th>
@@ -73,24 +74,31 @@ export default function ShopTableComponent({ thead, tbody }) {
                                     <p>{item.name}</p>
                                 </div>
                             </td>
-                            <td title={item.role}>
+                            <td title={item.vendor.name}>
+                                <div className="mc-table-profile">
+                                    {/* <img src={item.src} alt={item.alt} /> */}
+                                    <a href={`/user/${item.vendor._id}`}>{item.vendor.name}</a>
+                                </div>
+                            </td>
+                            {/* <td title={item.role}>
                                 <div className="mc-table-icon role">
                                     {item.role === 'vendor' && <i className="material-icons yellow">store</i>}
                                     {item.role === 'user' && <i className="material-icons green">person</i>}
                                     {item.role === 'admin' && <i className="material-icons purple">settings</i>}
                                     <span>{item.role}</span>
                                 </div>
-                            </td>
+                            </td> */}
                             <td title={item.email}>{item.email}</td>
                             <td title={item.status}>
                                 {item.status === 'active' && <p className="mc-table-badge green">{item.status}</p>}
-                                {item.status === 'pending' && <p className="mc-table-badge purple">{item.status}</p>}
+                                {item.status === 'pending' && <p className="mc-table-badge yellow">{item.status}</p>}
+                                {item.status === 'stop' && <p className="mc-table-badge purple">{item.status}</p>}
                                 {item.status === 'banned' && <p className="mc-table-badge red">{item.status}</p>}
                             </td>
                             <td title={item.createDate}>{Date(item.createDate)}</td>
                             <td>
                                 <div className="mc-table-action">
-                                    <AnchorComponent to={`/user/${item._id}`} title="View" className="material-icons view">
+                                    <AnchorComponent to={`/shop/${item._id}`} title="View" className="material-icons view">
                                         visibility
                                     </AnchorComponent>
                                     <ButtonComponent
@@ -100,13 +108,13 @@ export default function ShopTableComponent({ thead, tbody }) {
                                     >
                                         edit
                                     </ButtonComponent>
-                                    <ButtonComponent
+                                    {/* <ButtonComponent
                                         title="Delete"
                                         className="material-icons block"
                                         onClick={() => setBlockModal({ _id: item._id, status: item.status })}
                                     >
                                         block
-                                    </ButtonComponent>
+                                    </ButtonComponent> */}
                                 </div>
                             </td>
                         </tr>
@@ -116,53 +124,45 @@ export default function ShopTableComponent({ thead, tbody }) {
 
             <Modal show={editModal} onHide={() => setEditModal(false, setUserData(''))}>
                 <div className="mc-user-modal">
-                    <img src={userData.src} alt={userData?.alt} />
+                    <img src={userData.avatar?.url} alt={userData?.alt} />
                     <h4>{userData?.name}</h4>
                     <p>{userData?.email}</p>
-                    <Form.Group className="form-group inline mb-4">
+                    {/* <Form.Group className="form-group inline mb-4">
                         <Form.Label>{t('role')}</Form.Label>
                         <Form.Select>
                             <option value="admin">{t('admin')}</option>
                             <option value="user">{t('user')}</option>
                             <option value="vendor">{t('vendor')}</option>
                         </Form.Select>
-                    </Form.Group>
+                    </Form.Group> */}
                     <Form.Group className="form-group inline">
                         <Form.Label>{t('status')}</Form.Label>
-                        <Form.Select>
-                            <option value="approved">{t('active')}</option>
-                            <option value="blocked">{t('banned')}</option>
+                        <Form.Select
+                            onChange={(e) => {
+                                // console.log(e.target.value);
+                                setSelectedStatus(e.target.value);
+                            }}
+                        >
+                            <option value="active" selected={userData.status === 'active'}>
+                                {t('active')}
+                            </option>
+                            <option value="banned" selected={userData.status === 'banned'}>
+                                {t('banned')}
+                            </option>
                         </Form.Select>
                     </Form.Group>
                     <Modal.Footer>
                         <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setEditModal(false)}>
                             {t('close_popup')}
                         </ButtonComponent>
-                        <ButtonComponent type="button" className="btn btn-success" onClick={() => setEditModal(false)}>
-                            {t('save_changes')}
-                        </ButtonComponent>
-                    </Modal.Footer>
-                </div>
-            </Modal>
-
-            <Modal show={blockModal} onHide={() => setBlockModal(false)}>
-                <div className="mc-alert-modal">
-                    <i className="material-icons">new_releases</i>
-                    <h3>are your sure!</h3>
-                    <p>Want to block this user's account?</p>
-                    <Modal.Footer>
-                        <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setBlockModal(false)}>
-                            {t('close')}
-                        </ButtonComponent>
                         <ButtonComponent
                             type="button"
-                            className="btn btn-danger"
+                            className="btn btn-success"
                             onClick={() => {
-                                blockUserHandler(blockModal);
-                                setBlockModal(false);
+                                changeShopStatusHandler(userData._id);
                             }}
                         >
-                            {t('block')}
+                            {t('save_changes')}
                         </ButtonComponent>
                     </Modal.Footer>
                 </div>
