@@ -9,6 +9,7 @@ export const userLogin = (loginData) => async (dispatch) => {
             type: Types.USER_LOGIN,
             payload: { userToken: loginData },
         });
+        authenticateUser();
     } catch (error) {
         console.log(error);
     }

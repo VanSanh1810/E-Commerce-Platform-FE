@@ -6,7 +6,7 @@ import quickView from './quickView';
 import compare from './compare';
 import productFilters from './productFilters';
 import user from './user';
-
+import cartSelected from './cartSelected';
 
 const rootReducer = combineReducers({
     products,
@@ -16,6 +16,7 @@ const rootReducer = combineReducers({
     compare,
     productFilters,
     user,
+    cartSelected,
 });
 
 export default rootReducer;

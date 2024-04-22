@@ -181,12 +181,26 @@ function Account({ userLogout, isLoggedIn }) {
         }
     };
 
+    //****************ORDER TAB ******************/
+
+    const [userOrders, setUserOrders] = useState([]);
+    const [orderViewModal, setOrderViewModal] = useState();
+
+    const [shopAd, setShopAd] = useState();
+
     useEffect(() => {
         console.log(isLoggedIn);
         const tabAction = async () => {
             switch (activeIndex) {
                 case 2: //orders
-                    toast.success('2');
+                    // toast.success('2');
+                    try {
+                        const response = await axiosInstance.get('/api/order?target=userPage');
+                        console.log(response.data.orders);
+                        setUserOrders([...response.data.orders]);
+                    } catch (err) {
+                        console.error(err);
+                    }
                     break;
                 case 3: // track orders
                     toast.success('3');
@@ -214,10 +228,55 @@ function Account({ userLogout, isLoggedIn }) {
                 case 6: //change password
                     break;
                 default:
+                    break;
             }
         };
         tabAction();
     }, [activeIndex]);
+
+    useEffect(() => {
+        const fetchShopAddress = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/address/shop/${orderViewModal.shop._id}`);
+                console.log(response.data);
+                setShopAd({ ...response.data.data.addresses.address });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        if (orderViewModal) {
+            fetchShopAddress();
+        }
+    }, [orderViewModal]);
+
+    const printOrder = async () => {
+        const html2pdf = require('html2pdf.js');
+        const invoice = document.getElementById('element-to-print');
+        const clone = invoice.cloneNode(true);
+        const imgElements = clone.querySelectorAll('img');
+        for (let i = 0; i < imgElements.length; i++) {
+            imgElements[i].src = await getBase64Image(imgElements[i].src);
+        }
+        html2pdf().from(clone).save();
+    };
+
+    function getBase64Image(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = this.width;
+                canvas.height = this.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(this, 0, 0);
+                const dataURL = canvas.toDataURL('image/png');
+                resolve(dataURL);
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
 
     return (
         <>
@@ -329,39 +388,26 @@ function Account({ userLogout, isLoggedIn }) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    <tr>
-                                                                        <td>#1357</td>
-                                                                        <td>March 45, 2020</td>
-                                                                        <td>Processing</td>
-                                                                        <td>$125.00 for 2 item</td>
-                                                                        <td>
-                                                                            <a href="#" className="btn-small d-block">
-                                                                                View
-                                                                            </a>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>#2468</td>
-                                                                        <td>June 29, 2020</td>
-                                                                        <td>Completed</td>
-                                                                        <td>$364.00 for 5 item</td>
-                                                                        <td>
-                                                                            <a href="#" className="btn-small d-block">
-                                                                                View
-                                                                            </a>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>#2366</td>
-                                                                        <td>August 02, 2020</td>
-                                                                        <td>Completed</td>
-                                                                        <td>$280.00 for 3 item</td>
-                                                                        <td>
-                                                                            <a href="#" className="btn-small d-block">
-                                                                                View
-                                                                            </a>
-                                                                        </td>
-                                                                    </tr>
+                                                                    {userOrders?.map((items) => (
+                                                                        <tr key={items._id}>
+                                                                            <td>#{items._id}</td>
+                                                                            <td>{Date(items.createAt)}</td>
+                                                                            <td>Processing</td>
+                                                                            <td>
+                                                                                ${items.total} for {items.totalItem} item
+                                                                            </td>
+                                                                            <td>
+                                                                                <button
+                                                                                    className="btn btn-small d-block"
+                                                                                    onClick={() => {
+                                                                                        setOrderViewModal({ ...items });
+                                                                                    }}
+                                                                                >
+                                                                                    View
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
                                                                 </tbody>
                                                             </table>
                                                         </div>
@@ -660,6 +706,7 @@ function Account({ userLogout, isLoggedIn }) {
                         </div>
                     </div>
                 </section>
+                {/* address create modal */}
                 <Modal
                     open={addressModal ? true : false}
                     onClose={() => {
@@ -846,6 +893,7 @@ function Account({ userLogout, isLoggedIn }) {
                         </form>
                     </div>
                 </Modal>
+                {/* address delete modal */}
                 <Modal
                     open={delAddressModal ? true : false}
                     onClose={() => {
@@ -869,6 +917,180 @@ function Account({ userLogout, isLoggedIn }) {
                                     className="btn btn-secondary mt-2"
                                     onClick={() => {
                                         setDelAddressModal(false);
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+                {/* order view modal */}
+                <Modal
+                    open={orderViewModal ? true : false}
+                    onClose={() => {
+                        setOrderViewModal(false);
+                    }}
+                >
+                    <p className="pb-3">Order detail</p>
+                    <div style={{ width: '56vw' }} className="row">
+                        <div className="row w-100">
+                            <div id="element-to-print" className="mc-card p-md-5">
+                                <div className="mc-invoice-head">
+                                    {/* <img src="images/logo.webp" alt="logo" /> */}
+                                    <h2>
+                                        {'invoice'} #{orderViewModal?._id}
+                                    </h2>
+                                </div>
+                                <div className="mc-invoice-group" style={{ alignItems: 'start' }}>
+                                    <div className="mc-invoice-recieved">
+                                        <h6>{'From :'}</h6>
+                                        <p>
+                                            {orderViewModal?.shop?.name}
+                                            <br />
+                                            {shopAd?.detail
+                                                ? `${shopAd?.detail}, ${
+                                                      AddressStaticData.treeDataProvince[shopAd?.province].district[
+                                                          shopAd?.district
+                                                      ].ward[shopAd?.ward].label
+                                                  }, ${
+                                                      AddressStaticData.treeDataProvince[shopAd?.province].district[
+                                                          shopAd?.district
+                                                      ].label
+                                                  }, ${AddressStaticData.treeDataProvince[shopAd?.province].label}`
+                                                : null}
+                                            <br />
+                                            {orderViewModal?.shop?.email}
+                                            <br />
+                                        </p>
+                                    </div>
+                                    <div className="mc-invoice-shipment">
+                                        <h6>
+                                            To :{' '}
+                                            {orderViewModal?.address?.isHome
+                                                ? '(Home)'
+                                                : orderViewModal?.address?.isWork
+                                                ? '(Work)'
+                                                : null}
+                                        </h6>
+                                        <p>
+                                            {orderViewModal?.name}
+                                            <br />
+                                            {orderViewModal?.phoneNumber}
+                                            <br />
+                                            {orderViewModal?.address?.district
+                                                ? `${orderViewModal?.address?.detail}, ${
+                                                      AddressStaticData.treeDataProvince[orderViewModal?.address?.province]
+                                                          .district[orderViewModal?.address?.district].ward[
+                                                          orderViewModal?.address?.ward
+                                                      ].label
+                                                  }, ${
+                                                      AddressStaticData.treeDataProvince[orderViewModal?.address?.province]
+                                                          .district[orderViewModal?.address?.district].label
+                                                  }, ${
+                                                      AddressStaticData.treeDataProvince[orderViewModal?.address?.province].label
+                                                  }`
+                                                : null}
+                                            <br />
+                                            {orderViewModal?.email}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mc-table-responsive">
+                                    <table className="mc-table">
+                                        <thead className="mc-table-head">
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Variant</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="mc-table-body">
+                                            {orderViewModal?.items?.map((item, index) => {
+                                                const snapshotObj = JSON.parse(item.idToSnapshot.productJson);
+                                                const variantDataName = [];
+                                                if (item.variant && item.variant.length > 0) {
+                                                    for (let i = 0; i < snapshotObj.variantData.length; i++) {
+                                                        // console.log(snapshotObj.variantData[i].data);
+                                                        variantDataName.push(
+                                                            snapshotObj.variantData[i].data.find((v) => v._id === item.variant[i])
+                                                                .name,
+                                                        );
+                                                    }
+                                                }
+                                                return (
+                                                    <tr key={index}>
+                                                        <td>
+                                                            <div className="mc-table-product sm">
+                                                                <img src={item.image} alt="img" />
+                                                                <p>{item.name}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            {item.variant && item.variant.length > 0
+                                                                ? variantDataName.join(',')
+                                                                : ''}
+                                                        </td>
+                                                        <td>{item.price}$</td>
+                                                        <td>{item.quantity}</td>
+                                                        <td>{item.price * item.quantity}$</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="mc-invoice-list-group">
+                                    <ul className="mc-invoice-list">
+                                        <li>
+                                            <span className="title">Subtotal</span>
+                                            <span className="clone">:</span>
+                                            <span className={`digit`}>{orderViewModal?.total}$</span>
+                                        </li>
+                                        <li>
+                                            <span className="title">Shipping</span>
+                                            <span className="clone">:</span>
+                                            <span className={`digit`}>{orderViewModal?.shippingCost}$</span>
+                                        </li>
+                                        <li>
+                                            <span className="title">Status</span>
+                                            <span className="clone me-1">:</span>
+                                            <span className={`status purple`}>{orderViewModal?.status}</span>
+                                        </li>
+                                        {orderViewModal?.onlPayStatus !== 'None' ? (
+                                            <li>
+                                                <span className="title">Payment</span>
+                                                <span className="clone me-1">:</span>
+                                                <span className={`status purple`}>{orderViewModal?.onlPayStatus}</span>
+                                            </li>
+                                        ) : null}
+                                        <li>
+                                            <span className="title">Total</span>
+                                            <span className="clone">:</span>
+                                            <span className={`digit`}>
+                                                {orderViewModal?.total + orderViewModal?.shippingCost}$
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <p>Create at: {Date(orderViewModal?.createAt)}</p>
+                            </div>
+                            <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
+                                {orderViewModal?.status === 'Delivered' ? (
+                                    <button style={{ backgroundColor: '#088178' }} className="btn mt-2 mx-3">
+                                        I have received this order
+                                    </button>
+                                ) : null}
+                                <button style={{ backgroundColor: 'gray' }} className="btn mt-2 mx-3" onClick={printOrder}>
+                                    Print
+                                </button>
+                                <button
+                                    style={{ backgroundColor: 'gray' }}
+                                    className="btn btn-secondary mt-2"
+                                    onClick={() => {
+                                        setOrderViewModal(false);
                                     }}
                                 >
                                     Close

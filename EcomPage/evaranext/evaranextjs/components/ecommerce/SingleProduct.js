@@ -163,10 +163,18 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                     <a>{product.name}</a>
                                 </Link>
                             </h2>
-                            <div className="rating-result" title="90%">
+                            {/* <div className="rating-result" title="90%">
                                 <span>
-                                    <span>{product.ratingScore}%</span>
+                                    <span>{product.averageRating}</span>
                                 </span>
+                            </div> */}
+                            <div className="product-rate d-inline-block">
+                                <div
+                                    className="product-rating"
+                                    style={{
+                                        width: ((product.averageRating / 5) * 100).toString() + '%',
+                                    }}
+                                ></div>
                             </div>
                             <div className="product-price">
                                 {!product.variantData ? (

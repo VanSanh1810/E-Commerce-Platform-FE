@@ -13,41 +13,107 @@ import { connect } from 'react-redux';
 import Link from 'next/link';
 import QuickView from '../../components/ecommerce/QuickView';
 import Pagination from '../../components/ecommerce/Pagination';
+import axiosInstance from '../../config/axiosInstance';
+import AddressStaticData from '../../public/static/dataprovince';
 
 function Test({ products, productFilters, fetchProduct }) {
     const router = useRouter();
     const {
         query: { shopId },
     } = router;
-    let Router = useRouter(),
-        searchTerm = Router.query.search,
-        showLimit = 12,
-        showPagination = 4;
+    // let Router = useRouter(),
+    //     searchTerm = Router.query.search,
+    //     showLimit = 10,
+    //     showPagination = 4;
+
+    const [shopData, setShopData] = useState();
+    const [shopProduct, setShopProduct] = useState([]);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [totalFolower, setTotalFolower] = useState(0);
+    const [averageShopReview, setAverageShopReview] = useState(0);
+    const [adName, setAdName] = useState();
 
     let [pagination, setPagination] = useState([]);
-    let [limit, setLimit] = useState(showLimit);
-    let [pages, setPages] = useState(Math.ceil(products.items.length / limit));
+    let [limit, setLimit] = useState(12);
+    let [pages, setPages] = useState(Math.ceil(totalProducts / limit));
     let [currentPage, setCurrentPage] = useState(1);
 
-    useEffect(() => {
-        fetchProduct(searchTerm, '/static/product.json', productFilters);
-        cratePagination();
-    }, [productFilters, limit, pages, products.items.length]);
+    const [selectedClassify, setSelectedClassify] = useState(null);
+    const [sortType, setSortType] = useState('');
+    const [sortPrice, setSortPrice] = useState('lowToHigh');
 
-    const cratePagination = () => {
-        // set pagination
-        let arr = new Array(Math.ceil(products.items.length / limit)).fill().map((_, idx) => idx + 1);
-
-        setPagination(arr);
-        setPages(Math.ceil(products.items.length / limit));
+    const selectClassifyHandler = (value) => {
+        setSelectedClassify(value);
     };
 
-    const startIndex = currentPage * limit - limit;
-    const endIndex = startIndex + limit;
-    const getPaginatedProducts = products.items.slice(startIndex, endIndex);
+    // useEffect(() => {
+    //     fetchProduct(searchTerm, '/static/product.json', productFilters);
+    //     cratePagination();
+    // }, [productFilters, limit, pages, products.items.length]);
 
-    let start = Math.floor((currentPage - 1) / showPagination) * showPagination;
-    let end = start + showPagination;
+    useEffect(() => {
+        const fetchShopData = async () => {
+            try {
+                const result = await axiosInstance.get(`/api/shop/${shopId}`);
+                console.log(result.data);
+                setShopData(result.data.data.shop);
+                setTotalProducts(result.data.data.totalProduct);
+                setAverageShopReview(result.data.data.averageShopReview);
+                setTotalFolower(result.data.data.totalFollowers);
+                const addressData = result.data.data.shop.addresses;
+                const province = AddressStaticData.treeDataProvince[addressData.address.province].label;
+                const district =
+                    AddressStaticData.treeDataProvince[addressData.address.province].district[addressData.address.district].label;
+                const ward =
+                    AddressStaticData.treeDataProvince[addressData.address.province].district[addressData.address.district].ward[
+                        addressData.address.ward
+                    ].label;
+                setAdName({
+                    province: province,
+                    district: district,
+                    ward: ward,
+                });
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchShopData();
+    }, [shopId]);
+
+    useEffect(() => {
+        const fetchShopProducts = async () => {
+            try {
+                const result = await axiosInstance.get(
+                    `/api/product?shopId=${shopId}&currentPage=${currentPage}&limit=${limit}&classify=${
+                        selectedClassify ? selectedClassify : ''
+                    }&sortType=${sortType}&sortPrice=${sortPrice}`,
+                );
+                setShopProduct(result.data.data);
+                setPages(Math.ceil(result.data.pages / limit));
+
+                console.log(currentPage, limit, selectedClassify, sortType, sortPrice);
+                console.log(result.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchShopProducts();
+    }, [shopId, currentPage, limit, selectedClassify, sortType, sortPrice]);
+
+    // const cratePagination = () => {
+    //     // set pagination
+    //     let arr = new Array(Math.ceil(products.items.length / limit)).fill().map((_, idx) => idx + 1);
+
+    //     setPagination(arr);
+    //     setPages(Math.ceil(products.items.length / limit));
+    // };
+
+    // const startIndex = currentPage * limit - limit;
+    // const endIndex = startIndex + limit;
+    // const getPaginatedProducts = products.items.slice(startIndex, endIndex);
+
+    let start = Math.floor((currentPage - 1) / 4) * 4;
+    let end = start + 4;
     const getPaginationGroup = pagination.slice(start, end);
 
     const next = () => {
@@ -65,25 +131,46 @@ function Test({ products, productFilters, fetchProduct }) {
     const selectChange = (e) => {
         setLimit(Number(e.target.value));
         setCurrentPage(1);
-        setPages(Math.ceil(products.items.length / Number(e.target.value)));
     };
+
+    function timeDifference(startDate, endDate) {
+        const millisecondsPerSecond = 1000;
+        const millisecondsPerMinute = millisecondsPerSecond * 60;
+        const millisecondsPerHour = millisecondsPerMinute * 60;
+        const millisecondsPerDay = millisecondsPerHour * 24;
+        const millisecondsPerMonth = millisecondsPerDay * 30; // Gần đúng, không chính xác vì các tháng có thể có số ngày khác nhau
+        const millisecondsPerYear = millisecondsPerDay * 365; // Gần đúng, không chính xác vì mỗi năm có thể có 365 hoặc 366 ngày
+
+        const timeDifference = Math.abs(startDate - endDate);
+
+        if (timeDifference < millisecondsPerMonth) {
+            return 'Less than a month';
+        } else if (timeDifference < millisecondsPerYear) {
+            const monthsDifference = Math.floor(timeDifference / millisecondsPerMonth);
+            return `${monthsDifference} month${monthsDifference > 1 ? 's' : ''}`;
+        } else {
+            const yearsDifference = Math.floor(timeDifference / millisecondsPerYear);
+            return `${yearsDifference} year${yearsDifference > 1 ? 's' : ''}`;
+        }
+    }
+
     return (
         <>
-            <Layout parent="Home" sub="Vendor" subChild="Vendor Name">
+            <Layout parent="Home" sub="Shop" subChild={shopData?.name}>
                 <section className="mt-50 mb-50">
                     <div className="container px-4 py-3 col" style={{ border: '1px solid #d1d1d1', borderRadius: '10px' }}>
                         <div className="row">
                             <div className="col-lg-3 flex">
                                 <div className="d-flex flex-row justify-content-start align-items-center flex-grow-1 mb-2">
                                     <img
-                                        src="https://storage.googleapis.com/support-kms-prod/ZAl1gIwyUsvfwxoW9ns47iJFioHXODBbIkrK"
-                                        style={{ width: '50px', height: '50px', padding: '0px' }}
+                                        src={shopData?.avatar.url}
+                                        style={{ width: '70px', height: '70px', padding: '0px', borderRadius: '50%' }}
                                         className="me-2"
                                     />
-                                    <p className="flex-grow-1">ShopName</p>
+                                    <p className="flex-grow-1">{shopData?.name}</p>
                                 </div>
                                 <div className="d-flex flex-row justify-content-start align-items-center">
-                                    <button className="flex-fill">follow</button>
+                                    <button className="btn flex-fill">follow</button>
                                 </div>
                             </div>
                             <div className="col-lg-9 ps-4" style={{ borderLeft: '1px solid #d1d1d1' }}>
@@ -91,14 +178,14 @@ function Test({ products, productFilters, fetchProduct }) {
                                     <div className="row">
                                         <div className="col-sm">
                                             <div className="row gap-4">
-                                                <span>Total product :</span>
-                                                <span>Total Order :</span>
+                                                <span>Total product : {totalProducts}</span>
+                                                <span>Create : {timeDifference(new Date(), shopData?.createDate)}</span>
                                             </div>
                                         </div>
                                         <div className="col-sm">
                                             <div className="row gap-4">
-                                                <span>Rating :</span>
-                                                <span>Follower:</span>
+                                                <span>Rating : {averageShopReview}</span>
+                                                <span>Follower: {totalFolower}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -113,10 +200,21 @@ function Test({ products, productFilters, fetchProduct }) {
                             <div className="col-lg-3 primary-sidebar sticky-sidebar">
                                 <div className="widget-category mb-30">
                                     <h5 className="section-title style-1 mb-30 wow fadeIn animated">Classify</h5>
-                                    <CategoryProduct />
+                                    <ul className="categories">
+                                        <li onClick={() => selectClassifyHandler(null)}>
+                                            <a>All</a>
+                                        </li>
+                                        {shopData?.classify.map((classi, index) => {
+                                            return (
+                                                <li key={index} onClick={() => selectClassifyHandler(classi._id)}>
+                                                    <a>{classi.name}</a>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
                                 </div>
 
-                                <div className="sidebar-widget price_range range mb-30">
+                                {/* <div className="sidebar-widget price_range range mb-30">
                                     <div className="widget-header position-relative mb-20 pb-10">
                                         <h5 className="widget-title mb-10">Filter</h5>
                                         <div className="bt-1 border-color-1"></div>
@@ -125,21 +223,11 @@ function Test({ products, productFilters, fetchProduct }) {
                                     <div className="price-filter">
                                         <div className="price-filter-inner">
                                             <br />
-                                            <PriceRangeSlider />
+                                            <PriceRangeSlider updateProductPriceRange={updateProductPriceFilters} />
                                             <br />
                                         </div>
                                     </div>
-
-                                    <div className="list-group">
-                                        <div className="list-group-item mb-10 mt-10">
-                                            <label className="fw-900">Color</label>
-                                            <BrandFilter />
-                                            <label className="fw-900 mt-15">Item Condition</label>
-                                            <SizeFilter />
-                                        </div>
-                                    </div>
-                                    <br />
-                                </div>
+                                </div> */}
 
                                 <div className="sidebar-widget product-sidebar  mb-30 p-30 bg-grey border-radius-10">
                                     <div className="widget-header position-relative mb-20 pb-10">
@@ -189,51 +277,63 @@ function Test({ products, productFilters, fetchProduct }) {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="banner-img wow fadeIn mb-45 animated d-lg-block d-none">
-                                    <img src="/assets/imgs/banner/banner-11.jpg" alt="" />
-                                    <div className="banner-text">
-                                        <span>Women Zone</span>
-                                        <h4>
-                                            Save 17% on <br />
-                                            Office Dress
-                                        </h4>
-                                        <Link href="/products">
-                                            <a>
-                                                Shop Now
-                                                <i className="fi-rs-arrow-right"></i>
-                                            </a>
-                                        </Link>
-                                    </div>
-                                </div>
                             </div>
                             <div className="col-lg-9">
                                 <div className="shop-product-fillter">
-                                    {/* <div className="totall-product">
+                                    <div className="totall-product">
                                         <p>
                                             We found
-                                            <strong className="text-brand">{products.items.length}</strong>
+                                            <strong className="text-brand">{shopProduct?.length}</strong>
                                             items for you!
                                         </p>
-                                    </div> */}
+                                    </div>
                                     <div className="sort-by-product-area">
                                         <div className="sort-by-cover mr-10">
-                                            <ShowSelect selectChange={selectChange} showLimit={showLimit} />
+                                            <ShowSelect selectChange={selectChange} showLimit={limit} />
                                         </div>
                                         <div className="sort-by-cover">
-                                            <SortSelect />
+                                            <div className="sort-by-product-wrap">
+                                                <div className="sort-by">
+                                                    <span>
+                                                        <i className="fi-rs-apps-sort"></i>
+                                                        Type:
+                                                    </span>
+                                                </div>
+                                                <div className="sort-by-dropdown-wrap custom-select">
+                                                    <select onChange={(e) => setSortType(e.target.value)}>
+                                                        <option value="">Defaults</option>
+                                                        <option value="featured">Featured</option>
+                                                        <option value="trending">Trending</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="sort-by-cover ms-2">
+                                            <div className="sort-by-product-wrap">
+                                                <div className="sort-by">
+                                                    <span>
+                                                        <i className="fi-rs-apps-sort"></i>
+                                                        Sort by:
+                                                    </span>
+                                                </div>
+                                                <div className="sort-by-dropdown-wrap custom-select">
+                                                    <select onChange={(e) => setSortPrice(e.target.value)}>
+                                                        <option value="lowToHigh">Low To High</option>
+                                                        <option value="highToLow">High To Low</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row product-grid-3">
-                                    {getPaginatedProducts.length === 0 && <h3>No Products Found </h3>}
-
-                                    {getPaginatedProducts.map((item, i) => (
-                                        <div className="col-lg-4 col-md-4 col-12 col-sm-6" key={i}>
+                                    {shopProduct.length === 0 && <h3>No Products Found </h3>}
+                                    {shopProduct.map((item, i) => (
+                                        <div key={item._id} className="col-lg-4 col-md-4 col-12 col-sm-6">
                                             <SingleProduct product={item} />
                                         </div>
                                     ))}
                                 </div>
-
                                 <div className="pagination-area mt-15 mb-sm-5 mb-lg-0">
                                     <nav aria-label="Page navigation example">
                                         <Pagination
@@ -250,8 +350,6 @@ function Test({ products, productFilters, fetchProduct }) {
                         </div>
                     </div>
                 </section>
-                {/* <WishlistModal /> */}
-                {/* <CompareModal /> */}
                 <QuickView />
             </Layout>
         </>

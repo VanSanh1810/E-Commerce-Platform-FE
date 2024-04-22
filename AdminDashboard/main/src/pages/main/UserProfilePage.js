@@ -81,12 +81,6 @@ export default function UserProfilePage() {
                         </div>
                         <div className="mc-user-group">
                             <div className="mc-user-profile">
-                                {/* <div className="mc-round-avatar md">
-                                    <img
-                                        src="http://localhost:4000/uploads/dw-burnett-pcoty22-8260-1671143390.jpg"
-                                        alt="avatar"
-                                    />
-                                </div> */}
                                 <div className="mc-duel-text md">
                                     <h3 className="mc-duel-text-title">{userData?.name}</h3>
                                     {/* <p className="mc-duel-text-descrip">@mironcoder</p> */}
@@ -102,6 +96,12 @@ export default function UserProfilePage() {
                                     <li>
                                         <i className="material-icons">feed</i>
                                         <span>{userData?.email}</span>
+                                    </li>
+                                    <li>
+                                        <i className="material-icons">person</i>
+                                        <AnchorComponent to={`/shop/${userData?.shop._id}`}>
+                                            {userData?.shop.name}
+                                        </AnchorComponent>
                                     </li>
                                     {/* <li>
                                         <i className="material-icons">public</i>

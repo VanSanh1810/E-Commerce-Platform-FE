@@ -18,7 +18,6 @@ const StorageWrapper = (props) => {
 
         // const cart = storage.get('dokani_cart') || [];
 
-
         // const wishlist = storage.get('dokani_wishlist') || [];
         // const compare = storage.get('dokani_compare') || [];
 

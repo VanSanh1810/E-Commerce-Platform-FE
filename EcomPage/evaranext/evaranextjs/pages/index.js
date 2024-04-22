@@ -20,13 +20,11 @@ import NewArrival from './../components/sliders/NewArrival';
 import axiosInstance from '../config/axiosInstance';
 
 export default function Home() {
-    useEffect(() => {
-        
-    });
+    useEffect(() => {});
 
     return (
         <>
-            <IntroPopup />
+            {/* <IntroPopup /> */}
 
             <Layout noBreadcrumb="d-none" headerStyle="header-style-1">
                 <section className="home-slider position-relative pt-50">
@@ -49,11 +47,11 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="banner-2 section-padding pb-0">
+                {/* <section className="banner-2 section-padding pb-0">
                     <div className="container">
                         <Banner2 />
                     </div>
-                </section>
+                </section> */}
 
                 <section className="popular-categories section-padding mt-15 mb-25">
                     <div className="container wow fadeIn animated">
@@ -68,13 +66,13 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="banners mb-15">
+                {/* <section className="banners mb-15">
                     <div className="container">
                         <div className="row">
                             <Banner5 />
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 <section className="section-padding">
                     <div className="container wow fadeIn animated">
@@ -117,7 +115,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="section-padding">
+                {/* <section className="section-padding">
                     <div className="container pt-25 pb-20">
                         <div className="row">
                             <div className="col-lg-6">
@@ -133,7 +131,7 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 <section className="mb-50">
                     <div className="container">

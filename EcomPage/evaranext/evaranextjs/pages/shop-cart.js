@@ -7,19 +7,26 @@ import { useEffect } from 'react';
 import axiosInstance from '../config/axiosInstance';
 import { useState } from 'react';
 import { Badge, Row, Col } from 'react-bootstrap';
+import { useRef } from 'react';
+import { useCallback } from 'react';
+import cartSelected from '../redux/reducer/cartSelected';
+import { clearCartSelected, setCartSelected } from '../redux/action/cartSelected';
+import { toast } from 'react-toastify';
 
-const CartItemData = ({ id, variant, quantity, children }) => {
+const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice, setSelectedIndexWithPrice }) => {
     const [productData, setProductData] = useState({});
     const [productSelectedVariant, setProductSelectedVariant] = useState([]);
     const [productTreeDetail, setProductTreeDetail] = useState({});
     const [isProductExist, setIsProductExist] = useState(true);
+
+    const inputCheckbox = useRef();
+
     useEffect(() => {
         const accessVariantDetail = (node, indexArr, depth) => {
             let isFound = false;
             if (depth === indexArr.length - 1) {
                 //found node
                 setProductTreeDetail({ ...node.detail });
-                console.log(node.detail);
                 return true;
             } else {
                 //not found
@@ -32,11 +39,12 @@ const CartItemData = ({ id, variant, quantity, children }) => {
                 return isFound;
             }
         };
-        // const setPrice = async (reqData) => {
-
-        // };
         const initSelectedVariant = async (variantData, selectedVariant) => {
             if (!variantData || !selectedVariant) {
+                if ((!variantData || variantData.length === 0) && (!selectedVariant || selectedVariant.length === 0)) {
+                    return;
+                }
+                setIsProductExist(false);
                 return;
             }
             const result = variantData.map((v, index) => {
@@ -44,7 +52,7 @@ const CartItemData = ({ id, variant, quantity, children }) => {
                 if (i !== -1) {
                     return v.data[i].name;
                 } else {
-                    throw Error('Product not exists');
+                    setIsProductExist(false);
                 }
             });
             setProductSelectedVariant([...result]);
@@ -52,7 +60,7 @@ const CartItemData = ({ id, variant, quantity, children }) => {
         const fetchProductData = async () => {
             try {
                 const response = await axiosInstance.get(`/api/product/${id}`);
-                console.log(response);
+                // console.log(response);
                 setProductData(response.data.data); // for name img
                 //
                 initSelectedVariant(response.data.data.variantData, variant); // for selected variant name if exists
@@ -78,18 +86,87 @@ const CartItemData = ({ id, variant, quantity, children }) => {
             }
         };
         fetchProductData();
+        // console.log(id);
+        // console.log(variant);
     }, []);
+
+    useEffect(() => {
+        if (inputCheckbox) {
+            const indexToRemove = selectedIndexWithPrice.findIndex((item) => item.proIndex === id + variant.join());
+            if (indexToRemove !== -1) {
+                const tempArr = [...selectedIndexWithPrice];
+                tempArr.splice(indexToRemove, 1);
+                setSelectedIndexWithPrice([
+                    ...tempArr,
+                    {
+                        proIndex: id + variant.join(),
+                        price:
+                            (productTreeDetail?.disPrice
+                                ? productTreeDetail?.disPrice === 0
+                                    ? productTreeDetail?.price
+                                    : productTreeDetail?.disPrice
+                                : productTreeDetail?.price) * quantity,
+                    },
+                ]);
+            }
+        }
+    }, [quantity]);
     return (
         <>
             {isProductExist ? (
                 <>
+                    <td>
+                        {productTreeDetail.stock > 0 ? (
+                            <input
+                                ref={inputCheckbox}
+                                id={id + variant.join()}
+                                style={{ fontSize: '12px', height: 'unset' }}
+                                type="checkbox"
+                                onChange={(e) => {
+                                    if (e.currentTarget.checked) {
+                                        if (!selectedIndexWithPrice.find((element) => element.proIndex === id + variant.join())) {
+                                            setSelectedIndexWithPrice([
+                                                ...selectedIndexWithPrice,
+                                                {
+                                                    proIndex: id + variant.join(),
+                                                    _id: id,
+                                                    variant: variant,
+                                                    quantity: quantity,
+                                                    price:
+                                                        (productTreeDetail?.disPrice
+                                                            ? productTreeDetail?.disPrice === 0
+                                                                ? productTreeDetail?.price
+                                                                : productTreeDetail?.disPrice
+                                                            : productTreeDetail?.price) * quantity,
+                                                },
+                                            ]);
+                                        }
+                                    } else {
+                                        const indexToRemove = selectedIndexWithPrice.findIndex(
+                                            (item) => item.proIndex === id + variant.join(),
+                                        );
+                                        if (indexToRemove !== -1) {
+                                            const tempArr = [...selectedIndexWithPrice];
+                                            tempArr.splice(indexToRemove, 1);
+                                            setSelectedIndexWithPrice([...tempArr]);
+                                        }
+                                    }
+                                }}
+                                defaultChecked={selectedIndexWithPrice.find(
+                                    (element) => element.proIndex === id + variant.join(),
+                                )}
+                            />
+                        ) : (
+                            <p>Out of stock</p>
+                        )}
+                    </td>
                     <td className="image product-thumbnail">
                         <img src={productData?.images ? productData?.images[0].url : null} />
                     </td>
-                    <td className="price" data-title="Price">
+                    <td className="price" data-title="name">
                         <span>{productData?.name}</span>
                     </td>
-                    <td className="price" data-title="Price">
+                    <td className="price" data-title="variant">
                         <span>
                             {productSelectedVariant?.length > 0
                                 ? productSelectedVariant.map((v) => {
@@ -102,29 +179,31 @@ const CartItemData = ({ id, variant, quantity, children }) => {
                                 : 'No variant'}
                         </span>
                     </td>
-                    <td className="price" data-title="Price">
+                    <td className="price" data-title="price">
                         <span>
                             {productTreeDetail?.disPrice
                                 ? productTreeDetail?.disPrice === 0
                                     ? productTreeDetail?.price
                                     : productTreeDetail?.disPrice
                                 : productTreeDetail?.price}
+                            $
                         </span>
                     </td>
                     {children}
-                    <td className="price" data-title="Price">
+                    <td className="price" data-title="subPrice">
                         <span>
                             {(productTreeDetail?.disPrice
                                 ? productTreeDetail?.disPrice === 0
                                     ? productTreeDetail?.price
                                     : productTreeDetail?.disPrice
                                 : productTreeDetail?.price) * quantity}
+                            $
                         </span>
                     </td>
                 </>
             ) : (
                 <td colSpan={6} className="price" data-title="Price">
-                    <span>productNotAvailable</span>
+                    <span>Product Not Available</span>
                 </td>
             )}
         </>
@@ -141,21 +220,89 @@ const Cart = ({
     deleteFromCart,
     clearCart,
     user,
+    cartSelected,
+    setCartSelected,
+    clearCartSelected,
 }) => {
-    const price = () => {
-        let price = 0;
-        cartItems.forEach((item) => (price += item.price * item.quantity));
+    const [selectedIndexWithPrice, setSelectedIndexWithPrice] = useState([]);
+    const [totalSelectedProductPrice, settotalSelectedProductPrice] = useState(0);
 
-        return price;
+    const [sortedCartItems, setSortedCartItems] = useState([]);
+
+    const isAllInShop = (shopId) => {
+        if (sortedCartItems.length > 0) {
+            const index = sortedCartItems.findIndex((x) => x.shop._id === shopId);
+            if (index === -1) {
+                return false;
+            }
+            for (let i = 0; i < sortedCartItems[index].items.length; i++) {
+                // console.log(sortedCartItems[index].items[i].product + sortedCartItems[index].items[i].variant.join());
+                const inputDom = document.getElementById(
+                    sortedCartItems[index].items[i].product + sortedCartItems[index].items[i].variant.join(),
+                );
+                if (!inputDom?.checked) {
+                    return false;
+                }
+            }
+            return true;
+        }
     };
 
     useEffect(() => {
-        console.log(user);
-    }, []);
+        let totalPrice = 0;
+        selectedIndexWithPrice.forEach((item, index) => {
+            totalPrice += item.price;
+        });
+        settotalSelectedProductPrice(totalPrice);
+    }, [selectedIndexWithPrice, cartItems]);
+
+    useEffect(() => {
+        // clearCartSelected();
+        let tempArray = [];
+        for (let i = 0; i < selectedIndexWithPrice.length; i++) {
+            tempArray.push({
+                product: selectedIndexWithPrice[i]._id,
+                variant: selectedIndexWithPrice[i].variant,
+                quantity: selectedIndexWithPrice[i].quantity,
+            });
+        }
+        console.log(tempArray);
+        setCartSelected([...tempArray]);
+    }, [selectedIndexWithPrice]);
+
+    useEffect(() => {
+        console.log(cartSelected);
+    }, [cartSelected]);
+
+    useEffect(() => {
+        const initCartItemSortByShop = async () => {
+            let resultArray = [];
+            if (cartItems && cartItems.length > 0) {
+                for (let i = 0; i < cartItems.length; i++) {
+                    try {
+                        const response = await axiosInstance.get(`/api/product/${cartItems[i].product}`);
+                        const productShop = response.data.data.shop._id;
+                        const productShopName = response.data.data.shop.name;
+                        const index = await resultArray.findIndex((element) => element.shop._id === productShop);
+                        if (index !== -1) {
+                            // found
+                            resultArray[index].items.push({ ...cartItems[i] });
+                        } else {
+                            resultArray.push({ shop: { _id: productShop, name: productShopName }, items: [{ ...cartItems[i] }] });
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+            setSortedCartItems([...resultArray]);
+        };
+        initCartItemSortByShop();
+    }, [cartItems]);
 
     return (
         <>
-            <Layout parent="Home" sub="Shop" subChild="Cart">
+            <Layout parent="Home" sub="User" subChild="Cart">
                 <section className="mt-50 mb-50">
                     <div className="container">
                         <div className="row">
@@ -167,6 +314,27 @@ const Cart = ({
                                     >
                                         <thead>
                                             <tr className="main-heading">
+                                                <th scope="col">
+                                                    <input
+                                                        key={selectedIndexWithPrice}
+                                                        style={{ fontSize: '12px', height: 'unset' }}
+                                                        type="checkbox"
+                                                        onChange={(e) => {
+                                                            cartItems.forEach(async (item) => {
+                                                                const domCheckBoxNode = await document.getElementById(
+                                                                    item.product + item.variant.join(),
+                                                                );
+                                                                if (domCheckBoxNode.checked !== e.target.checked) {
+                                                                    await domCheckBoxNode.click();
+                                                                }
+                                                            });
+                                                        }}
+                                                        defaultChecked={
+                                                            selectedIndexWithPrice.length === cartItems.length ? true : false
+                                                        }
+                                                    />{' '}
+                                                    Select All
+                                                </th>
                                                 <th scope="col">Image</th>
                                                 <th scope="col">Name</th>
                                                 <th scope="col">Variant</th>
@@ -177,87 +345,95 @@ const Cart = ({
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {cartItems.map((item, i) => (
-                                                <tr key={i}>
-                                                    <CartItemData
-                                                        id={item.product}
-                                                        variant={item.variant}
-                                                        quantity={item.quantity ? item.quantity : 0}
-                                                    >
-                                                        <td className="price" data-title="Price">
-                                                            <input
-                                                                key={item.product}
-                                                                type="number"
-                                                                defaultValue={item.quantity ? item.quantity : 0}
-                                                                onChange={debounce((e) => {
-                                                                    if (e.target.value) {
-                                                                        const gap = e.target.value - item.quantity;
-                                                                        console.log(gap);
-                                                                        if (gap > 0) {
-                                                                            // increase quantity
-                                                                            increaseQuantity(
-                                                                                item.product,
-                                                                                item.variant,
-                                                                                gap,
-                                                                                user,
+                                            {sortedCartItems.map((shop, index) => {
+                                                return (
+                                                    <>
+                                                        <tr style={null} key={selectedIndexWithPrice}>
+                                                            <td>
+                                                                <input
+                                                                    style={{ fontSize: '12px', height: 'unset' }}
+                                                                    type="checkbox"
+                                                                    onChange={(e) => {
+                                                                        shop.items.forEach(async (item) => {
+                                                                            const domCheckBoxNode = await document.getElementById(
+                                                                                item.product + item.variant.join(),
                                                                             );
-                                                                        }
-                                                                        if (gap < 0) {
-                                                                            // decrease quantity
-                                                                            decreaseQuantity(
-                                                                                item.product,
-                                                                                item.variant,
-                                                                                gap,
-                                                                                user,
-                                                                            );
-                                                                        } else {
-                                                                            //no change
-                                                                        }
+                                                                            if (domCheckBoxNode.checked !== e.target.checked) {
+                                                                                await domCheckBoxNode.click();
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                    defaultChecked={
+                                                                        selectedIndexWithPrice.length > 0
+                                                                            ? isAllInShop(shop.shop._id)
+                                                                            : isAllInShop(shop.shop._id)
                                                                     }
-                                                                }, 500)}
-                                                            />
-                                                        </td>
-                                                    </CartItemData>
-                                                    {/* <td className="image product-thumbnail">
-                                                        <img src={item.images[0].url} />
-                                                    </td>
-
-                                                    <td className="product-des product-name">
-                                                        <h5 className="product-name">
-                                                            <Link href="/products">
-                                                                <a>{item.name}</a>
-                                                            </Link>
-                                                        </h5>
-                                                    </td>
-                                                    <td className="price" data-title="Price">
-                                                        <span>${item.discountPrice}</span>
-                                                    </td>
-                                                    <td className="text-center" data-title="Stock">
-                                                        <div className="detail-qty border radius  m-auto">
-                                                            <a onClick={(e) => decreaseQuantity(item._id)} className="qty-down">
-                                                                <i className="fi-rs-angle-small-down"></i>
-                                                            </a>
-                                                            <span className="qty-val">{item.quantity}</span>
-                                                            <a onClick={(e) => increaseQuantity(item._id)} className="qty-up">
-                                                                <i className="fi-rs-angle-small-up"></i>
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                    <td className="text-right" data-title="Cart">
-                                                        <span>${item.quantity * item.price}</span>
-                                                    </td> */}
-                                                    <td className="action" data-title="Remove">
-                                                        <a
-                                                            onClick={(e) => deleteFromCart(item.product, item.variant, user)}
-                                                            className="text-muted"
-                                                        >
-                                                            <i className="fi-rs-trash"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                                />
+                                                            </td>
+                                                            <td colSpan={7} style={{ textAlign: 'start' }}>
+                                                                <a href={`/shop/${shop.shop._id}`}>{shop.shop.name}</a>
+                                                            </td>
+                                                        </tr>
+                                                        {shop.items?.map((item, i) => (
+                                                            <tr key={item.product}>
+                                                                <CartItemData
+                                                                    id={item.product}
+                                                                    variant={item.variant}
+                                                                    quantity={item.quantity ? item.quantity : 0}
+                                                                    selectedIndexWithPrice={selectedIndexWithPrice}
+                                                                    setSelectedIndexWithPrice={setSelectedIndexWithPrice}
+                                                                >
+                                                                    <td className="price" data-title="Price">
+                                                                        <input
+                                                                            key={`quantity-${item.product}`}
+                                                                            type="number"
+                                                                            defaultValue={item.quantity ? item.quantity : 0}
+                                                                            onChange={debounce((e) => {
+                                                                                if (e.target.value) {
+                                                                                    const gap = e.target.value - item.quantity;
+                                                                                    console.log(gap);
+                                                                                    if (gap > 0) {
+                                                                                        // increase quantity
+                                                                                        increaseQuantity(
+                                                                                            item.product,
+                                                                                            item.variant,
+                                                                                            gap,
+                                                                                            user,
+                                                                                        );
+                                                                                    }
+                                                                                    if (gap < 0) {
+                                                                                        // decrease quantity
+                                                                                        decreaseQuantity(
+                                                                                            item.product,
+                                                                                            item.variant,
+                                                                                            gap,
+                                                                                            user,
+                                                                                        );
+                                                                                    } else {
+                                                                                        //no change
+                                                                                    }
+                                                                                }
+                                                                            }, 200)}
+                                                                        />
+                                                                    </td>
+                                                                </CartItemData>
+                                                                <td className="action" data-title="Remove">
+                                                                    <a
+                                                                        onClick={(e) =>
+                                                                            deleteFromCart(item.product, item.variant, user)
+                                                                        }
+                                                                        className="text-muted"
+                                                                    >
+                                                                        <i className="fi-rs-trash"></i>
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </>
+                                                );
+                                            })}
                                             <tr>
-                                                <td colSpan="6" className="text-end">
+                                                <td colSpan="8" className="text-end">
                                                     {cartItems.length > 0 && (
                                                         <a onClick={() => clearCart(user)} className="text-muted">
                                                             <i className="fi-rs-cross-small"></i>
@@ -279,295 +455,7 @@ const Cart = ({
                                     <i className="fi-rs-fingerprint"></i>
                                 </div>
                                 <div className="row mb-50">
-                                    <div className="col-lg-6 col-md-12">
-                                        <div className="heading_s1 mb-3">
-                                            <h4>Calculate Shipping</h4>
-                                        </div>
-                                        <p className="mt-15 mb-30">
-                                            Flat rate:
-                                            <span className="font-xl text-brand fw-900">5%</span>
-                                        </p>
-                                        <form className="field_form shipping_calculator">
-                                            <div className="form-row">
-                                                <div className="form-group col-lg-12">
-                                                    <div className="custom_select">
-                                                        <select className="form-control select-active">
-                                                            <option value="">Choose a option...</option>
-                                                            <option value="AX">Aland Islands</option>
-                                                            <option value="AF">Afghanistan</option>
-                                                            <option value="AL">Albania</option>
-                                                            <option value="DZ">Algeria</option>
-                                                            <option value="AD">Andorra</option>
-                                                            <option value="AO">Angola</option>
-                                                            <option value="AI">Anguilla</option>
-                                                            <option value="AQ">Antarctica</option>
-                                                            <option value="AG">Antigua and Barbuda</option>
-                                                            <option value="AR">Argentina</option>
-                                                            <option value="AM">Armenia</option>
-                                                            <option value="AW">Aruba</option>
-                                                            <option value="AU">Australia</option>
-                                                            <option value="AT">Austria</option>
-                                                            <option value="AZ">Azerbaijan</option>
-                                                            <option value="BS">Bahamas</option>
-                                                            <option value="BH">Bahrain</option>
-                                                            <option value="BD">Bangladesh</option>
-                                                            <option value="BB">Barbados</option>
-                                                            <option value="BY">Belarus</option>
-                                                            <option value="PW">Belau</option>
-                                                            <option value="BE">Belgium</option>
-                                                            <option value="BZ">Belize</option>
-                                                            <option value="BJ">Benin</option>
-                                                            <option value="BM">Bermuda</option>
-                                                            <option value="BT">Bhutan</option>
-                                                            <option value="BO">Bolivia</option>
-                                                            <option value="BQ">Bonaire, Saint Eustatius and Saba</option>
-                                                            <option value="BA">Bosnia and Herzegovina</option>
-                                                            <option value="BW">Botswana</option>
-                                                            <option value="BV">Bouvet Island</option>
-                                                            <option value="BR">Brazil</option>
-                                                            <option value="IO">British Indian Ocean Territory</option>
-                                                            <option value="VG">British Virgin Islands</option>
-                                                            <option value="BN">Brunei</option>
-                                                            <option value="BG">Bulgaria</option>
-                                                            <option value="BF">Burkina Faso</option>
-                                                            <option value="BI">Burundi</option>
-                                                            <option value="KH">Cambodia</option>
-                                                            <option value="CM">Cameroon</option>
-                                                            <option value="CA">Canada</option>
-                                                            <option value="CV">Cape Verde</option>
-                                                            <option value="KY">Cayman Islands</option>
-                                                            <option value="CF">Central African Republic</option>
-                                                            <option value="TD">Chad</option>
-                                                            <option value="CL">Chile</option>
-                                                            <option value="CN">China</option>
-                                                            <option value="CX">Christmas Island</option>
-                                                            <option value="CC">Cocos (Keeling) Islands</option>
-                                                            <option value="CO">Colombia</option>
-                                                            <option value="KM">Comoros</option>
-                                                            <option value="CG">Congo (Brazzaville)</option>
-                                                            <option value="CD">Congo (Kinshasa)</option>
-                                                            <option value="CK">Cook Islands</option>
-                                                            <option value="CR">Costa Rica</option>
-                                                            <option value="HR">Croatia</option>
-                                                            <option value="CU">Cuba</option>
-                                                            <option value="CW">CuraÇao</option>
-                                                            <option value="CY">Cyprus</option>
-                                                            <option value="CZ">Czech Republic</option>
-                                                            <option value="DK">Denmark</option>
-                                                            <option value="DJ">Djibouti</option>
-                                                            <option value="DM">Dominica</option>
-                                                            <option value="DO">Dominican Republic</option>
-                                                            <option value="EC">Ecuador</option>
-                                                            <option value="EG">Egypt</option>
-                                                            <option value="SV">El Salvador</option>
-                                                            <option value="GQ">Equatorial Guinea</option>
-                                                            <option value="ER">Eritrea</option>
-                                                            <option value="EE">Estonia</option>
-                                                            <option value="ET">Ethiopia</option>
-                                                            <option value="FK">Falkland Islands</option>
-                                                            <option value="FO">Faroe Islands</option>
-                                                            <option value="FJ">Fiji</option>
-                                                            <option value="FI">Finland</option>
-                                                            <option value="FR">France</option>
-                                                            <option value="GF">French Guiana</option>
-                                                            <option value="PF">French Polynesia</option>
-                                                            <option value="TF">French Southern Territories</option>
-                                                            <option value="GA">Gabon</option>
-                                                            <option value="GM">Gambia</option>
-                                                            <option value="GE">Georgia</option>
-                                                            <option value="DE">Germany</option>
-                                                            <option value="GH">Ghana</option>
-                                                            <option value="GI">Gibraltar</option>
-                                                            <option value="GR">Greece</option>
-                                                            <option value="GL">Greenland</option>
-                                                            <option value="GD">Grenada</option>
-                                                            <option value="GP">Guadeloupe</option>
-                                                            <option value="GT">Guatemala</option>
-                                                            <option value="GG">Guernsey</option>
-                                                            <option value="GN">Guinea</option>
-                                                            <option value="GW">Guinea-Bissau</option>
-                                                            <option value="GY">Guyana</option>
-                                                            <option value="HT">Haiti</option>
-                                                            <option value="HM">Heard Island and McDonald Islands</option>
-                                                            <option value="HN">Honduras</option>
-                                                            <option value="HK">Hong Kong</option>
-                                                            <option value="HU">Hungary</option>
-                                                            <option value="IS">Iceland</option>
-                                                            <option value="IN">India</option>
-                                                            <option value="ID">Indonesia</option>
-                                                            <option value="IR">Iran</option>
-                                                            <option value="IQ">Iraq</option>
-                                                            <option value="IM">Isle of Man</option>
-                                                            <option value="IL">Israel</option>
-                                                            <option value="IT">Italy</option>
-                                                            <option value="CI">Ivory Coast</option>
-                                                            <option value="JM">Jamaica</option>
-                                                            <option value="JP">Japan</option>
-                                                            <option value="JE">Jersey</option>
-                                                            <option value="JO">Jordan</option>
-                                                            <option value="KZ">Kazakhstan</option>
-                                                            <option value="KE">Kenya</option>
-                                                            <option value="KI">Kiribati</option>
-                                                            <option value="KW">Kuwait</option>
-                                                            <option value="KG">Kyrgyzstan</option>
-                                                            <option value="LA">Laos</option>
-                                                            <option value="LV">Latvia</option>
-                                                            <option value="LB">Lebanon</option>
-                                                            <option value="LS">Lesotho</option>
-                                                            <option value="LR">Liberia</option>
-                                                            <option value="LY">Libya</option>
-                                                            <option value="LI">Liechtenstein</option>
-                                                            <option value="LT">Lithuania</option>
-                                                            <option value="LU">Luxembourg</option>
-                                                            <option value="MO">Macao S.A.R., China</option>
-                                                            <option value="MK">Macedonia</option>
-                                                            <option value="MG">Madagascar</option>
-                                                            <option value="MW">Malawi</option>
-                                                            <option value="MY">Malaysia</option>
-                                                            <option value="MV">Maldives</option>
-                                                            <option value="ML">Mali</option>
-                                                            <option value="MT">Malta</option>
-                                                            <option value="MH">Marshall Islands</option>
-                                                            <option value="MQ">Martinique</option>
-                                                            <option value="MR">Mauritania</option>
-                                                            <option value="MU">Mauritius</option>
-                                                            <option value="YT">Mayotte</option>
-                                                            <option value="MX">Mexico</option>
-                                                            <option value="FM">Micronesia</option>
-                                                            <option value="MD">Moldova</option>
-                                                            <option value="MC">Monaco</option>
-                                                            <option value="MN">Mongolia</option>
-                                                            <option value="ME">Montenegro</option>
-                                                            <option value="MS">Montserrat</option>
-                                                            <option value="MA">Morocco</option>
-                                                            <option value="MZ">Mozambique</option>
-                                                            <option value="MM">Myanmar</option>
-                                                            <option value="NA">Namibia</option>
-                                                            <option value="NR">Nauru</option>
-                                                            <option value="NP">Nepal</option>
-                                                            <option value="NL">Netherlands</option>
-                                                            <option value="AN">Netherlands Antilles</option>
-                                                            <option value="NC">New Caledonia</option>
-                                                            <option value="NZ">New Zealand</option>
-                                                            <option value="NI">Nicaragua</option>
-                                                            <option value="NE">Niger</option>
-                                                            <option value="NG">Nigeria</option>
-                                                            <option value="NU">Niue</option>
-                                                            <option value="NF">Norfolk Island</option>
-                                                            <option value="KP">North Korea</option>
-                                                            <option value="NO">Norway</option>
-                                                            <option value="OM">Oman</option>
-                                                            <option value="PK">Pakistan</option>
-                                                            <option value="PS">Palestinian Territory</option>
-                                                            <option value="PA">Panama</option>
-                                                            <option value="PG">Papua New Guinea</option>
-                                                            <option value="PY">Paraguay</option>
-                                                            <option value="PE">Peru</option>
-                                                            <option value="PH">Philippines</option>
-                                                            <option value="PN">Pitcairn</option>
-                                                            <option value="PL">Poland</option>
-                                                            <option value="PT">Portugal</option>
-                                                            <option value="QA">Qatar</option>
-                                                            <option value="IE">Republic of Ireland</option>
-                                                            <option value="RE">Reunion</option>
-                                                            <option value="RO">Romania</option>
-                                                            <option value="RU">Russia</option>
-                                                            <option value="RW">Rwanda</option>
-                                                            <option value="ST">São Tomé and Príncipe</option>
-                                                            <option value="BL">Saint Barthélemy</option>
-                                                            <option value="SH">Saint Helena</option>
-                                                            <option value="KN">Saint Kitts and Nevis</option>
-                                                            <option value="LC">Saint Lucia</option>
-                                                            <option value="SX">Saint Martin (Dutch part)</option>
-                                                            <option value="MF">Saint Martin (French part)</option>
-                                                            <option value="PM">Saint Pierre and Miquelon</option>
-                                                            <option value="VC">Saint Vincent and the Grenadines</option>
-                                                            <option value="SM">San Marino</option>
-                                                            <option value="SA">Saudi Arabia</option>
-                                                            <option value="SN">Senegal</option>
-                                                            <option value="RS">Serbia</option>
-                                                            <option value="SC">Seychelles</option>
-                                                            <option value="SL">Sierra Leone</option>
-                                                            <option value="SG">Singapore</option>
-                                                            <option value="SK">Slovakia</option>
-                                                            <option value="SI">Slovenia</option>
-                                                            <option value="SB">Solomon Islands</option>
-                                                            <option value="SO">Somalia</option>
-                                                            <option value="ZA">South Africa</option>
-                                                            <option value="GS">South Georgia/Sandwich Islands</option>
-                                                            <option value="KR">South Korea</option>
-                                                            <option value="SS">South Sudan</option>
-                                                            <option value="ES">Spain</option>
-                                                            <option value="LK">Sri Lanka</option>
-                                                            <option value="SD">Sudan</option>
-                                                            <option value="SR">Suriname</option>
-                                                            <option value="SJ">Svalbard and Jan Mayen</option>
-                                                            <option value="SZ">Swaziland</option>
-                                                            <option value="SE">Sweden</option>
-                                                            <option value="CH">Switzerland</option>
-                                                            <option value="SY">Syria</option>
-                                                            <option value="TW">Taiwan</option>
-                                                            <option value="TJ">Tajikistan</option>
-                                                            <option value="TZ">Tanzania</option>
-                                                            <option value="TH">Thailand</option>
-                                                            <option value="TL">Timor-Leste</option>
-                                                            <option value="TG">Togo</option>
-                                                            <option value="TK">Tokelau</option>
-                                                            <option value="TO">Tonga</option>
-                                                            <option value="TT">Trinidad and Tobago</option>
-                                                            <option value="TN">Tunisia</option>
-                                                            <option value="TR">Turkey</option>
-                                                            <option value="TM">Turkmenistan</option>
-                                                            <option value="TC">Turks and Caicos Islands</option>
-                                                            <option value="TV">Tuvalu</option>
-                                                            <option value="UG">Uganda</option>
-                                                            <option value="UA">Ukraine</option>
-                                                            <option value="AE">United Arab Emirates</option>
-                                                            <option value="GB">United Kingdom (UK)</option>
-                                                            <option value="US">USA (US)</option>
-                                                            <option value="UY">Uruguay</option>
-                                                            <option value="UZ">Uzbekistan</option>
-                                                            <option value="VU">Vanuatu</option>
-                                                            <option value="VA">Vatican</option>
-                                                            <option value="VE">Venezuela</option>
-                                                            <option value="VN">Vietnam</option>
-                                                            <option value="WF">Wallis and Futuna</option>
-                                                            <option value="EH">Western Sahara</option>
-                                                            <option value="WS">Western Samoa</option>
-                                                            <option value="YE">Yemen</option>
-                                                            <option value="ZM">Zambia</option>
-                                                            <option value="ZW">Zimbabwe</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="form-row row">
-                                                <div className="form-group col-lg-6">
-                                                    <input
-                                                        required="required"
-                                                        placeholder="State / Country"
-                                                        name="name"
-                                                        type="text"
-                                                    />
-                                                </div>
-                                                <div className="form-group col-lg-6">
-                                                    <input
-                                                        required="required"
-                                                        placeholder="PostCode / ZIP"
-                                                        name="name"
-                                                        type="text"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="form-row">
-                                                <div className="form-group col-lg-12">
-                                                    <button className="btn  btn-sm">
-                                                        <i className="fi-rs-shuffle mr-10"></i>
-                                                        Update
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </form>
+                                    {/* <div className="col-lg-6 col-md-12">
                                         <div className="mb-30 mt-50">
                                             <div className="heading_s1 mb-3">
                                                 <h4>Apply Coupon</h4>
@@ -596,8 +484,8 @@ const Cart = ({
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="col-lg-6 col-md-12">
+                                    </div> */}
+                                    <div className="col-lg-12 col-md-12">
                                         <div className="border p-md-4 p-30 border-radius cart-totals">
                                             <div className="heading_s1 mb-3">
                                                 <h4>Cart Totals</h4>
@@ -605,34 +493,49 @@ const Cart = ({
                                             <div className="table-responsive">
                                                 <table className="table">
                                                     <tbody>
-                                                        <tr>
+                                                        {/* <tr>
                                                             <td className="cart_total_label">Cart Subtotal</td>
                                                             <td className="cart_total_amount">
-                                                                <span className="font-lg fw-900 text-brand">$ {price()}</span>
+                                                                <span className="font-lg fw-900 text-brand">
+                                                                    $ {totalSelectedProductPrice}
+                                                                </span>
                                                             </td>
-                                                        </tr>
-                                                        <tr>
+                                                        </tr> */}
+                                                        {/* <tr>
                                                             <td className="cart_total_label">Shipping</td>
                                                             <td className="cart_total_amount">
                                                                 <i className="ti-gift mr-5"></i>
                                                                 Free Shipping
                                                             </td>
-                                                        </tr>
+                                                        </tr> */}
                                                         <tr>
                                                             <td className="cart_total_label">Total</td>
                                                             <td className="cart_total_amount">
                                                                 <strong>
-                                                                    <span className="font-xl fw-900 text-brand">${price()}</span>
+                                                                    <span className="font-xl fw-900 text-brand">
+                                                                        ${totalSelectedProductPrice}
+                                                                    </span>
                                                                 </strong>
                                                             </td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <a href="#" className="btn ">
-                                                <i className="fi-rs-box-alt mr-10"></i>
-                                                Proceed To CheckOut
-                                            </a>
+                                            <Link href="/shop-checkout">
+                                                <a
+                                                    href="/shop-checkout"
+                                                    className="btn"
+                                                    onClick={(e) => {
+                                                        if (cartSelected?.length === 0) {
+                                                            e.preventDefault();
+                                                            toast.error('Please select products to process checkout');
+                                                        }
+                                                    }}
+                                                >
+                                                    <i className="fi-rs-box-alt mr-10"></i>
+                                                    Proceed To CheckOut
+                                                </a>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -649,6 +552,7 @@ const mapStateToProps = (state) => ({
     cartItems: state.cart,
     activeCart: state.counter,
     user: state.user,
+    cartSelected: state.cartSelected,
 });
 
 const mapDispatchToProps = {
@@ -658,6 +562,8 @@ const mapDispatchToProps = {
     deleteFromCart,
     openCart,
     clearCart,
+    setCartSelected,
+    clearCartSelected,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Cart);

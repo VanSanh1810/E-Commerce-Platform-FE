@@ -52,7 +52,7 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                     </ul>
                                 </div>
                             </div>
-                            <div className="col-xl-6 col-lg-4">
+                            {/* <div className="col-xl-6 col-lg-4">
                                 <div className="text-center">
                                     <div id="news-flash" className="d-inline-block">
                                         <ul>
@@ -65,8 +65,8 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                         </ul>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="col-xl-3 col-lg-4">
+                            </div> */}
+                            <div className="col-xl-9 col-lg-8">
                                 <div className="header-info header-info-right">
                                     <ul>
                                         <li>
@@ -75,10 +75,7 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                                 <a href="http://localhost:3006" target="_blank">
                                                     Vendor Page
                                                 </a>
-                                            ) : // <Link href="/page-login-register">
-                                            //     <a>Vendor Page</a>
-                                            // </Link>
-                                            null}
+                                            ) : null}
                                         </li>
                                         <li>
                                             <i className="fi-rs-user"></i>

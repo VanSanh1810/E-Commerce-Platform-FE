@@ -1,21 +1,16 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { connect } from "react-redux";
-import { updateProductFilters } from "../../redux/action/productFiltersAction";
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { connect } from 'react-redux';
+import { updateProductFilters } from '../../redux/action/productFiltersAction';
 
-const SortSelect = ({ updateProductFilters }) => {
+const SortSelect = ({ updateProductSort }) => {
     const Router = useRouter();
-    const searchTerm = Router.query.search;
 
-    const [featured, setFeatured] = useState("");
+    const [featured, setFeatured] = useState('');
 
     useEffect(() => {
-        const filters = {
-            featured,
-        };
-
-        updateProductFilters(filters);
-    }, [searchTerm, featured]);
+        updateProductSort(featured);
+    }, [featured]);
 
     const seleceOption = (e) => {
         setFeatured(e.target.value);

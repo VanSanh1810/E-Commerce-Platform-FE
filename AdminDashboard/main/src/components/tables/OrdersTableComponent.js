@@ -1,32 +1,45 @@
-import React, { useState, useEffect, useContext } from "react";
-import { TranslatorContext } from "../../context/Translator";
+import React, { useState, useEffect, useContext } from 'react';
+import { TranslatorContext } from '../../context/Translator';
 import Modal from 'react-bootstrap/Modal';
-import { ButtonComponent, AnchorComponent } from "../elements";
+import { ButtonComponent, AnchorComponent } from '../elements';
+import axiosInstance from '../../configs/axiosInstance';
 
 export default function OrderTableComponent({ thead, tbody }) {
     const [alertModal, setAlertModal] = React.useState(false);
     const [data, setData] = useState([]);
 
-    const { t } = useContext(TranslatorContext)
+    const { t } = useContext(TranslatorContext);
 
-    useEffect(()=> { setData(tbody) }, [tbody]);
+    useEffect(() => {
+        const fetchOrdersData = async () => {
+            try {
+                const response = await axiosInstance.get('/api/order?target=adminPage');
+                setData([...response.data.orders]);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchOrdersData();
+    }, []);
 
-    const handleCheckbox = (event) => {
-        const { name, checked } = event.target;
-
-        if(name === "allCheck") {
-            const checkData = data?.map((item)=> {
-                return { ...item, isChecked: checked };
-            });
-            setData(checkData);
+    const orderSatusView = (status) => {
+        switch (status) {
+            case 'Pending':
+                return 'yellow';
+            case 'Fail':
+                return 'red';
+            case 'Confirmed':
+                return 'blue';
+            case 'Shipped':
+                return 'purple';
+            case 'Delivered':
+                return 'orange';
+            case 'Done':
+                return 'green';
+            default:
+                return 'yellow';
         }
-        else {
-            const checkData = data?.map((item) => 
-                item.name === name ? {...item, isChecked: checked} : item
-            );
-            setData(checkData);
-        }
-    }
+    };
 
     return (
         <div className="mc-table-responsive">
@@ -35,67 +48,70 @@ export default function OrderTableComponent({ thead, tbody }) {
                     <tr>
                         <th>
                             <div className="mc-table-check">
-                                <input 
-                                    type="checkbox" 
-                                    name="allCheck"
-                                    checked={ data?.filter((item)=> item.isChecked !== true).length < 1 } 
-                                    onChange={ handleCheckbox } 
-                                />
                                 <p>uid</p>
                             </div>
                         </th>
                         {thead.map((item, index) => (
-                            <th key={ index }>{ item }</th>
+                            <th key={index}>{item}</th>
                         ))}
                     </tr>
                 </thead>
                 <tbody className="mc-table-body even">
                     {data?.map((item, index) => (
-                        <tr key={ index }> 
+                        <tr key={index}>
                             <td>
                                 <div className="mc-table-check">
-                                    <input 
-                                        type="checkbox" 
-                                        name={item.name} 
-                                        checked={ item?.isChecked || false }
-                                        onChange={ handleCheckbox } 
-                                    />
-                                    <p>{ item.id }</p>
+                                    <p>{item._id}</p>
                                 </div>
                             </td>
                             <td>
                                 <div className="mc-table-profile">
-                                    <img src={ item.src } alt={ item.alt } />
-                                    <p>{ item.name }</p>
+                                    <p>{item.name}</p>
                                 </div>
                             </td>
-                            <td>{ item.product }</td>
-                            <td>{ item.amount }</td>
-                            <td>{ item.payment }</td>
-                            <td><p className={`mc-table-badge ${ item.status.variant }`}>{ item.status.text }</p></td>
-                            <td>{ item.date }</td>
+                            <td>{item.totalItem} items</td>
+                            <td>{item.total}$</td>
+                            <td>{item.onlPaymentStatus !== 'None' ? 'VNPAY' : 'COD'}</td>
+                            <td>
+                                <p className={`mc-table-badge ${orderSatusView(item.status)}`}>{item.status}</p>
+                            </td>
+                            <td>{Date(item.createDate)}</td>
                             <td>
                                 <div className="mc-table-action">
-                                    <AnchorComponent title="View" href="/invoice-details" className="material-icons view">{ item.action.view }</AnchorComponent>
-                                    <AnchorComponent title="Download" href="#" className="material-icons download" download>{ item.action.download }</AnchorComponent>
-                                    <ButtonComponent title="Delete" className="material-icons delete" onClick={()=> setAlertModal(true)}>{ item.action.delete }</ButtonComponent>
+                                    <AnchorComponent title="View" to={`/order/${item._id}`} className="material-icons view">
+                                        visibility
+                                    </AnchorComponent>
+                                    <AnchorComponent title="Download" href="#" className="material-icons download" download>
+                                        download
+                                    </AnchorComponent>
+                                    {/* <ButtonComponent
+                                        title="Delete"
+                                        className="material-icons delete"
+                                        onClick={() => setAlertModal(true)}
+                                    >
+                                        delete
+                                    </ButtonComponent> */}
                                 </div>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-            <Modal show={ alertModal } onHide={()=> setAlertModal(false)}>
+            <Modal show={alertModal} onHide={() => setAlertModal(false)}>
                 <div className="mc-alert-modal">
                     <i className="material-icons">new_releases</i>
                     <h3>are your sure!</h3>
                     <p>Want to delete this order?</p>
                     <Modal.Footer>
-                        <ButtonComponent type="button" className="btn btn-secondary" onClick={()=> setAlertModal(false)}>{t('close')}</ButtonComponent>
-                        <ButtonComponent type="button" className="btn btn-danger" onClick={()=> setAlertModal(false)}>{t('delete')}</ButtonComponent>
+                        <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setAlertModal(false)}>
+                            {t('close')}
+                        </ButtonComponent>
+                        <ButtonComponent type="button" className="btn btn-danger" onClick={() => setAlertModal(false)}>
+                            {t('delete')}
+                        </ButtonComponent>
                     </Modal.Footer>
                 </div>
             </Modal>
         </div>
-    )
+    );
 }

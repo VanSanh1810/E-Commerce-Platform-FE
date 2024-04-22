@@ -6,6 +6,7 @@ import { AnchorComponent } from '../../components/elements';
 import { FloatCardComponent, ActivityCardComponent } from '../../components/cards';
 import PageLayout from '../../layouts/PageLayout';
 import axiosInstance from '../../configs/axiosInstance';
+import AddressStaticData from '../../assets/data/static/dataprovince';
 
 export default function ShopProfilePage() {
     const { t } = useContext(TranslatorContext);
@@ -17,28 +18,42 @@ export default function ShopProfilePage() {
         { title: 'total_products', digit: 7893, icon: 'shopping_bag', variant: 'sm green' },
     ];
 
-    const [userData, setUserData] = useState();
+    const [shopData, setShopData] = useState();
+    const [adName, setAdName] = useState({});
 
-    // useEffect(() => {
-    //     console.log(uid);
-    //     const fetchUserData = async () => {
-    //         try {
-    //             const result = await axiosInstance.get(`/api/user/${uid}`);
-    //             console.log(result.data);
-    //             setUserData(result.data.data);
-    //         } catch (err) {
-    //             console.log(err);
-    //         }
-    //     };
-    //     fetchUserData();
-    // }, [uid]);
+    useEffect(() => {
+        console.log(uid);
+        const fetchShopData = async () => {
+            try {
+                const result = await axiosInstance.get(`/api/shop/${uid}`);
+                console.log(result.data);
+                setShopData(result.data.data.shop);
+                const addressData = result.data.data.shop.addresses;
+                const province = AddressStaticData.treeDataProvince[addressData.address.province].label;
+                const district =
+                    AddressStaticData.treeDataProvince[addressData.address.province].district[addressData.address.district].label;
+                const ward =
+                    AddressStaticData.treeDataProvince[addressData.address.province].district[addressData.address.district].ward[
+                        addressData.address.ward
+                    ].label;
+                setAdName({
+                    province: province,
+                    district: district,
+                    ward: ward,
+                });
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchShopData();
+    }, [uid]);
     return (
         <PageLayout>
             <Row>
                 <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-breadcrumb">
-                            <h3 className="mc-breadcrumb-title">{t('user_profile')}</h3>
+                            <h3 className="mc-breadcrumb-title">{t('shop profile')}</h3>
                             <ul className="mc-breadcrumb-list">
                                 <li className="mc-breadcrumb-item">
                                     <Link to="/" className="mc-breadcrumb-link">
@@ -46,11 +61,11 @@ export default function ShopProfilePage() {
                                     </Link>
                                 </li>
                                 <li className="mc-breadcrumb-item">
-                                    <Link to="/user" className="mc-breadcrumb-link">
-                                        {t('users')}
+                                    <Link to="/shop" className="mc-breadcrumb-link">
+                                        {t('shop')}
                                     </Link>
                                 </li>
-                                <li className="mc-breadcrumb-item">{t('user_profile')}</li>
+                                <li className="mc-breadcrumb-item">{t('shop profile')}</li>
                             </ul>
                         </div>
                     </div>
@@ -81,14 +96,11 @@ export default function ShopProfilePage() {
                         </div>
                         <div className="mc-user-group">
                             <div className="mc-user-profile">
-                                {/* <div className="mc-round-avatar md">
-                                    <img
-                                        src="http://localhost:4000/uploads/dw-burnett-pcoty22-8260-1671143390.jpg"
-                                        alt="avatar"
-                                    />
-                                </div> */}
+                                <div className="mc-round-avatar md">
+                                    <img src={shopData?.avatar?.url} alt="avatar" />
+                                </div>
                                 <div className="mc-duel-text md">
-                                    <h3 className="mc-duel-text-title">{userData?.name}</h3>
+                                    <h3 className="mc-duel-text-title">{shopData?.name}</h3>
                                     {/* <p className="mc-duel-text-descrip">@mironcoder</p> */}
                                 </div>
                             </div>
@@ -100,17 +112,25 @@ export default function ShopProfilePage() {
                                         <span>+91 987-654-3210</span>
                                     </li> */}
                                     <li>
-                                        <i className="material-icons">feed</i>
-                                        <span>{userData?.email}</span>
-                                    </li>
-                                    {/* <li>
-                                        <i className="material-icons">public</i>
-                                        <span>examplehotash.com</span>
+                                        <i className="material-icons">mail</i>
+                                        <span>{shopData?.email}</span>
                                     </li>
                                     <li>
                                         <i className="material-icons">map</i>
-                                        <span>1Hd- 50, 010 Avenue, NY 90001 United States</span>
-                                    </li> */}
+                                        <span>{shopData?.addresses?.address?.detail}</span>
+                                        <span>{adName?.ward ? adName?.ward : null}</span>
+                                        <span>{adName?.district ? adName?.district : null}</span>
+                                        <span>{adName?.province ? adName?.province : null}</span>
+                                    </li>
+                                    <li>
+                                        <i className="material-icons">person</i>
+                                        <a
+                                            style={{ color: '#331cff', textDecoration: 'undeline' }}
+                                            href={`/user/${shopData?.vendor._id}`}
+                                        >
+                                            {shopData?.vendor.name}
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                             {/* <div className="mb-4">

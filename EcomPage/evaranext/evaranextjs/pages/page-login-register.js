@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Layout from '../components/layout/Layout';
 import { connect } from 'react-redux';
 
-import { userLogin, userLogout } from '../redux/action/user';
+import { authenticateUser, userLogin, userLogout } from '../redux/action/user';
 import axios from 'axios';
 import { useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -30,6 +30,7 @@ const Login = ({ user, userLogin, userLogout }) => {
             });
             console.log(result.data);
             userLogin(result.data.token);
+            // dispatch(authenticateUser());
             router.push('/');
         } catch (err) {
             console.log(err);

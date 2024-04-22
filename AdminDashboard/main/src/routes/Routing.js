@@ -123,14 +123,6 @@ function Routing() {
                     />
 
                     <Route
-                        path="invoice/:invoiceId"
-                        element={
-                            <Private roleAllow={'vendor'}>
-                                <InvoiceDetailsPage />
-                            </Private>
-                        }
-                    />
-                    <Route
                         path="invoice"
                         element={
                             <Private roleAllow={'vendor'}>
@@ -143,6 +135,14 @@ function Routing() {
                         element={
                             <Private roleAllow={'vendor'}>
                                 <OrderListPage />
+                            </Private>
+                        }
+                    />
+                    <Route
+                        path="order/:orderId"
+                        element={
+                            <Private roleAllow={'vendor'}>
+                                <InvoiceDetailsPage />
                             </Private>
                         }
                     />

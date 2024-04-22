@@ -20,22 +20,20 @@ import { persistor, store } from './store/index';
 import { PersistGate } from 'redux-persist/integration/react';
 import App from './App';
 
-
-
-
 createRoot(document.getElementById('root')).render(
-    
-    <Provider store={store}>
-        <PersistGate persistor={persistor}>
-            <ThemeProvider>
-                <LoaderProvider>
-                    <TranslatorProvider>
-                        <SidebarProvider>
-                            <App />
-                        </SidebarProvider>
-                    </TranslatorProvider>
-                </LoaderProvider>
-            </ThemeProvider>
-        </PersistGate>
-    </Provider>,
+    <React.StrictMode>
+        <Provider store={store}>
+            <PersistGate persistor={persistor}>
+                <ThemeProvider>
+                    <LoaderProvider>
+                        <TranslatorProvider>
+                            <SidebarProvider>
+                                <App />
+                            </SidebarProvider>
+                        </TranslatorProvider>
+                    </LoaderProvider>
+                </ThemeProvider>
+            </PersistGate>
+        </Provider>
+    </React.StrictMode>,
 );

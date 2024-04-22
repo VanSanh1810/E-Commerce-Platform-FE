@@ -241,7 +241,7 @@ const ProductDetails = ({
                                                     <span>
                                                         Shop:
                                                         <Link href={`/shop/${product.shop._id}`}>
-                                                            <a>1{product.shop.name}</a>
+                                                            <a> {product.shop.name}</a>
                                                         </Link>
                                                     </span>
                                                 </div>
@@ -250,11 +250,13 @@ const ProductDetails = ({
                                                         <div
                                                             className="product-rating"
                                                             style={{
-                                                                width: '90%',
+                                                                width: ((product.averageRating / 5) * 100).toString() + '%',
                                                             }}
                                                         ></div>
                                                     </div>
-                                                    <span className="font-small ml-5 text-muted">(25 reviews)</span>
+                                                    <span className="font-small ml-5 text-muted">
+                                                        ({product.totalReviews} reviews)
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div className="clearfix product-price-cover">
@@ -317,9 +319,9 @@ const ProductDetails = ({
                                             </div>
                                             <div className="product_sort_info font-xs mb-30">
                                                 <ul>
-                                                    <li className="mb-10">
+                                                    {/* <li className="mb-10">
                                                         <i className="fi-rs-crown mr-5"></i>1 Year AL Jazeera Brand Warranty
-                                                    </li>
+                                                    </li> */}
                                                     <li className="mb-10">
                                                         <i className="fi-rs-refresh mr-5"></i>
                                                         30 Day Return Policy
@@ -372,11 +374,24 @@ const ProductDetails = ({
                                                 </div>
                                                 <div className="product-extra-link2">
                                                     <button
+                                                        disabled={
+                                                            product.variantData
+                                                                ? productStock > 0
+                                                                    ? true
+                                                                    : false
+                                                                : product.stock > 0
+                                                                ? true
+                                                                : false
+                                                        }
                                                         onClick={(e) => {
                                                             if (product.variantData?.length > 0) {
                                                                 // have variant data
                                                                 if (selectedVariant.every((varD) => varD !== null)) {
                                                                     // have selected variant
+                                                                    if (productStock.stock <= 0) {
+                                                                        toast.error('Product out of stock');
+                                                                        return;
+                                                                    }
                                                                     handleCart({
                                                                         product: product._id,
                                                                         variant:
@@ -387,6 +402,10 @@ const ProductDetails = ({
                                                                     toast.error('Please select product variant');
                                                                 }
                                                             } else {
+                                                                if (product.stock <= 0) {
+                                                                    toast.error('Product out of stock');
+                                                                    return;
+                                                                }
                                                                 handleCart({
                                                                     product: product._id,
                                                                     variant: selectedVariant?.length > 0 ? selectedVariant : [],

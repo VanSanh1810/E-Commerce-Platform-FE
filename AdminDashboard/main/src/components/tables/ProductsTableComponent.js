@@ -5,9 +5,9 @@ import { AnchorComponent, ButtonComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
 
-export default function ProductsTableComponent({ thead, tbody }) {
+export default function ProductsTableComponent({ thead, tbody, query }) {
     const { t } = useContext(TranslatorContext);
-    const { shopId } = useSelector((state) => state.persistedReducer.authReducer);
+    const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
     const [alertModal, setAlertModal] = useState(false);
     const [data, setData] = useState([]);
@@ -17,7 +17,8 @@ export default function ProductsTableComponent({ thead, tbody }) {
     useEffect(() => {
         const fetchAllProducts = async () => {
             try {
-                const results = await axiosInstance.get('/api/product/');
+                const pathString = isVendor ? `/api/product?shopId=${shopId}` : '/api/product/';
+                const results = await axiosInstance.get(pathString);
                 console.log(results);
                 const listProducts = [...results.data.data];
                 if (shopId) {
@@ -32,7 +33,45 @@ export default function ProductsTableComponent({ thead, tbody }) {
             }
         };
         fetchAllProducts();
-    }, [shopId]);
+    }, [shopId, isVendor]);
+
+    const priceRange = (routePath) => {
+        let min;
+        let max;
+        routePath.forEach((element) => {
+            if (min) {
+                let temp =
+                    parseFloat(element.detail.disPrice) && parseFloat(element.detail.disPrice) > 0
+                        ? parseFloat(element.detail.disPrice)
+                        : parseFloat(element.detail.price);
+                min = temp < min ? temp : min;
+            } else {
+                min =
+                    parseFloat(element.detail.disPrice) && parseFloat(element.detail.disPrice) > 0
+                        ? parseFloat(element.detail.disPrice)
+                        : parseFloat(element.detail.price);
+            }
+            //
+            if (max) {
+                let temp =
+                    parseFloat(element.detail.disPrice) && parseFloat(element.detail.disPrice) > 0
+                        ? parseFloat(element.detail.disPrice)
+                        : parseFloat(element.detail.price);
+                max = temp > max ? temp : max;
+            } else {
+                max =
+                    parseFloat(element.detail.disPrice) && parseFloat(element.detail.disPrice) > 0
+                        ? parseFloat(element.detail.disPrice)
+                        : parseFloat(element.detail.price);
+            }
+        });
+        return `${min} - ${max}`;
+    };
+
+    const totalStock = (routePath) => {
+        const sum = routePath.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.detail.stock), 0);
+        return sum;
+    };
 
     return (
         <div className="mc-table-responsive">
@@ -66,14 +105,20 @@ export default function ProductsTableComponent({ thead, tbody }) {
                                     </div>
                                 </div>
                             </td>
-                            <td>{item.category.name}</td>
+                            <td>{item.category?.name}</td>
                             <td>
-                                <div className="mc-table-price">
-                                    <del>{item.price}$</del>
-                                    <p>{item.discountPrice}$</p>
-                                </div>
+                                {item.variantData && item.variantData.length > 0 ? (
+                                    <div className="mc-table-price">
+                                        <p>{priceRange(item.routePath)}$</p>
+                                    </div>
+                                ) : (
+                                    <div className="mc-table-price">
+                                        <del>{item.price}$</del>
+                                        <p>{item.discountPrice}$</p>
+                                    </div>
+                                )}
                             </td>
-                            <td>{item.stock}</td>
+                            <td>{item.variantData && item.variantData.length > 0 ? totalStock(item.routePath) : item.stock}</td>
                             <td>
                                 <div className="mc-table-rating">
                                     <i className="material-icons">star</i>

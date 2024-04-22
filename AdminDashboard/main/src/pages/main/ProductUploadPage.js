@@ -25,16 +25,6 @@ export default function ProductUploadPage() {
     const [uploadFile, setUploadFile] = React.useState('image upload');
     const [reloadAction, setReloadAction] = React.useState(false);
 
-    const generateRandomString = useCallback((length) => {
-        let result = '';
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const charactersLength = characters.length;
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        }
-        return result;
-    }, []);
-
     //** ===================  CATEGORY PRODUCT  ===================
     const [cateModal, setCateModal] = useState(false);
     const [categoryTree, setCategoryTree] = useState([null]);
@@ -114,37 +104,105 @@ export default function ProductUploadPage() {
         clearErr();
         console.log(variantData);
         console.log(variantDetail);
-        return;
-        const form = new FormData();
-        form.append('name', productTitle);
-        form.append('description', productDesc);
-        form.append('classifyId', productClassify);
-        form.append('categoryId', selectedCategory);
-        form.append('price', productRePrice);
-        form.append('discountPrice', productDisPrice);
-        form.append('stock', productStock);
-        form.append('tags', productTag);
-        form.append('variantData', null);
-        form.append('variantDetail', null);
-        const arr = Object.values(productImages);
-
-        arr.forEach((file) => {
-            if (typeof file === 'object') {
-                form.append('images', file);
+        if (variantData?.length > 0) {
+            let result1 = true;
+            for (let i of variantDetail) {
+                result1 = validateVariantData(i);
+                if (!result1) {
+                    break;
+                }
             }
-        });
+            let result2 = true;
+            for (let varD of variantData) {
+                if (varD.name.trim() === '' || varD.data.some((child) => child.name.trim() === '')) {
+                    result2 = false;
+                    break;
+                }
+            }
+            console.log(result1 && result2);
+            console.log(variantDetail);
+            console.log(variantData);
+            if (result1 && result2 && validateData(true)) {
+                const form = new FormData();
+                form.append('name', productTitle);
+                form.append('stock', 0);
+                form.append('price', 0);
+                form.append('discountPrice', 0);
+                form.append('description', productDesc);
+                form.append('tags', productTag);
+                form.append('categoryId', selectedCategory);
+                form.append('classifyId', productClassify);
+                form.append('variantData', JSON.stringify(variantData));
+                form.append('variantDetail', JSON.stringify(variantDetail));
+                form.append('isDraft', isDraft);
+                console.log(variantData);
+                console.log(variantDetail);
+                const arr = Object.values(productImages);
+                let tempImgLeft = [];
+                arr.forEach((file) => {
+                    if (typeof file === 'string') {
+                        tempImgLeft.push(file);
+                    } else {
+                        form.append('images', file);
+                    }
+                });
+                form.append('imgLeft', JSON.stringify(tempImgLeft));
 
-        try {
-            const result = await axiosInstance.post('/api/product', form, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+                try {
+                    const result = await axiosInstance.post(`/api/product/${productId}`, form, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                    console.log(result.data);
+                    dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.data.message }));
+                    setTimeout(() => {
+                        navigate('/product');
+                    }, 1000);
+                } catch (err) {
+                    console.error(err);
+                }
+            } else {
+                //variant empty
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'variant is missing requirement data' }));
+            }
+        } else {
+            if (!validateData(false)) {
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'variant is missing requirement data' }));
+                return;
+            }
+            const form = new FormData();
+            form.append('name', productTitle);
+            form.append('description', productDesc);
+            form.append('classifyId', productClassify);
+            form.append('categoryId', selectedCategory);
+            form.append('price', productRePrice);
+            form.append('discountPrice', productDisPrice);
+            form.append('stock', productStock);
+            form.append('tags', productTag);
+            form.append('variantData', null);
+            form.append('variantDetail', null);
+            form.append('isDraft', isDraft);
+            const arr = Object.values(productImages);
+            let tempImgLeft = [];
+            arr.forEach((file) => {
+                if (typeof file === 'string') {
+                    tempImgLeft.push(file);
+                } else {
+                    form.append('images', file);
+                }
             });
-            console.log(result);
-            dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.message }));
-            // setTimeout(() => {
-            //     navigate('/product');
-            // }, 1500);
-        } catch (err) {
-            console.error(err);
+            form.append('imgLeft', JSON.stringify(tempImgLeft));
+            try {
+                const result = await axiosInstance.post(`/api/product/${productId}`, form, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                console.log(result.data);
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: result.data.data.message }));
+                setTimeout(() => {
+                    navigate('/product');
+                }, 1000);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
@@ -166,14 +224,15 @@ export default function ProductUploadPage() {
             //found node
             try {
                 if (node.detail) {
+                    // console.log(' ff:', indexArr);
                     if (field[0]) {
-                        node.detail[field[0]] = value[0];
+                        node.detail[field[0]] = parseFloat(value[0]);
                     }
                     if (field[1]) {
-                        node.detail[field[1]] = value[1];
+                        node.detail[field[1]] = parseFloat(value[1]);
                     }
                     if (field[2]) {
-                        node.detail[field[2]] = value[2];
+                        node.detail[field[2]] = parseFloat(value[2]);
                     }
                 }
             } catch (e) {
@@ -254,18 +313,20 @@ export default function ProductUploadPage() {
                     )
                 ]?._id;
             });
+
             let currentVariantDetailData = {
                 price: null,
                 disPrice: null,
                 stock: null,
             };
 
-            for (let i = 0; i < variantDetail.length; i++) {
-                if (variantDetail[i]._id === locations[0]) {
-                    const result = getVariantDetail(variantDetail[i], locations, 0);
+            for (let j = 0; j < variantDetail.length; j++) {
+                if (variantDetail[j]._id === locations[0]) {
+                    const result = getVariantDetail(variantDetail[j], [...locations], 0);
                     if (result) {
                         currentVariantDetailData = { ...result };
                     }
+                    break;
                 }
             }
             const abc = (
@@ -314,12 +375,17 @@ export default function ProductUploadPage() {
                             onBlur={(e) => {
                                 ////////////////////////////////////////////////////////////////////////
                                 let flag = false;
-                                for (const v of variantDetail) {
+                                let tempDetail = JSON.stringify([...variantDetail]);
+                                tempDetail = JSON.parse(tempDetail);
+                                for (const v of tempDetail) {
                                     if (v._id === locations[0]) {
-                                        flag = accessVariantDetail(v, locations, 0, ['price'], [e.currentTarget.value]);
+                                        accessVariantDetail(v, [...locations], 0, ['price'], [e.currentTarget.value]);
                                         break;
                                     }
                                 }
+                                console.log('temp :', tempDetail);
+                                oldVariantDetail.current = [...tempDetail];
+                                setVariantDetail([...tempDetail]);
                             }}
                             defaultValue={currentVariantDetailData.price}
                         />
@@ -333,12 +399,16 @@ export default function ProductUploadPage() {
                             onBlur={(e) => {
                                 ////////////////////////////////////////////////////////////////////////
                                 let flag = false;
-                                for (const v of variantDetail) {
+                                let tempDetail = JSON.stringify([...variantDetail]);
+                                tempDetail = JSON.parse(tempDetail);
+                                for (const v of tempDetail) {
                                     if (v._id === locations[0]) {
-                                        flag = accessVariantDetail(v, locations, 0, ['disPrice'], [e.currentTarget.value]);
+                                        accessVariantDetail(v, [...locations], 0, ['disPrice'], [e.currentTarget.value]);
                                         break;
                                     }
                                 }
+                                oldVariantDetail.current = [...tempDetail];
+                                setVariantDetail([...tempDetail]);
                             }}
                             defaultValue={currentVariantDetailData.disPrice}
                         />
@@ -353,12 +423,16 @@ export default function ProductUploadPage() {
                                 // console.log(data);
                                 ////////////////////////////////////////////////////////////////////////
                                 let flag = false;
-                                for (const v of variantDetail) {
+                                let tempDetail = JSON.stringify([...variantDetail]);
+                                tempDetail = JSON.parse(tempDetail);
+                                for (const v of tempDetail) {
                                     if (v._id === locations[0]) {
-                                        flag = accessVariantDetail(v, locations, 0, ['stock'], [e.currentTarget.value]);
+                                        accessVariantDetail(v, [...locations], 0, ['stock'], [e.currentTarget.value]);
                                         break;
                                     }
                                 }
+                                oldVariantDetail.current = [...tempDetail];
+                                setVariantDetail([...tempDetail]);
                             }}
                             defaultValue={currentVariantDetailData.stock}
                         />
@@ -369,7 +443,7 @@ export default function ProductUploadPage() {
         }
         setTableToRender(tableRender);
         return null;
-    }, [accessVariantDetail, variantData, getVariantDetail, variantDetail]);
+    }, [accessVariantDetail, variantData, getVariantDetail, variantDetail, oldVariantDetail]);
 
     /**
      * The function `createVariantDetail` generates a nested array structure based on the
@@ -411,18 +485,21 @@ export default function ProductUploadPage() {
                             },
                         };
                     });
-                    variantHolders = newArr;
+                    variantHolders = [...newArr];
                 } else {
                     let temp = [...variantHolders];
                     newArr = variantData[i].data.map((vari, index) => {
                         return {
                             _id: vari._id,
-                            child: temp,
+                            child: [...temp],
                         };
                     });
                     variantHolders = newArr;
                 }
             }
+
+            variantHolders = JSON.stringify([...variantHolders]);
+            variantHolders = JSON.parse(variantHolders);
 
             /// update the temporary with previous variantDetail
             if (oldVariantDetail.current && oldVariantDetail.current.length > 0) {
@@ -434,7 +511,7 @@ export default function ProductUploadPage() {
                             routeMap: routeMap,
                             detail: node.detail,
                         };
-                        tableMap = [...tableMap, detail];
+                        tableMap = [...tableMap, { ...detail }];
                         return;
                     } else {
                         for (let i = 0; i < node.child.length; i++) {
@@ -452,7 +529,11 @@ export default function ProductUploadPage() {
                 const iterateDetalTree = (node, depth, routeMap) => {
                     if (node.detail) {
                         for (let j = 0; j < tableMap.length; j++) {
-                            if (arraysAreEqual(tableMap[j].routeMap, routeMap)) {
+                            if (arraysAreEqual([...tableMap[j].routeMap], [...routeMap])) {
+                                console.log('route match : ', tableMap[j].routeMap, ' ===', routeMap);
+                                console.log('Value :');
+                                console.log(node.detail);
+                                console.log(tableMap[j].detail);
                                 node.detail = tableMap[j].detail;
                                 break;
                             }
@@ -461,7 +542,7 @@ export default function ProductUploadPage() {
                     } else {
                         for (let i = 0; i < node.child.length; i++) {
                             const newRouteMap = [...routeMap, node.child[i]._id];
-                            iterateDetalTree(node.child[i], depth + 1, newRouteMap);
+                            iterateDetalTree(node.child[i], depth + 1, [...newRouteMap]);
                         }
                         return;
                     }
@@ -471,33 +552,24 @@ export default function ProductUploadPage() {
                 }
             }
             console.log('Set detail :', variantHolders);
-            setVariantDetail([...variantHolders]);
-            oldVariantDetail.current = [...variantHolders];
+            const stringifyObj = JSON.stringify(variantHolders);
+            setVariantDetail([...JSON.parse(stringifyObj)]);
+            oldVariantDetail.current = [...JSON.parse(stringifyObj)];
         }
         return null;
-    }, [variantData]);
+    }, [variantData, oldVariantDetail]);
 
     useEffect(() => {
-        if (variantData && variantData?.length > 0) {
+        if (variantData?.length > 0) {
             createVariantDetail();
         }
     }, [variantData, createVariantDetail]);
 
     useEffect(() => {
-        createVarianTable();
+        if (variantDetail?.length > 0) {
+            createVarianTable();
+        }
     }, [variantDetail, createVarianTable]);
-
-    useEffect(() => {}, []);
-
-    useEffect(() => {
-        console.log('Variant data');
-        console.log(variantData);
-    }, [variantData]);
-
-    useEffect(() => {
-        console.log('Variant detail');
-        console.log(variantDetail);
-    }, [variantDetail]);
 
     useEffect(() => {
         const fetchCate = async () => {
@@ -520,7 +592,7 @@ export default function ProductUploadPage() {
                 setProductDesc(result.data.data.description);
 
                 // setProductCate(result.data.data.category._id);
-                setSelectedCategory(result.data.data.category._id);
+                setSelectedCategory(result.data.data.category?._id);
 
                 setProductRePrice(result.data.data.price);
 
@@ -532,7 +604,7 @@ export default function ProductUploadPage() {
 
                 setProductTag(result.data.data.tag);
 
-                console.log(result.data.data);
+                console.log(result.data);
                 setProductImages(
                     result.data.data.images.map((image) => {
                         return image.url;
@@ -563,6 +635,7 @@ export default function ProductUploadPage() {
     const [productRePrice, setProductRePrice] = React.useState();
     const [productDisPrice, setProductDisPrice] = React.useState();
     const [productTag, setProductTag] = React.useState('');
+    const [isDraft, setIsDraft] = React.useState(false);
     const [productStock, setProductStock] = React.useState();
     const [productImages, setProductImages] = React.useState([]);
 
@@ -621,9 +694,9 @@ export default function ProductUploadPage() {
 
     const createProductHanddler = async (e) => {
         clearErr();
-        console.log(variantData);
-        console.log(variantDetail);
-        return;
+        // console.log(variantData);
+        // console.log(variantDetail);
+        // return;
         if (variantData.length > 0) {
             let result1 = true;
             for (let i of variantDetail) {
@@ -654,6 +727,7 @@ export default function ProductUploadPage() {
                 form.append('classifyId', productClassify);
                 form.append('variantData', JSON.stringify(variantData));
                 form.append('variantDetail', JSON.stringify(variantDetail));
+                form.append('isDraft', isDraft);
                 console.log(variantData);
                 console.log(variantDetail);
                 const arr = Object.values(productImages);
@@ -668,12 +742,18 @@ export default function ProductUploadPage() {
                         headers: { 'Content-Type': 'multipart/form-data' },
                     });
                     console.log(result);
+                    dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Product created' }));
+                    setTimeout(() => {
+                        navigate('/product');
+                    }, 1000);
                 } catch (err) {
                     console.error(err);
+                    dispatch(setToastState({ Tstate: toastType.error, Tmessage: err }));
                 }
             } else {
                 //variant empty
                 validateData(true);
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Please provide all variant detail' }));
             }
         } else {
             if (!validateData(false)) {
@@ -690,6 +770,7 @@ export default function ProductUploadPage() {
             form.append('tags', productTag);
             form.append('variantData', null);
             form.append('variantDetail', null);
+            form.append('isDraft', isDraft);
             const arr = Object.values(productImages);
             arr.forEach((file) => {
                 form.append('images', file);
@@ -700,8 +781,13 @@ export default function ProductUploadPage() {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 console.log(result);
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Product created' }));
+                setTimeout(() => {
+                    navigate('/product');
+                }, 1000);
             } catch (err) {
                 console.error(err);
+                dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'err' }));
             }
         }
     };
@@ -822,7 +908,10 @@ export default function ProductUploadPage() {
                                         type="text"
                                         label={t('title')}
                                         fieldSize="mb-4 w-100 h-md"
-                                        onChange={(e) => setProductTitle(e.target.value)}
+                                        onChange={(e) => {
+                                            setProductTitle(e.target.value);
+                                            console.log(e.target.value);
+                                        }}
                                         defaultValue={productTitle}
                                         err={titleErr}
                                     />
@@ -1023,6 +1112,7 @@ export default function ProductUploadPage() {
                                                             return (
                                                                 <Col xl={3}>
                                                                     <div
+                                                                        key={varD._id}
                                                                         style={{
                                                                             display: 'flex',
                                                                             justifyContent: 'space-between',
@@ -1153,9 +1243,24 @@ export default function ProductUploadPage() {
                                     </label>
                                 </div>
                             </div>
+                            <div className="custome-checkbox mt-4">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    name="isHome"
+                                    id="HomeCheckbox"
+                                    onChange={(e) => {
+                                        setIsDraft(e.target.checked);
+                                    }}
+                                    defaultChecked={isDraft}
+                                />
+                                <label style={{ userSelect: 'none' }} className="form-check-label ms-2" htmlFor="HomeCheckbox">
+                                    <span>Draft</span>
+                                </label>
+                            </div>
                             <AnchorComponent
                                 className="mc-btn w-100 primary mt-5"
-                                text={t('publish_and_view')}
+                                text={t('Save')}
                                 icon="cloud_upload"
                                 to="#"
                                 onClick={productId ? updateProductHanddler : createProductHanddler}
