@@ -239,7 +239,11 @@ export default function CategoryPage() {
                         <ButtonComponent
                             type="button"
                             className="btn btn-success"
-                            onClick={() => createCateHandler(createCateModal.root)}
+                            onClick={() =>
+                                createCateModal.isCreate
+                                    ? createCateHandler(createCateModal.root, true)
+                                    : createCateHandler(createCateModal.root, false)
+                            }
                         >
                             {createCateModal.isCreate ? t('Create') : t('Update')}
                         </ButtonComponent>

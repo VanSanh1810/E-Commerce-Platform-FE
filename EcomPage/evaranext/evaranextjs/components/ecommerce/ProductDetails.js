@@ -362,27 +362,37 @@ const ProductDetails = ({
                                             <div className="detail-extralink">
                                                 <div className="detail-qty border radius">
                                                     <a
-                                                        onClick={(e) => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+                                                        onClick={(e) => {
+                                                            setQuantity(quantity > 1 ? quantity - 1 : 1);
+                                                        }}
                                                         className="qty-down"
                                                     >
                                                         <i className="fi-rs-angle-small-down"></i>
                                                     </a>
                                                     <span className="qty-val">{quantity}</span>
-                                                    <a onClick={() => setQuantity(quantity + 1)} className="qty-up">
+                                                    <a
+                                                        onClick={() => {
+                                                            const stockLeft = product.variantData ? productStock : product.stock;
+                                                            if (quantity + 1 <= stockLeft) {
+                                                                setQuantity(quantity + 1);
+                                                            }
+                                                        }}
+                                                        className="qty-up"
+                                                    >
                                                         <i className="fi-rs-angle-small-up"></i>
                                                     </a>
                                                 </div>
                                                 <div className="product-extra-link2">
                                                     <button
-                                                        disabled={
-                                                            product.variantData
-                                                                ? productStock > 0
-                                                                    ? true
-                                                                    : false
-                                                                : product.stock > 0
-                                                                ? true
-                                                                : false
-                                                        }
+                                                        // disabled={
+                                                        //     product.variantData
+                                                        //         ? productStock > 0
+                                                        //             ? true
+                                                        //             : false
+                                                        //         : product.stock > 0
+                                                        //         ? true
+                                                        //         : false
+                                                        // }
                                                         onClick={(e) => {
                                                             if (product.variantData?.length > 0) {
                                                                 // have variant data
@@ -417,20 +427,6 @@ const ProductDetails = ({
                                                     >
                                                         Add to cart
                                                     </button>
-                                                    {/* <a
-                                                        aria-label="Add To Wishlist"
-                                                        className="action-btn hover-up"
-                                                        onClick={(e) => handleWishlist(product)}
-                                                    >
-                                                        <i className="fi-rs-heart"></i>
-                                                    </a>
-                                                    <a
-                                                        aria-label="Compare"
-                                                        className="action-btn hover-up"
-                                                        onClick={(e) => handleCompare(product)}
-                                                    >
-                                                        <i className="fi-rs-shuffle"></i>
-                                                    </a> */}
                                                 </div>
                                             </div>
                                             <ul className="product-meta font-xs color-grey mt-50">

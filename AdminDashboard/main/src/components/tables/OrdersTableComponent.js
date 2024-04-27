@@ -31,9 +31,9 @@ export default function OrderTableComponent({ thead, tbody }) {
             case 'Confirmed':
                 return 'blue';
             case 'Shipped':
-                return 'purple';
-            case 'Delivered':
                 return 'orange';
+            case 'Delivered':
+                return 'purple';
             case 'Done':
                 return 'green';
             default:
@@ -71,7 +71,7 @@ export default function OrderTableComponent({ thead, tbody }) {
                             </td>
                             <td>{item.totalItem} items</td>
                             <td>{item.total}$</td>
-                            <td>{item.onlPaymentStatus !== 'None' ? 'VNPAY' : 'COD'}</td>
+                            <td>{item.onlPayStatus !== 'None' ? 'VNPAY' : 'COD'}</td>
                             <td>
                                 <p className={`mc-table-badge ${orderSatusView(item.status)}`}>{item.status}</p>
                             </td>

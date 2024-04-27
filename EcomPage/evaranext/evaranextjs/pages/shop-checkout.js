@@ -249,7 +249,6 @@ const CartCheckout = ({
             if (!isObject(selectedShippingAddress)) {
                 try {
                     // toast.success('OK');
-
                     const response = await axiosInstance.post('/api/order/placeOrder', {
                         address: { type: useAddressState, data: selectedShippingAddress },
                         itemData: [...sortedCartItems],
@@ -259,6 +258,7 @@ const CartCheckout = ({
                     if (!paymentMethod) {
                         window.location.href = response.data.url;
                     }
+                    toast.success('Order placed !');
                 } catch (e) {
                     console.log(e);
                     return;

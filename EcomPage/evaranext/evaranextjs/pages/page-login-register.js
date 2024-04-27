@@ -34,6 +34,7 @@ const Login = ({ user, userLogin, userLogout }) => {
             router.push('/');
         } catch (err) {
             console.log(err);
+            toast.error('Wrong email or password');
         }
     };
 
@@ -49,6 +50,7 @@ const Login = ({ user, userLogin, userLogout }) => {
                     password: r_passRef.current.value,
                 });
                 console.log(result.data);
+                toast.success('Successfully registered');
             } catch (err) {
                 console.error(err);
                 toast.error(err.response.data.data.message);

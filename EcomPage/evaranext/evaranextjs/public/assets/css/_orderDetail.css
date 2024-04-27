@@ -112,6 +112,7 @@
     font-size: 12px;
     font-weight: 700;
 }
+
 .mc-invoice-list li .status.purple {
     color: #be0ee1;
     background-color: #fbe5ff;
@@ -124,6 +125,22 @@
     color: #f11133;
     background-color: #ffdfe4;
 }
+
+.mc-invoice-list li .status.yellow {
+    color: #e1940e;
+    background-color: #fcf7c9;
+}
+
+.mc-invoice-list li .status.orange {
+    color: #ff7300;
+    background-color: #fff2d3;
+}
+
+.mc-invoice-list li .status.blue {
+    color: #2b77e5;
+    background-color: #dcedfd;
+}
+
 [dir='ltr'] .mc-invoice-list .clone {
     margin-right: 30px;
 }

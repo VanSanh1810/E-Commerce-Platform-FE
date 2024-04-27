@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { setAdminToken, setRole, setShopId } from '../../store/reducers/authReducer';
 import { Toast } from 'react-bootstrap';
 import axiosInstance from '../../configs/axiosInstance';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
 export default function LoginPage() {
     const { t } = useContext(TranslatorContext);
@@ -33,6 +34,7 @@ export default function LoginPage() {
             dispatch(setShopId(result.data.data.shop));
         } catch (e) {
             console.log(e);
+            dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Wrong username or password' }));
         }
     };
 

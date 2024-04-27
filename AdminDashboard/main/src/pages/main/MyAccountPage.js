@@ -9,8 +9,11 @@ import PageLayout from '../../layouts/PageLayout';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../configs/axiosInstance';
 import AddressStaticData from '../../assets/data/static/dataprovince';
+import { useDispatch } from 'react-redux';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
 export default function MyAccountPage() {
+    const dispatch = useDispatch();
     const { t } = useContext(TranslatorContext);
     const { shopId } = useSelector((state) => state.persistedReducer.authReducer);
     //****************SHOP DATA CHANGES ******************/
@@ -43,11 +46,12 @@ export default function MyAccountPage() {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 console.log(response);
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Shop infomation updated' }));
             } catch (e) {
                 console.error(e);
             }
         } else {
-            console.log('No change');
+            dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Please provide all infomation' }));
         }
     };
 

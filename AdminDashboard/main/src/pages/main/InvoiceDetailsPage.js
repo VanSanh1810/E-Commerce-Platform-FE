@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link, useParams } from 'react-router-dom';
-import { Row, Col } from 'react-bootstrap';
-import { AnchorComponent } from '../../components/elements';
+import { Row, Col, Modal } from 'react-bootstrap';
+import { AnchorComponent, ButtonComponent } from '../../components/elements';
 import PageLayout from '../../layouts/PageLayout';
 import data from '../../assets/data/invoiceDetails.json';
 import axiosInstance from '../../configs/axiosInstance';
@@ -10,6 +10,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import AddressStaticData from '../../assets/data/static/dataprovince';
 import html2pdf from 'html2pdf.js';
+import { LabelFieldComponent } from '../../components/fields';
 
 export default function InvoiceDetailsPage() {
     const { t } = useContext(TranslatorContext);
@@ -17,6 +18,9 @@ export default function InvoiceDetailsPage() {
 
     const [orderData, setOrderData] = useState({});
     const [qrData, seQrData] = useState('');
+
+    const [statusModal, setStatusModal] = useState(false);
+    const [reloadAction, setReloadAction] = useState(true);
 
     function getBase64Image(url) {
         return new Promise((resolve, reject) => {
@@ -35,6 +39,25 @@ export default function InvoiceDetailsPage() {
             img.src = url;
         });
     }
+
+    const updateOrderStatusHandler = async () => {
+        // console.log(statusModal);
+        if (orderData.status !== statusModal) {
+            //change order status
+            try {
+                const response = await axiosInstance.post(`/api/order/${orderId}`, {
+                    status: statusModal,
+                });
+                console.log(response.data);
+                setStatusModal(false);
+                setReloadAction(!reloadAction);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            console.log(`Order ${orderData.status} , ${statusModal}`);
+        }
+    };
 
     useEffect(() => {
         const fetchOrderData = async () => {
@@ -56,7 +79,7 @@ export default function InvoiceDetailsPage() {
             }
         };
         fetchOrderData();
-    }, [orderId]);
+    }, [orderId, reloadAction]);
 
     const [shopAd, setShopAd] = useState({});
 
@@ -83,6 +106,7 @@ export default function InvoiceDetailsPage() {
     const setOrderStatus = () => {
         if (['None', 'Confirmed'].includes(orderData.onlPayStatus) && orderData.status !== 'Done') {
             // post to change order status
+            setStatusModal(orderData.status);
             return;
         }
     };
@@ -200,7 +224,9 @@ export default function InvoiceDetailsPage() {
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        {item.variant && item.variant.length > 0 ? variantDataName.join(',') : ''}
+                                                        {item.variant && item.variant.length > 0
+                                                            ? variantDataName.join(',  ')
+                                                            : ''}
                                                     </td>
                                                     <td>{item.price}$</td>
                                                     <td>{item.quantity}</td>
@@ -226,13 +252,33 @@ export default function InvoiceDetailsPage() {
                                     <li>
                                         <span className="title">Status</span>
                                         <span className="clone">:</span>
-                                        <span className={`status purple`}>{orderData?.status}</span>
+                                        <span
+                                            className={`status ${
+                                                orderData?.status === 'Pending'
+                                                    ? 'yellow'
+                                                    : orderData?.status === 'Fail'
+                                                    ? 'red'
+                                                    : orderData?.status === 'Confirmed'
+                                                    ? 'blue'
+                                                    : orderData?.status === 'Shipped'
+                                                    ? 'orange'
+                                                    : orderData?.status === 'Delivered'
+                                                    ? 'purple'
+                                                    : 'green'
+                                            }`}
+                                        >
+                                            {orderData?.status}
+                                        </span>
                                     </li>
                                     {orderData?.onlPayStatus !== 'None' ? (
                                         <li>
                                             <span className="title">Payment</span>
                                             <span className="clone">:</span>
-                                            <span className={`status purple`}>{orderData?.onlPayStatus}</span>
+                                            <span
+                                                className={`status ${orderData?.onlPayStatus === 'Pending' ? 'yellow' : 'green'}`}
+                                            >
+                                                {orderData?.onlPayStatus}
+                                            </span>
                                         </li>
                                     ) : null}
                                     <li>
@@ -242,7 +288,7 @@ export default function InvoiceDetailsPage() {
                                     </li>
                                 </ul>
                             </div>
-                            <p>Create at: {Date(orderData?.createAt)}</p>
+                            <p>Create at: {new Date(parseInt(orderData?.createDate)).toLocaleDateString()}</p>
                         </div>
                         {/* <p className="mc-invoice-note">
                             Thank you for ordering greeny. We offer a 7-day return policy on all products. If you have any
@@ -268,6 +314,47 @@ export default function InvoiceDetailsPage() {
                     </div>
                 </Col>
             </Row>
+            <Modal size="lg" show={statusModal} onHide={() => setStatusModal(false)} style={{ padding: '10px' }}>
+                <div className="mc-alert-modal">
+                    <i className="material-icons">account_tree</i>
+                    <h3>Order status</h3>
+                    {/* <p>Chose category for your product</p> */}
+                    <Modal.Body>
+                        <Row>
+                            <Col xl={12}>
+                                <Row>
+                                    <Col xl={12}>
+                                        <LabelFieldComponent
+                                            label={t('Status')}
+                                            fieldSize="mb-4 w-100 h-md"
+                                            option={['Fail', 'Confirmed', 'Shipped', 'Delivered', 'Pending']}
+                                            defaultSelection={statusModal}
+                                            onChange={(e) => {
+                                                console.log(e.target.value);
+                                                setStatusModal(e.target.value);
+                                            }}
+                                        />
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setStatusModal(false);
+                            }}
+                        >
+                            {t('close')}
+                        </ButtonComponent>
+                        <ButtonComponent type="button" className="btn btn-success" onClick={updateOrderStatusHandler}>
+                            {t('Save')}
+                        </ButtonComponent>
+                    </Modal.Footer>
+                </div>
+            </Modal>
         </PageLayout>
     );
 }

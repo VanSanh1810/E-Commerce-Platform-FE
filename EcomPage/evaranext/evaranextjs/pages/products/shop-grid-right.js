@@ -15,24 +15,26 @@ import WishlistModal from '../../components/ecommerce/WishlistModal';
 import Layout from '../../components/layout/Layout';
 import { fetchProduct } from '../../redux/action/product';
 import Link from 'next/link';
+import axiosInstance from '../../config/axiosInstance';
 
-const Products = ({ products, productFilters, fetchProduct }) => {
+const Products = ({}) => {
     // console.log(products);
     const [totalProducts, setTotalProducts] = useState(0);
+    const [products, setProducts] = useState([]);
 
     const [pagination, setPagination] = useState([]);
     const [limit, setLimit] = useState(12);
-    const [pages, setPages] = useState(Math.ceil(totalProducts / limit));
+    const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
     const [selectedClassify, setSelectedClassify] = useState(null);
     const [sortType, setSortType] = useState('');
     const [sortPrice, setSortPrice] = useState('lowToHigh');
 
-    let Router = useRouter(),
-        searchTerm = Router.query.search,
-        showLimit = 12,
-        showPagination = 4;
+    // let Router = useRouter(),
+    //     searchTerm = Router.query.search,
+    //     showLimit = 12,
+    //     showPagination = 4;
 
     // let [pagination, setPagination] = useState([]);
     // let [limit, setLimit] = useState(showLimit);
@@ -40,24 +42,41 @@ const Products = ({ products, productFilters, fetchProduct }) => {
     // let [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        fetchProduct(searchTerm, '/static/product.json', productFilters);
-        cratePagination();
-    }, [productFilters, limit, pages, products.items.length]);
+        // fetchProduct(searchTerm, '/static/product.json', productFilters);
+        // cratePagination();
+        const fetchProducts = async () => {
+            console.log(currentPage, limit, selectedClassify, sortType, sortPrice);
+            try {
+                const result = await axiosInstance.get(
+                    `/api/product?currentPage=${currentPage}&limit=${limit}&classify=${
+                        selectedClassify ? selectedClassify : ''
+                    }&sortType=${sortType}&sortPrice=${sortPrice}`,
+                );
+                setProducts(result.data.data);
+                cratePagination(result.data.pages);
+                // console.log(currentPage, limit, selectedClassify, sortType, sortPrice);
+                console.log(result.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchProducts();
+    }, [currentPage, limit, selectedClassify, sortType, sortPrice]);
 
-    const cratePagination = () => {
+    const cratePagination = (_pages) => {
         // set pagination
-        let arr = new Array(Math.ceil(products.items.length / limit)).fill().map((_, idx) => idx + 1);
+        let arr = new Array(Math.ceil(_pages / limit)).fill().map((_, idx) => idx + 1);
 
         setPagination(arr);
-        setPages(Math.ceil(products.items.length / limit));
+        setPages(Math.ceil(_pages / limit));
     };
 
-    const startIndex = currentPage * limit - limit;
-    const endIndex = startIndex + limit;
-    const getPaginatedProducts = products.items.slice(startIndex, endIndex);
+    // const startIndex = currentPage * limit - limit;
+    // const endIndex = startIndex + limit;
+    // const getPaginatedProducts = products.items.slice(startIndex, endIndex);
 
-    let start = Math.floor((currentPage - 1) / showPagination) * showPagination;
-    let end = start + showPagination;
+    let start = Math.floor((currentPage - 1) / 4) * 4;
+    let end = start + 4;
     const getPaginationGroup = pagination.slice(start, end);
 
     const next = () => {
@@ -75,7 +94,6 @@ const Products = ({ products, productFilters, fetchProduct }) => {
     const selectChange = (e) => {
         setLimit(Number(e.target.value));
         setCurrentPage(1);
-        setPages(Math.ceil(products.items.length / Number(e.target.value)));
     };
     return (
         <>
@@ -184,13 +202,13 @@ const Products = ({ products, productFilters, fetchProduct }) => {
                                     <div className="totall-product">
                                         <p>
                                             We found
-                                            <strong className="text-brand">{products.items.length}</strong>
+                                            <strong className="text-brand">{products?.length}</strong>
                                             items for you!
                                         </p>
                                     </div>
                                     <div className="sort-by-product-area">
                                         <div className="sort-by-cover mr-10">
-                                            <ShowSelect selectChange={selectChange} showLimit={showLimit} />
+                                            <ShowSelect selectChange={selectChange} showLimit={12} />
                                         </div>
                                         <div className="sort-by-cover ms-2">
                                             <div className="sort-by-product-wrap">
@@ -201,7 +219,12 @@ const Products = ({ products, productFilters, fetchProduct }) => {
                                                     </span>
                                                 </div>
                                                 <div className="sort-by-dropdown-wrap custom-select">
-                                                    <select onChange={(e) => setSortPrice(e.target.value)}>
+                                                    <select
+                                                        onChange={(e) => {
+                                                            setSortPrice(e.target.value);
+                                                            setCurrentPage(1);
+                                                        }}
+                                                    >
                                                         <option value="lowToHigh">Low To High</option>
                                                         <option value="highToLow">High To Low</option>
                                                     </select>
@@ -210,10 +233,13 @@ const Products = ({ products, productFilters, fetchProduct }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="row product-grid-3">
-                                    {getPaginatedProducts.length === 0 && <h3>No Products Found </h3>}
-                                    {getPaginatedProducts.map((item, i) => (
-                                        <div className="col-lg-4 col-md-4 col-12 col-sm-6" key={i}>
+                                <div
+                                    className="row product-grid-3"
+                                    style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
+                                >
+                                    {products?.length === 0 && <h3>No Products Found </h3>}
+                                    {products?.map((item, i) => (
+                                        <div key={item._id} className="col-lg-4 col-md-4 col-12 col-sm-6">
                                             <SingleProduct product={item} />
                                         </div>
                                     ))}

@@ -66,6 +66,8 @@ function Account({ userLogout, isLoggedIn }) {
             console.log(response);
         } catch (err) {
             console.error(err);
+        } finally {
+            setAddressModal(false);
         }
     };
 
@@ -104,6 +106,8 @@ function Account({ userLogout, isLoggedIn }) {
             console.log(response);
         } catch (err) {
             console.error(err);
+        } finally {
+            setAddressModal(false);
         }
     };
 
@@ -233,6 +237,34 @@ function Account({ userLogout, isLoggedIn }) {
         };
         tabAction();
     }, [activeIndex]);
+
+    const orderActionState = () => {
+        // COD - Pending
+        // COD - Delivered
+        // COD - Done
+        // VNPAY: pending - Pending
+        // VNPAY: success - Pending
+    };
+
+    const confirmOrderHaveReceived = async () => {
+        try {
+            if (orderViewModal.status === 'Delivered') {
+                //change order status
+                try {
+                    const response = await axiosInstance.post(`/api/order/${orderViewModal._id}`, {
+                        status: 'Done',
+                    });
+                    console.log(response.data);
+                    setOrderViewModal(false);
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     useEffect(() => {
         const fetchShopAddress = async () => {
@@ -391,8 +423,12 @@ function Account({ userLogout, isLoggedIn }) {
                                                                     {userOrders?.map((items) => (
                                                                         <tr key={items._id}>
                                                                             <td>#{items._id}</td>
-                                                                            <td>{Date(items.createAt)}</td>
-                                                                            <td>Processing</td>
+                                                                            <td>
+                                                                                {new Date(
+                                                                                    parseInt(items.createDate),
+                                                                                ).toLocaleDateString()}
+                                                                            </td>
+                                                                            <td>{items.status}</td>
                                                                             <td>
                                                                                 ${items.total} for {items.totalItem} item
                                                                             </td>
@@ -931,9 +967,10 @@ function Account({ userLogout, isLoggedIn }) {
                     onClose={() => {
                         setOrderViewModal(false);
                     }}
+                    style={{ width: '80vw' }}
                 >
                     <p className="pb-3">Order detail</p>
-                    <div style={{ width: '56vw' }} className="row">
+                    <div className="row">
                         <div className="row w-100">
                             <div id="element-to-print" className="mc-card p-md-5">
                                 <div className="mc-invoice-head">
@@ -1057,13 +1094,35 @@ function Account({ userLogout, isLoggedIn }) {
                                         <li>
                                             <span className="title">Status</span>
                                             <span className="clone me-1">:</span>
-                                            <span className={`status purple`}>{orderViewModal?.status}</span>
+                                            <span
+                                                className={`status ${
+                                                    orderViewModal?.status === 'Pending'
+                                                        ? 'yellow'
+                                                        : orderViewModal?.status === 'Fail'
+                                                        ? 'red'
+                                                        : orderViewModal?.status === 'Confirmed'
+                                                        ? 'blue'
+                                                        : orderViewModal?.status === 'Shipped'
+                                                        ? 'orange'
+                                                        : orderViewModal?.status === 'Delivered'
+                                                        ? 'purple'
+                                                        : 'green'
+                                                }`}
+                                            >
+                                                {orderViewModal?.status}
+                                            </span>
                                         </li>
                                         {orderViewModal?.onlPayStatus !== 'None' ? (
                                             <li>
                                                 <span className="title">Payment</span>
                                                 <span className="clone me-1">:</span>
-                                                <span className={`status purple`}>{orderViewModal?.onlPayStatus}</span>
+                                                <span
+                                                    className={`status ${
+                                                        orderViewModal?.onlPayStatus === 'Pending' ? 'yellow' : 'green'
+                                                    }`}
+                                                >
+                                                    {orderViewModal?.onlPayStatus}
+                                                </span>
                                             </li>
                                         ) : null}
                                         <li>
@@ -1078,8 +1137,24 @@ function Account({ userLogout, isLoggedIn }) {
                                 <p>Create at: {Date(orderViewModal?.createAt)}</p>
                             </div>
                             <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
+                                {orderViewModal?.onlPayStatus === 'Pending' || orderViewModal?.onlPayStatus === 'Fail' ? (
+                                    <button
+                                        onClick={() => {
+                                            window.location.href = orderViewModal.paymentUrl;
+                                            setOrderViewModal(false);
+                                        }}
+                                        style={{ backgroundColor: '#4067f5' }}
+                                        className="btn mt-2 mx-3"
+                                    >
+                                        Checkout
+                                    </button>
+                                ) : null}
                                 {orderViewModal?.status === 'Delivered' ? (
-                                    <button style={{ backgroundColor: '#088178' }} className="btn mt-2 mx-3">
+                                    <button
+                                        onClick={confirmOrderHaveReceived}
+                                        style={{ backgroundColor: '#39fa5d' }}
+                                        className="btn mt-2 mx-3"
+                                    >
                                         I have received this order
                                     </button>
                                 ) : null}

@@ -587,12 +587,13 @@ export default function ProductUploadPage() {
             try {
                 const result = await axiosInstance.get(`/api/product/${productId}`);
                 ////////////////////////////////
+                console.log(result.data);
                 setProductTitle(result.data.data.name);
 
                 setProductDesc(result.data.data.description);
 
                 // setProductCate(result.data.data.category._id);
-                setSelectedCategory(result.data.data.category?._id);
+                setSelectedCategory(result.data.data.category._id);
 
                 setProductRePrice(result.data.data.price);
 
@@ -600,7 +601,7 @@ export default function ProductUploadPage() {
 
                 setProductStock(result.data.data.stock);
 
-                setproductClassify(result.data.data.classify._id);
+                setproductClassify(result.data.data.classify?._id);
 
                 setProductTag(result.data.data.tag);
 
@@ -1014,7 +1015,7 @@ export default function ProductUploadPage() {
                                     <>
                                         <Col xl={6}>
                                             <LabelFieldComponent
-                                                type="text"
+                                                type="number"
                                                 label={t('regular_price')}
                                                 fieldSize="mb-4 w-100 h-md"
                                                 onChange={(e) => setProductRePrice(e.target.value)}
@@ -1024,7 +1025,7 @@ export default function ProductUploadPage() {
                                         </Col>
                                         <Col xl={6}>
                                             <LabelFieldComponent
-                                                type="text"
+                                                type="number"
                                                 label={t('discount_price')}
                                                 fieldSize="mb-4 w-100 h-md"
                                                 onChange={(e) => setProductDisPrice(e.target.value)}
@@ -1034,7 +1035,7 @@ export default function ProductUploadPage() {
                                         </Col>
                                         <Col xl={12}>
                                             <LabelFieldComponent
-                                                type="text"
+                                                type="number"
                                                 label={t('stock')}
                                                 fieldSize="mb-4 w-100 h-md"
                                                 onChange={(e) => setProductStock(e.target.value)}

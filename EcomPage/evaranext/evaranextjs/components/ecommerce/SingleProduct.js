@@ -109,12 +109,17 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
         <>
             {!loading ? (
                 <>
-                    <div className="product-cart-wrap mb-30">
+                    <div className="product-cart-wrap mb-30 d-flex flex-column">
                         <div className="product-img-action-wrap">
                             <div className="product-img product-img-zoom">
                                 <Link href="/products/[slug]" as={`/products/${product._id}`}>
                                     <a>
-                                        <img className="default-img" src={product.images[0]?.url} alt="" />
+                                        <img
+                                            className="default-img"
+                                            src={product.images[0]?.url}
+                                            style={{ height: '100%', objectFit: 'scale-down' }}
+                                            alt=""
+                                        />
                                         {/* <img
                                     className="hover-img"
                                     src={product.images[1]?.img}
@@ -153,14 +158,19 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                             </div>
                         </div>
                         <div className="product-content-wrap">
-                            {/* <div className="product-category">
-                                <Link href="/products">
-                                    <a>{product.brand}</a>
-                                </Link>
-                            </div> */}
                             <h2>
                                 <Link href="/products/[slug]" as={`/products/${product._id}`}>
-                                    <a>{product.name}</a>
+                                    <a
+                                        style={{
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: '2',
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {product.name}
+                                    </a>
                                 </Link>
                             </h2>
                             {/* <div className="rating-result" title="90%">

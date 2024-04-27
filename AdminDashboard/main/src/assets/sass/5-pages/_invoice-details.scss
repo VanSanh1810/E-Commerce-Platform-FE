@@ -45,20 +45,20 @@
     }
 }
 
-[dir="ltr"] {
+[dir='ltr'] {
     .mc-invoice-shipment {
         text-align: right;
-    
+
         @include mobile-breakpoint {
             text-align: right;
         }
     }
 }
 
-[dir="rtl"] {
+[dir='rtl'] {
     .mc-invoice-shipment {
         text-align: left;
-    
+
         @include mobile-breakpoint {
             text-align: left;
         }
@@ -104,9 +104,9 @@
             color: var(--heading);
         }
 
-        .total { 
+        .total {
             font-size: 17px;
-            font-weight: 700; 
+            font-weight: 700;
         }
 
         .status {
@@ -130,11 +130,26 @@
                 color: $red-700;
                 background-color: $red-200;
             }
+
+            &.yellow {
+                color: $yellow-700;
+                background-color: $yellow-200;
+            }
+
+            &.blue {
+                color: $blue-700;
+                background-color: $blue-200;
+            }
+
+            &.orange {
+                color: $orange-700;
+                background-color: $orange-200;
+            }
         }
     }
 }
 
-[dir="ltr"] {
+[dir='ltr'] {
     .mc-invoice-list {
         .clone {
             margin-right: 30px;
@@ -142,7 +157,7 @@
     }
 }
 
-[dir="rtl"] {
+[dir='rtl'] {
     .mc-invoice-list {
         .clone {
             margin-left: 30px;
