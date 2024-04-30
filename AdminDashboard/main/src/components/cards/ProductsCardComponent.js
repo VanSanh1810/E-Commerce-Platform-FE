@@ -1,15 +1,20 @@
-import React, { useContext } from "react";
-import { TranslatorContext } from "../../context/Translator";
-import { LabelFieldComponent } from "../fields";
-import { Row, Col, Dropdown } from "react-bootstrap";
-import PaginationComponent from "../PaginationComponent";
-import ProductsTableComponent from "../tables/ProductsTableComponent";
-import products from "../../assets/data/products.json";
-
+import React, { useContext, useState } from 'react';
+import { TranslatorContext } from '../../context/Translator';
+import { LabelFieldComponent } from '../fields';
+import { Row, Col, Dropdown } from 'react-bootstrap';
+import PaginationComponent from '../PaginationComponent';
+import ProductsTableComponent from '../tables/ProductsTableComponent';
+import products from '../../assets/data/products.json';
+import { debounce } from 'lodash';
 
 export default function ProductsCardComponent() {
+    const { t } = useContext(TranslatorContext);
 
-    const { t } = useContext(TranslatorContext)
+    const [rowView, setRowView] = useState(6);
+    const [sortPrice, setSortPrice] = useState('lowToHigFh');
+    const [pages, setPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productSearchText, setProductSearchText] = useState('');
 
     return (
         <div className="mc-card">
@@ -17,12 +22,21 @@ export default function ProductsCardComponent() {
                 <h4 className="mc-card-title">{t('best_selling_products')}</h4>
                 <Dropdown bsPrefix="mc-dropdown">
                     <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                        <i className='material-icons'>more_horiz</i>
+                        <i className="material-icons">more_horiz</i>
                     </Dropdown.Toggle>
                     <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                        <button type='button' className='mc-dropdown-menu'><i className='material-icons'>edit</i><span>{t('edit')}</span></button>
-                        <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete')}</span></button>
-                        <button type='button' className='mc-dropdown-menu'><i className='material-icons'>download</i><span>{t('download')}</span></button>
+                        <button type="button" className="mc-dropdown-menu">
+                            <i className="material-icons">edit</i>
+                            <span>{t('edit')}</span>
+                        </button>
+                        <button type="button" className="mc-dropdown-menu">
+                            <i className="material-icons">delete</i>
+                            <span>{t('delete')}</span>
+                        </button>
+                        <button type="button" className="mc-dropdown-menu">
+                            <i className="material-icons">download</i>
+                            <span>{t('download')}</span>
+                        </button>
                     </Dropdown.Menu>
                 </Dropdown>
             </div>
@@ -30,26 +44,42 @@ export default function ProductsCardComponent() {
                 <Col>
                     <LabelFieldComponent
                         label={t('show_by')}
-                        option={["12 row", "24 row", "36 row"]}
+                        option={['6 row', '12 row', '24 row']}
                         labelDir="label-col"
                         fieldSize="mb-4 w-100 h-md"
+                        onChange={(e) => {
+                            // console.log(e.target.value);
+                            let a = e.target.value;
+                            const temp = a.split(' ');
+                            setRowView(parseInt(temp[0]));
+                            setCurrentPage(1);
+                        }}
                     />
                 </Col>
                 <Col>
                     <LabelFieldComponent
-                        label={t('category_by')}
-                        option={["mans", "womans", "kids", "accessory"]}
+                        label={t('rating_by')}
+                        option={['1 star', '2 star', '3 star', '4 star', '5 star']}
                         labelDir="label-col"
-                        fieldSize="mb-4 w-100 h-md"
+                        fieldSize="w-100 h-md mb-4"
                     />
                 </Col>
                 <Col>
-                    <LabelFieldComponent
-                        label={t('brand_by')}
-                        option={["ecstasy", "freeland", "rongdhonu"]}
-                        labelDir="label-col"
-                        fieldSize="mb-4 w-100 h-md"
-                    />
+                    <label className="mc-label-field-title">{'Sort price'}</label>
+                    <select
+                        style={{ backgroundImage: 'url(/images/dropdown.svg)' }}
+                        className={`mc-label-field-select w-100 h-md mb-4`}
+                        onChange={(e) => {
+                            // console.log(e.target.value);
+                            setSortPrice(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <option selected={true} value={'lowToHigh'}>
+                            Low To High
+                        </option>
+                        <option value={'highToLow'}>High To Low</option>
+                    </select>
                 </Col>
                 <Col>
                     <LabelFieldComponent
@@ -58,14 +88,29 @@ export default function ProductsCardComponent() {
                         placeholder={t('id') + ' / ' + t('name') + ' / ' + t('category') + ' / ' + t('brand')}
                         labelDir="label-col"
                         fieldSize="mb-4 w-100 h-md"
+                        onChange={debounce(
+                            (e) => {
+                                // console.log(e.target.value);
+                                setProductSearchText(e.target.value);
+                                setCurrentPage(1);
+                            },
+                            [500],
+                        )}
                     />
                 </Col>
             </Row>
-            <ProductsTableComponent 
-                thead={products.thead} 
-                tbody={products.tbody} 
+            <ProductsTableComponent
+                thead={products.thead}
+                tbody={products.tbody}
+                sortPrice={sortPrice}
+                rowView={rowView}
+                currentPage={currentPage}
+                setPages={setPages}
+                productSearchText={productSearchText}
             />
-            <PaginationComponent />
+            {pages !== 0 ? (
+                <PaginationComponent currentPage={currentPage} setCurrentPage={setCurrentPage} pages={pages} rowShow={rowView} />
+            ) : null}
         </div>
-    )
+    );
 }

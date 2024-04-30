@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link, useParams } from 'react-router-dom';
-import { Row, Col, Dropdown } from 'react-bootstrap';
+import { Row, Col, Dropdown, Modal } from 'react-bootstrap';
 import { AnchorComponent, ButtonComponent } from '../../components/elements';
 import LabelTextareaComponent from '../../components/fields/LabelTextareaComponent';
 import PageLayout from '../../layouts/PageLayout';
@@ -29,16 +29,11 @@ export default function ProductViewPage() {
         { icon: 'verified', title: 'published', text: '02 feb 2020' },
     ];
 
-    const ratings = [
-        { count: '5 star', graph: '90%', user: '22' },
-        { count: '4 star', graph: '75%', user: '06' },
-        { count: '3 star', graph: '30%', user: '05' },
-        { count: '2 star', graph: '15%', user: '03' },
-        { count: '1 star', graph: '5%', user: '02' },
-    ];
-
     const [productData, setProductData] = useState();
-    const [reviewData, setReviewData] = useState();
+    const [reviewData, setReviewData] = useState([]);
+    const [reviewGroupData, setReviewGroupData] = useState([0, 0, 0, 0, 0]);
+
+    const [imgViewModal, setImgViewModal] = useState(false);
 
     const descriptionRef = useRef();
 
@@ -58,6 +53,13 @@ export default function ProductViewPage() {
                 const results = await axiosInstance.get(`/api/review/product/${productId}`);
                 console.log(results.data);
                 setReviewData(results.data);
+                const reviews = [...results.data.reviews];
+                const result1 = reviews.filter((review) => review.rating === 1);
+                const result2 = reviews.filter((review) => review.rating === 2);
+                const result3 = reviews.filter((review) => review.rating === 3);
+                const result4 = reviews.filter((review) => review.rating === 4);
+                const result5 = reviews.filter((review) => review.rating === 5);
+                setReviewGroupData([result1.length, result2.length, result3.length, result4.length, result5.length]);
             } catch (err) {
                 console.log(err);
             }
@@ -205,7 +207,7 @@ export default function ProductViewPage() {
                                     <i className="material-icons">{a[8].icon}</i>
                                     <h5>{a[8].title}</h5>
                                     <span>:</span>
-                                    <p>{Date(productData.modifyDate)}</p>
+                                    <p>{new Date(parseInt(productData.modifyDate)).toLocaleDateString()}</p>
                                 </div>
                                 {productData.variantData?.map((varD) => {
                                     return (
@@ -215,7 +217,7 @@ export default function ProductViewPage() {
                                             <span>:</span>
                                             <ul>
                                                 {varD.data?.map((v) => {
-                                                    return <li key={1}>{v.name}</li>;
+                                                    return <li key={v._id}>{v.name}</li>;
                                                 })}
                                             </ul>
                                         </div>
@@ -234,37 +236,129 @@ export default function ProductViewPage() {
                             <div className="mc-review-analytics-group">
                                 <div className="mc-review-analytics-graph-group">
                                     <ul className="mc-review-analytics-list">
-                                        {ratings.map((rating, index) => (
-                                            <li key={index} className="mc-review-analytics-item">
-                                                <span className="mc-review-analytics-count">{rating.count}</span>
-                                                <div className="mc-review-analytics-graph">
-                                                    <span style={{ width: rating.graph }}></span>
-                                                </div>
-                                                <span className="mc-review-analytics-user">({rating.user})</span>
-                                            </li>
-                                        ))}
+                                        {/* 5 star */}
+                                        <li className="mc-review-analytics-item">
+                                            <span className="mc-review-analytics-count">{5}</span>
+                                            <div className="mc-review-analytics-graph">
+                                                <span
+                                                    style={{
+                                                        width:
+                                                            (
+                                                                (reviewGroupData[4] / reviewData?.reviews?.length) *
+                                                                100
+                                                            ).toString() + '%',
+                                                    }}
+                                                ></span>
+                                            </div>
+                                            <span className="mc-review-analytics-user">({reviewGroupData[4]})</span>
+                                        </li>
+                                        {/* 4 star */}
+                                        <li className="mc-review-analytics-item">
+                                            <span className="mc-review-analytics-count">{4}</span>
+                                            <div className="mc-review-analytics-graph">
+                                                <span
+                                                    style={{
+                                                        width:
+                                                            (
+                                                                (reviewGroupData[3] / reviewData?.reviews?.length) *
+                                                                100
+                                                            ).toString() + '%',
+                                                    }}
+                                                ></span>
+                                            </div>
+                                            <span className="mc-review-analytics-user">({reviewGroupData[3]})</span>
+                                        </li>
+                                        {/* 3 star */}
+                                        <li className="mc-review-analytics-item">
+                                            <span className="mc-review-analytics-count">{3}</span>
+                                            <div className="mc-review-analytics-graph">
+                                                <span
+                                                    style={{
+                                                        width:
+                                                            (
+                                                                (reviewGroupData[2] / reviewData?.reviews?.length) *
+                                                                100
+                                                            ).toString() + '%',
+                                                    }}
+                                                ></span>
+                                            </div>
+                                            <span className="mc-review-analytics-user">({reviewGroupData[2]})</span>
+                                        </li>
+                                        {/* 2 star */}
+                                        <li className="mc-review-analytics-item">
+                                            <span className="mc-review-analytics-count">{2}</span>
+                                            <div className="mc-review-analytics-graph">
+                                                <span
+                                                    style={{
+                                                        width:
+                                                            (
+                                                                (reviewGroupData[1] / reviewData?.reviews?.length) *
+                                                                100
+                                                            ).toString() + '%',
+                                                    }}
+                                                ></span>
+                                            </div>
+                                            <span className="mc-review-analytics-user">({reviewGroupData[1]})</span>
+                                        </li>
+                                        {/* 1 star */}
+                                        <li className="mc-review-analytics-item">
+                                            <span className="mc-review-analytics-count">{1}</span>
+                                            <div className="mc-review-analytics-graph">
+                                                <span
+                                                    style={{
+                                                        width:
+                                                            (
+                                                                (reviewGroupData[0] / reviewData?.reviews?.length) *
+                                                                100
+                                                            ).toString() + '%',
+                                                    }}
+                                                ></span>
+                                            </div>
+                                            <span className="mc-review-analytics-user">({reviewGroupData[0]})</span>
+                                        </li>
                                     </ul>
                                 </div>
                                 <div className="mc-review-analytics-detail-group">
-                                    <h3 className="mc-review-analytics-total">{t('total_review')} (38)</h3>
-                                    <h4 className="mc-review-analytics-score">4.9</h4>
+                                    <h3 className="mc-review-analytics-total">
+                                        {t('total_review')} ({reviewData.total_reviews})
+                                    </h3>
+                                    <h4 className="mc-review-analytics-score">{productData.averageRating}</h4>
                                     <div className="mc-review-analytics-star">
-                                        <i className="material-icons active">star</i>
-                                        <i className="material-icons active">star</i>
-                                        <i className="material-icons active">star</i>
-                                        <i className="material-icons active">star</i>
-                                        <i className="material-icons active">star_half</i>
+                                        <i className={`material-icons ${productData.averageRating > 0 ? 'active' : ''}`}>
+                                            {productData.averageRating >= 1 || productData.averageRating <= 0
+                                                ? 'star'
+                                                : 'star_half'}
+                                        </i>
+                                        <i className={`material-icons ${productData.averageRating > 1 ? 'active' : ''}`}>
+                                            {productData.averageRating >= 2 || productData.averageRating <= 1
+                                                ? 'star'
+                                                : 'star_half'}
+                                        </i>
+                                        <i className={`material-icons ${productData.averageRating > 2 ? 'active' : ''}`}>
+                                            {productData.averageRating >= 3 || productData.averageRating <= 2
+                                                ? 'star'
+                                                : 'star_half'}
+                                        </i>
+                                        <i className={`material-icons ${productData.averageRating > 3 ? 'active' : ''}`}>
+                                            {productData.averageRating >= 4 || productData.averageRating <= 3
+                                                ? 'star'
+                                                : 'star_half'}
+                                        </i>
+                                        <i className={`material-icons ${productData.averageRating > 4 ? 'active' : ''}`}>
+                                            {productData.averageRating >= 5 || productData.averageRating <= 4
+                                                ? 'star'
+                                                : 'star_half'}
+                                        </i>
                                     </div>
-                                    <p className="mc-review-analytics-text">your average rating star</p>
                                 </div>
                             </div>
                         </Col>
                         <Col xl={12}>
                             <h6 className="mc-divide-title mt-5 mb-4">Customer Reviews</h6>
                             <ul className="mc-review-list">
-                                {reviews?.map((item, index) => (
-                                    <li key={index} className="mc-review-item">
-                                        <div className="mc-review-group">
+                                {reviewData?.reviews?.map((item, index) => (
+                                    <li key={item._id} className="mc-review-item">
+                                        <div className="mc-review-group row">
                                             <div className="mc-review-data">
                                                 <div className="mc-review-head">
                                                     <div className="mc-review-user">
@@ -273,139 +367,92 @@ export default function ProductViewPage() {
                                                         </div>
                                                         <div className="mc-duel-text sm">
                                                             <h3 className="mc-duel-text-title">{item.name}</h3>
-                                                            <p className="mc-duel-text-descrip">{item.date}</p>
+                                                            <p className="mc-duel-text-descrip">
+                                                                {new Date(parseInt(item.createDate)).toLocaleDateString()}
+                                                            </p>
                                                         </div>
                                                         {item.admin && <span className="mc-review-admin">{item.admin}</span>}
                                                     </div>
-                                                    <div className="mc-review-reply">
+                                                    {/* <div className="mc-review-reply">
                                                         <AnchorComponent
-                                                            to={item.button.path}
-                                                            icon={item.button.icon}
-                                                            text={item.button.text}
+                                                            to={item.user}
+                                                            icon={'reply'}
+                                                            text={'reply'}
                                                             className="mc-btn primary"
                                                         />
+                                                    </div> */}
+                                                    <div className="mc-review-reply">
+                                                        {item.variant.map((v) => {
+                                                            return <p>{v.name}</p>;
+                                                        })}
                                                     </div>
                                                 </div>
-                                                <div className="mc-review-star">
-                                                    {item.star.map((item, index) => (
-                                                        <i key={index} className="material-icons">
-                                                            {item}
-                                                        </i>
-                                                    ))}
+                                                <div className="mc-review-analytics-star justify-content-start">
+                                                    <i className={`material-icons ${item.rating > 0 ? 'active' : ''}`}>
+                                                        {item.rating >= 1 || item.rating <= 0 ? 'star' : 'star_half'}
+                                                    </i>
+                                                    <i className={`material-icons ${item.rating > 1 ? 'active' : ''}`}>
+                                                        {item.rating >= 2 || item.rating <= 1 ? 'star' : 'star_half'}
+                                                    </i>
+                                                    <i className={`material-icons ${item.rating > 2 ? 'active' : ''}`}>
+                                                        {item.rating >= 3 || item.rating <= 2 ? 'star' : 'star_half'}
+                                                    </i>
+                                                    <i className={`material-icons ${item.rating > 3 ? 'active' : ''}`}>
+                                                        {item.rating >= 4 || item.rating <= 3 ? 'star' : 'star_half'}
+                                                    </i>
+                                                    <i className={`material-icons ${item.rating > 4 ? 'active' : ''}`}>
+                                                        {item.rating >= 5 || item.rating <= 4 ? 'star' : 'star_half'}
+                                                    </i>
                                                 </div>
-                                                <p className="mc-review-describe">{item.text}</p>
-                                            </div>
-                                            <div className="mc-review-dots">
-                                                <Dropdown bsPrefix="mc-dropdown">
-                                                    <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                        <i className="material-icons">more_vert</i>
-                                                    </Dropdown.Toggle>
-                                                    <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                        {/* <button type="button" className="mc-dropdown-menu">
-                                                            <i className="material-icons">edit</i>
-                                                            <span>{t('edit')}</span>
-                                                        </button> */}
-                                                        <button type="button" className="mc-dropdown-menu">
-                                                            <i className="material-icons">gpp_bad</i>
-                                                            <span>{t('block')}</span>
-                                                        </button>
-                                                        {/* <button type="button" className="mc-dropdown-menu">
-                                                            <i className="material-icons">report</i>
-                                                            <span>{t('report')}</span>
-                                                        </button> */}
-                                                        <button type="button" className="mc-dropdown-menu">
-                                                            <i className="material-icons">delete</i>
-                                                            <span>{t('delete')}</span>
-                                                        </button>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
+                                                <p className="mc-review-describe">{item.comment}</p>
+                                                <div>
+                                                    {item.images.map((image, i) => {
+                                                        return (
+                                                            <img
+                                                                style={{
+                                                                    width: '80px',
+                                                                    height: '80px',
+                                                                    objectFit: 'cover',
+                                                                    marginRight: '5px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                                src={image.url}
+                                                                alt="img"
+                                                                onClick={() => {
+                                                                    setImgViewModal(image.url);
+                                                                }}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
-                                        {/* {item.reply && (
-                                            <ul>
-                                                {item.reply.map((item, index) => (
-                                                    <li key={index}>
-                                                        <div className="mc-review-group">
-                                                            <div className="mc-review-data">
-                                                                <div className="mc-review-head">
-                                                                    <div className="mc-review-user">
-                                                                        <div className="mc-round-avatar sm">
-                                                                            <img src={item.src} alt="avatar" />
-                                                                        </div>
-                                                                        <div className="mc-duel-text sm">
-                                                                            <h3 className="mc-duel-text-title">{item.name}</h3>
-                                                                            <p className="mc-duel-text-descrip">{item.date}</p>
-                                                                        </div>
-                                                                        {item.admin && (
-                                                                            <span className="mc-review-admin">
-                                                                                {t(item.admin)}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="mc-review-reply">
-                                                                        <AnchorComponent
-                                                                            to={item.button.path}
-                                                                            icon={item.button.icon}
-                                                                            text={t(item.button.text)}
-                                                                            className="mc-btn primary"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                {item.star && (
-                                                                    <div className="mc-review-star">
-                                                                        {item.star.map((item, index) => (
-                                                                            <i key={index} className="material-icons">
-                                                                                {item}
-                                                                            </i>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                                <p className="mc-review-describe">{item.text}</p>
-                                                            </div>
-                                                            <div className="mc-review-dots">
-                                                                <Dropdown bsPrefix="mc-dropdown">
-                                                                    <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                                        <i className="material-icons">more_vert</i>
-                                                                    </Dropdown.Toggle>
-                                                                    <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                                        <button type="button" className="mc-dropdown-menu">
-                                                                            <i className="material-icons">edit</i>
-                                                                            <span>{t('edit')}</span>
-                                                                        </button>
-                                                                        <button type="button" className="mc-dropdown-menu">
-                                                                            <i className="material-icons">gpp_bad</i>
-                                                                            <span>{t('block')}</span>
-                                                                        </button>
-                                                                        <button type="button" className="mc-dropdown-menu">
-                                                                            <i className="material-icons">report</i>
-                                                                            <span>{t('report')}</span>
-                                                                        </button>
-                                                                        <button type="button" className="mc-dropdown-menu">
-                                                                            <i className="material-icons">delete</i>
-                                                                            <span>{t('delete')}</span>
-                                                                        </button>
-                                                                    </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )} */}
                                     </li>
                                 ))}
                             </ul>
                         </Col>
-                        {/* <Col xl={12}>
-                            <h6 className="mc-divide-title mt-3 mb-4">{t('review_reply_form')}</h6>
-                            <LabelTextareaComponent placeholder={t('write_here')} fieldSize="w-100 h-text-xl" />
-                            <ButtonComponent className="mc-btn mc-review-form-btn primary">
-                                {t('drop_your_replies')}
-                            </ButtonComponent>
-                        </Col> */}
                     </Row>
                 </div>
             ) : null}
+            <Modal size="lg" show={imgViewModal} onHide={() => setImgViewModal(false)} style={{ padding: '10px' }}>
+                <div className="mc-alert-modal" style={{ width: '80vw' }}>
+                    <i className="material-icons">image</i>
+                    <Modal.Body>
+                        <img src={imgViewModal} alt="img" />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setImgViewModal(false);
+                            }}
+                        >
+                            {t('close')}
+                        </ButtonComponent>
+                    </Modal.Footer>
+                </div>
+            </Modal>
         </PageLayout>
     );
 }

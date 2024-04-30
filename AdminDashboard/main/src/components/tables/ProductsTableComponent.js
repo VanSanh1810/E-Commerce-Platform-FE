@@ -5,10 +5,9 @@ import { AnchorComponent, ButtonComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
 
-export default function ProductsTableComponent({ thead, tbody, query }) {
+export default function ProductsTableComponent({ thead, tbody, sortPrice, rowView, currentPage, setPages, productSearchText }) {
     const { t } = useContext(TranslatorContext);
     const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
-
     const [alertModal, setAlertModal] = useState(false);
     const [data, setData] = useState([]);
 
@@ -17,10 +16,17 @@ export default function ProductsTableComponent({ thead, tbody, query }) {
     useEffect(() => {
         const fetchAllProducts = async () => {
             try {
-                const pathString = isVendor ? `/api/product?shopId=${shopId}` : '/api/product/';
+                const pathString = isVendor
+                    ? `/api/product?shopId=${shopId}&sortPrice=${sortPrice}&currentPage=${currentPage}&limit=${rowView}&searchText=${
+                          productSearchText || ''
+                      }`
+                    : `/api/product/?sortPrice=${sortPrice}&currentPage=${currentPage}&limit=${rowView}&searchText=${
+                          productSearchText || ''
+                      }`;
                 const results = await axiosInstance.get(pathString);
                 console.log(results);
                 const listProducts = [...results.data.data];
+                setPages(results.data.pages);
                 if (shopId) {
                     const shopProduct = listProducts.filter((product) => product.shop._id === shopId);
                     setData(shopProduct);
@@ -33,7 +39,7 @@ export default function ProductsTableComponent({ thead, tbody, query }) {
             }
         };
         fetchAllProducts();
-    }, [shopId, isVendor]);
+    }, [shopId, isVendor, sortPrice, rowView, currentPage, setPages, productSearchText]);
 
     const priceRange = (routePath) => {
         let min;
@@ -65,7 +71,7 @@ export default function ProductsTableComponent({ thead, tbody, query }) {
                         : parseFloat(element.detail.price);
             }
         });
-        return `${min} - ${max}`;
+        return min === max ? min : `${min} - ${max}`;
     };
 
     const totalStock = (routePath) => {
@@ -90,7 +96,7 @@ export default function ProductsTableComponent({ thead, tbody, query }) {
                 </thead>
                 <tbody className="mc-table-body even">
                     {data?.map((item, index) => (
-                        <tr key={index}>
+                        <tr key={item._id}>
                             <td title={index + 1}>
                                 <div className="mc-table-check">
                                     <p>#{item.id}</p>

@@ -8,6 +8,7 @@ import { addToWishlist } from '../../redux/action/wishlistAction';
 import ProductTab from '../elements/ProductTab';
 import RelatedSlider from '../sliders/Related';
 import ThumbSlider from '../sliders/Thumb';
+import Modal from 'react-responsive-modal';
 
 const ProductDetails = ({
     product,
@@ -21,6 +22,8 @@ const ProductDetails = ({
     user,
 }) => {
     const [quantity, setQuantity] = useState(1);
+
+    const [productReportModal, setProductReportModal] = useState();
 
     const handleCart = (product) => {
         addToCart(product, user);
@@ -185,6 +188,21 @@ const ProductDetails = ({
     useEffect(() => {
         console.log(productVariantDetailTable);
     }, [productVariantDetailTable]);
+
+    const reportProductActions = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axiosInstance.post('/api/report', {
+                reason: e.target.reportReason.value,
+                target: productReportModal,
+                type: 'Product',
+            });
+            console.log(response.data);
+            setProductReportModal(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
         <>
@@ -435,10 +453,14 @@ const ProductDetails = ({
                                                     <a href="#">FWM15VKT</a>
                                                 </li> */}
                                                 <li className="mb-5">
-                                                    Tags:
-                                                    <a href="#" rel="tag" className="me-1">
-                                                        Cloth,
-                                                    </a>
+                                                    Tags:{' '}
+                                                    {product.tag.split(',').map((tag) => {
+                                                        return (
+                                                            <a href="#" rel="tag" className="me-1">
+                                                                {tag}
+                                                            </a>
+                                                        );
+                                                    })}
                                                 </li>
                                                 <li>
                                                     Availability:
@@ -446,6 +468,14 @@ const ProductDetails = ({
                                                         {product.variantData ? productStock : product.stock} Items In Stock
                                                     </span>
                                                 </li>
+                                                <a
+                                                    style={{ cursor: 'pointer', color: 'red' }}
+                                                    onClick={() => {
+                                                        setProductReportModal(product._id);
+                                                    }}
+                                                >
+                                                    Product have issues ?
+                                                </a>
                                             </ul>
                                         </div>
                                     </div>
@@ -481,6 +511,35 @@ const ProductDetails = ({
                     </div>
                 </div>
             </section>
+            <Modal
+                open={productReportModal ? true : false}
+                onClose={() => {
+                    setProductReportModal(false);
+                }}
+            >
+                <div style={{ width: '400px' }} className="row ps-3">
+                    <p>REPORT {productReportModal}</p>
+                    <div className="row w-100">
+                        <form onSubmit={reportProductActions}>
+                            <textarea name="reportReason" className="pb-3" rows={2} placeholder="Reason" />
+                            <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
+                                <button type="submit" style={{ backgroundColor: 'green' }} className="btn btn-success mt-2 me-2">
+                                    Submit
+                                </button>
+                                <button
+                                    style={{ backgroundColor: 'gray' }}
+                                    className="btn btn-secondary mt-2"
+                                    onClick={() => {
+                                        setProductReportModal(false);
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </Modal>
         </>
     );
 };

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
 import { Row, Col } from 'react-bootstrap';
@@ -17,6 +17,11 @@ export default function ProductListPage() {
         { title: 'Total categories', digit: 605, icon: 'widgets', variant: 'lg green' },
         { title: 'Average Start', digit: 249, icon: 'star', variant: 'lg yellow' },
     ];
+
+    const [rowView, setRowView] = useState(6);
+    const [sortPrice, setSortPrice] = useState('lowToHigh');
+    const [pages, setPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
 
     return (
         <PageLayout>
@@ -53,9 +58,16 @@ export default function ProductListPage() {
                             <Col xs={12} sm={6} md={4} lg={4}>
                                 <LabelFieldComponent
                                     label={t('show_by')}
-                                    option={['12 row', '24 row', '36 row']}
+                                    option={['6 row', '12 row', '24 row']}
                                     labelDir="label-col"
                                     fieldSize="w-100 h-md mb-4"
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        let a = e.target.value;
+                                        const temp = a.split(' ');
+                                        setRowView(parseInt(temp[0]));
+                                        setCurrentPage(1);
+                                    }}
                                 />
                             </Col>
                             <Col xs={12} sm={6} md={4} lg={4}>
@@ -67,16 +79,37 @@ export default function ProductListPage() {
                                 />
                             </Col>
                             <Col xs={12} sm={6} md={4} lg={4}>
-                                <LabelFieldComponent
-                                    label={t('category_by')}
-                                    option={['mans', 'womans', 'kids', 'accessory']}
-                                    labelDir="label-col"
-                                    fieldSize="w-100 h-md mb-4"
-                                />
+                                <label className="mc-label-field-title">{'Sort price'}</label>
+                                <select
+                                    style={{ backgroundImage: 'url(/images/dropdown.svg)' }}
+                                    className={`mc-label-field-select w-100 h-md mb-4`}
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        setSortPrice(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option selected={true} value={'lowToHigh'}>
+                                        Low To High
+                                    </option>
+                                    <option value={'highToLow'}>High To Low</option>
+                                </select>
                             </Col>
                             <Col xl={12}>
-                                <ProductsTableComponent thead={products.thead} tbody={products.tbody} />
-                                <PaginationComponent />
+                                <ProductsTableComponent
+                                    thead={products.thead}
+                                    tbody={products.tbody}
+                                    sortPrice={sortPrice}
+                                    rowView={rowView}
+                                    currentPage={currentPage}
+                                    setPages={setPages}
+                                />
+                                <PaginationComponent
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                    pages={pages}
+                                    rowShow={rowView}
+                                />
                             </Col>
                         </Row>
                     </div>

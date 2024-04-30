@@ -2,7 +2,7 @@ import Layout from '../components/layout/Layout';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axiosInstance from '../config/axiosInstance';
-import { connect } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import { userLogin, userLogout } from '../redux/action/user';
 import { toast } from 'react-toastify';
 import { Badge, Row, Col } from 'react-bootstrap';
@@ -189,6 +189,7 @@ function Account({ userLogout, isLoggedIn }) {
 
     const [userOrders, setUserOrders] = useState([]);
     const [orderViewModal, setOrderViewModal] = useState();
+    const [orderReviewModal, setOrderReviewModal] = useState();
 
     const [shopAd, setShopAd] = useState();
 
@@ -265,6 +266,8 @@ function Account({ userLogout, isLoggedIn }) {
             console.error(err);
         }
     };
+
+    const reviewAction = async () => {};
 
     useEffect(() => {
         const fetchShopAddress = async () => {
@@ -1134,7 +1137,7 @@ function Account({ userLogout, isLoggedIn }) {
                                         </li>
                                     </ul>
                                 </div>
-                                <p>Create at: {Date(orderViewModal?.createAt)}</p>
+                                <p>Create at: {new Date(parseInt(orderViewModal?.createDate)).toLocaleDateString()}</p>
                             </div>
                             <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
                                 {orderViewModal?.onlPayStatus === 'Pending' || orderViewModal?.onlPayStatus === 'Fail' ? (
@@ -1158,6 +1161,17 @@ function Account({ userLogout, isLoggedIn }) {
                                         I have received this order
                                     </button>
                                 ) : null}
+                                {orderViewModal?.status === 'Done' ? (
+                                    <button
+                                        onClick={() => {
+                                            setOrderReviewModal({ _id: orderViewModal._id, items: [...orderViewModal.items] });
+                                        }}
+                                        style={{ backgroundColor: '#39fa5d' }}
+                                        className="btn mt-2 mx-3"
+                                    >
+                                        Review
+                                    </button>
+                                ) : null}
                                 <button style={{ backgroundColor: 'gray' }} className="btn mt-2 mx-3" onClick={printOrder}>
                                     Print
                                 </button>
@@ -1166,6 +1180,75 @@ function Account({ userLogout, isLoggedIn }) {
                                     className="btn btn-secondary mt-2"
                                     onClick={() => {
                                         setOrderViewModal(false);
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal
+                    open={orderReviewModal?._id && orderReviewModal?.items?.length > 0 ? true : false}
+                    onClose={() => {
+                        setOrderReviewModal({ _id: null, items: [] });
+                    }}
+                >
+                    <p className="pb-3">Review</p>
+                    <div className="row">
+                        <div className="row">
+                            <div className="col-md-12">
+                                {orderReviewModal?.items?.map((item, index) => {
+                                    const snapshotObj = JSON.parse(item.idToSnapshot.productJson);
+                                    const variantDataName = [];
+                                    if (item.variant && item.variant.length > 0) {
+                                        for (let i = 0; i < snapshotObj.variantData.length; i++) {
+                                            // console.log(snapshotObj.variantData[i].data);
+                                            variantDataName.push(
+                                                snapshotObj.variantData[i].data.find((v) => v._id === item.variant[i]).name,
+                                            );
+                                        }
+                                    }
+                                    return (
+                                        <div className="card p-3">
+                                            <div className="mc-table-product sm">
+                                                <img src={item.image} alt="img" />
+                                                <p>
+                                                    {item.name}{' '}
+                                                    <Badge>
+                                                        {item.variant && item.variant.length > 0 ? variantDataName.join(',') : ''}
+                                                    </Badge>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <StarReview
+                                                    reviewId={item.review}
+                                                    itemId={snapshotObj._id}
+                                                    itemVariant={item.variant}
+                                                    itemVariantName={
+                                                        item.variant && item.variant.length > 0 ? variantDataName : []
+                                                    }
+                                                    orderId={orderReviewModal._id}
+                                                    productIndex={index}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
+                                {/* <button
+                                    style={{ backgroundColor: '#ff3d3d' }}
+                                    className="btn btn-danger mt-2 mx-3"
+                                    onClick={deleteAddressHandler}
+                                >
+                                    Delete
+                                </button> */}
+                                <button
+                                    style={{ backgroundColor: 'gray' }}
+                                    className="btn btn-secondary mt-2"
+                                    onClick={() => {
+                                        setOrderReviewModal({ _id: null, items: [] });
                                     }}
                                 >
                                     Close
@@ -1197,3 +1280,139 @@ const mapDispatchToProps = {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Account);
+
+const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, productIndex }) => {
+    const dispatch = useDispatch();
+    const [imgArray, setImgArray] = useState([]);
+    const [reviewState, setReviewState] = useState(0); //  0 : no review, 1 : already reviewed, 2 : update review
+    useEffect(() => {
+        if (reviewId) {
+            //fetchReview
+            setReviewState(2);
+        }
+    }, [reviewId]);
+
+    const handleAddImg = (e) => {
+        setImgArray([...imgArray, ...e.target.files]);
+    };
+    const removeImage = (index) => {
+        const newArr = [...imgArray];
+        newArr.splice(index, 1);
+        setImgArray([...newArr]);
+    };
+
+    const publishReview = async (e) => {
+        e.preventDefault();
+        //setup form
+        if (parseInt(e.target.rate.value) <= 0) {
+            toast.error('Please provide a valid rating');
+            return;
+        }
+        const form = new FormData();
+        form.append('rating', parseInt(e.target.rate.value));
+        form.append('orderId', orderId);
+        form.append('productId', itemId);
+        form.append('productIndex', productIndex);
+        form.append('comment', e.target.cmt.value);
+        if (itemVariant && itemVariant.length > 0) {
+            const tempArr = [];
+            for (let i = 0; i < itemVariant.length; i++) {
+                tempArr.push({ _id: itemVariant[i], name: itemVariantName[i] });
+            }
+            form.append('variant', JSON.stringify(tempArr));
+        } else {
+            form.append('variant', null);
+        }
+        const arr = Object.values(imgArray);
+
+        arr.forEach((file) => {
+            form.append('images', file);
+        });
+        //
+
+        try {
+            const result = await axiosInstance.post('/api/review', form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            console.log(result);
+            // dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Product created' }));
+            setReviewState(1);
+        } catch (err) {
+            console.error(err);
+            // dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'err' }));
+        }
+        // console.log(e.target.cmt.value);
+        // console.log(e.target.rate.value);
+        // console.log(itemId);
+        // console.log(itemVariant);
+        // console.log(itemVariantName);
+        // console.log(imgArray);
+    };
+
+    return (
+        <form onSubmit={publishReview}>
+            <div class="rate">
+                <input type="radio" id="star5" name="rate" value="5" />
+                <label for="star5" title="text">
+                    5 stars
+                </label>
+                <input type="radio" id="star4" name="rate" value="4" />
+                <label for="star4" title="text">
+                    4 stars
+                </label>
+                <input type="radio" id="star3" name="rate" value="3" />
+                <label for="star3" title="text">
+                    3 stars
+                </label>
+                <input type="radio" id="star2" name="rate" value="2" />
+                <label for="star2" title="text">
+                    2 stars
+                </label>
+                <input type="radio" id="star1" name="rate" value="1" />
+                <label for="star1" title="text">
+                    1 star
+                </label>
+            </div>
+            <textarea
+                name="cmt"
+                rows="1"
+                placeholder="Comments"
+                // onChange={debounce(
+                //     (e) => {
+                //         // console.log(e.target.value);
+                //         const temp = [...sortedCartItems];
+                //         const index = temp.findIndex(
+                //             (item) => item.shop._id === shop.shop._id,
+                //         );
+                //         if (index !== -1) {
+                //             temp[index].note = e.target.value ?? '';
+                //             setSortedCartItems([...temp]);
+                //         }
+                //     },
+                //     [500],
+                // )}
+            ></textarea>
+            <div className="d-flex flex-row justify-content-start align-items-center">
+                {imgArray?.map((img, index) => {
+                    return (
+                        <img
+                            className="custom-cursor"
+                            style={{ width: '60px', height: '60px', objectFit: 'cover', paddingRight: '10px' }}
+                            src={typeof img === 'object' ? URL.createObjectURL(img) : img}
+                            onClick={() => {
+                                removeImage(index);
+                            }}
+                        />
+                    );
+                })}
+                <input hidden={true} type="file" id="review_img" multiple={true} onChange={handleAddImg} />
+                <label htmlFor="review_img">
+                    <i style={{ cursor: 'pointer' }} className="fi-rs-add mr-10"></i>
+                </label>
+            </div>
+            <div className="d-flex flex-row justify-content-end align-items-center">
+                {reviewState === 0 ? <button type="submit">Publish</button> : null}
+            </div>
+        </form>
+    );
+};
