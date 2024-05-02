@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
 import { Row, Col } from 'react-bootstrap';
@@ -8,6 +8,7 @@ import LabelFieldComponent from '../../components/fields/LabelFieldComponent';
 import { PaginationComponent } from '../../components';
 import PageLayout from '../../layouts/PageLayout';
 import products from '../../assets/data/products.json';
+import axiosInstance from '../../configs/axiosInstance';
 
 export default function ProductListPage() {
     const { t, n } = useContext(TranslatorContext);
@@ -22,6 +23,34 @@ export default function ProductListPage() {
     const [sortPrice, setSortPrice] = useState('lowToHigh');
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const [totalProduct, setTotalProduct] = useState(0);
+    const [totalCate, setTotalCate] = useState(0);
+    const [avgStar, setAvgStar] = useState(0);
+
+    useEffect(() => {
+        const fetchTotalProduct = async () => {
+            const response = await axiosInstance.get('/api/stat/totalProduct');
+            setTotalProduct(response.data.total);
+        };
+        fetchTotalProduct();
+    }, []);
+
+    useEffect(() => {
+        const fetchTotalCate = async () => {
+            const response = await axiosInstance.get('/api/stat/totalCate');
+            setTotalCate(response.data.total);
+        };
+        fetchTotalCate();
+    }, []);
+
+    useEffect(() => {
+        const fetchAvgStar = async () => {
+            const response = await axiosInstance.get('/api/stat/avgStar');
+            setAvgStar(response.data.avg);
+        };
+        fetchAvgStar();
+    }, []);
 
     return (
         <PageLayout>
@@ -42,16 +71,25 @@ export default function ProductListPage() {
                         </div>
                     </div>
                 </Col>
-                {floats.map((float, index) => (
-                    <Col key={index} sm={6} lg={4}>
-                        <FloatCardComponent
-                            variant={float.variant}
-                            digit={n(float.digit)}
-                            title={t(float.title)}
-                            icon={float.icon}
-                        />
-                    </Col>
-                ))}
+                <Col sm={6} lg={4}>
+                    <FloatCardComponent
+                        variant={'lg blue'}
+                        digit={n(totalProduct)}
+                        title={t('Total Product')}
+                        icon={'shopping_bag'}
+                    />
+                </Col>
+                <Col sm={6} lg={4}>
+                    <FloatCardComponent
+                        variant={'lg green'}
+                        digit={n(totalCate)}
+                        title={t('Total categories')}
+                        icon={'widgets'}
+                    />
+                </Col>
+                <Col sm={6} lg={4}>
+                    <FloatCardComponent variant={'lg yellow'} digit={n(avgStar)} title={t('Average Start')} icon={'star'} />
+                </Col>
                 <Col xl={12}>
                     <div className="mc-card">
                         <Row>

@@ -1188,6 +1188,7 @@ function Account({ userLogout, isLoggedIn }) {
                         </div>
                     </div>
                 </Modal>
+                {/* order review modal */}
                 <Modal
                     open={orderReviewModal?._id && orderReviewModal?.items?.length > 0 ? true : false}
                     onClose={() => {
@@ -1285,9 +1286,21 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
     const dispatch = useDispatch();
     const [imgArray, setImgArray] = useState([]);
     const [reviewState, setReviewState] = useState(0); //  0 : no review, 1 : already reviewed, 2 : update review
+
+    const [reviewData, setReviewData] = useState();
     useEffect(() => {
+        const fetchReview = async (rid) => {
+            try {
+                const response = await axiosInstance.get(`/api/review/${rid}`);
+                setReviewData(response.data.review);
+            } catch (err) {
+                console.error(err);
+            }
+        };
         if (reviewId) {
             //fetchReview
+            console.log(reviewId);
+            fetchReview(reviewId);
             setReviewState(2);
         }
     }, [reviewId]);
@@ -1339,36 +1352,29 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
             setReviewState(1);
         } catch (err) {
             console.error(err);
-            // dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'err' }));
         }
-        // console.log(e.target.cmt.value);
-        // console.log(e.target.rate.value);
-        // console.log(itemId);
-        // console.log(itemVariant);
-        // console.log(itemVariantName);
-        // console.log(imgArray);
     };
 
     return (
         <form onSubmit={publishReview}>
             <div class="rate">
-                <input type="radio" id="star5" name="rate" value="5" />
+                <input type="radio" id="star5" name="rate" value="5" defaultChecked={reviewData?.rating === 5} />
                 <label for="star5" title="text">
                     5 stars
                 </label>
-                <input type="radio" id="star4" name="rate" value="4" />
+                <input type="radio" id="star4" name="rate" value="4" defaultChecked={reviewData?.rating === 4} />
                 <label for="star4" title="text">
                     4 stars
                 </label>
-                <input type="radio" id="star3" name="rate" value="3" />
+                <input type="radio" id="star3" name="rate" value="3" defaultChecked={reviewData?.rating === 3} />
                 <label for="star3" title="text">
                     3 stars
                 </label>
-                <input type="radio" id="star2" name="rate" value="2" />
+                <input type="radio" id="star2" name="rate" value="2" defaultChecked={reviewData?.rating === 2} />
                 <label for="star2" title="text">
                     2 stars
                 </label>
-                <input type="radio" id="star1" name="rate" value="1" />
+                <input type="radio" id="star1" name="rate" value="1" defaultChecked={reviewData?.rating === 1} />
                 <label for="star1" title="text">
                     1 star
                 </label>
@@ -1377,20 +1383,8 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
                 name="cmt"
                 rows="1"
                 placeholder="Comments"
-                // onChange={debounce(
-                //     (e) => {
-                //         // console.log(e.target.value);
-                //         const temp = [...sortedCartItems];
-                //         const index = temp.findIndex(
-                //             (item) => item.shop._id === shop.shop._id,
-                //         );
-                //         if (index !== -1) {
-                //             temp[index].note = e.target.value ?? '';
-                //             setSortedCartItems([...temp]);
-                //         }
-                //     },
-                //     [500],
-                // )}
+                defaultValue={reviewData?.comment}
+                readOnly={reviewData ? true : false}
             ></textarea>
             <div className="d-flex flex-row justify-content-start align-items-center">
                 {imgArray?.map((img, index) => {

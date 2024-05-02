@@ -12,7 +12,7 @@ import ShopTableComponent from '../../components/tables/ShopTableComponent';
 import { debounce } from 'lodash';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function ShopListPage() {
+export default function ReportListPage() {
     const floats = [
         { title: 'approved shop', digit: '605', icon: 'check_circle', variant: 'lg green' },
         { title: 'blocked users', digit: '249', icon: 'remove_circle', variant: 'lg red' },

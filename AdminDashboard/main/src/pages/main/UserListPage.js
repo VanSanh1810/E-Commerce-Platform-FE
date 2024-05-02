@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
 import { Row, Col, Dropdown } from 'react-bootstrap';
@@ -8,14 +8,30 @@ import LabelFieldComponent from '../../components/fields/LabelFieldComponent';
 import UsersTableComponent from '../../components/tables/UsersTableComponent';
 import PageLayout from '../../layouts/PageLayout';
 import users from '../../assets/data/users.json';
+import axiosInstance from '../../configs/axiosInstance';
+import { debounce } from 'lodash';
 
 export default function UserListPage() {
-    const floats = [
-        { title: 'approved users', digit: '605', icon: 'check_circle', variant: 'lg green' },
-        { title: 'blocked users', digit: '249', icon: 'remove_circle', variant: 'lg red' },
-    ];
-
     const { t } = useContext(TranslatorContext);
+
+    const [userStatData, setUserStatData] = useState();
+
+    const [rowView, setRowView] = useState(6);
+    const [pages, setPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [userSearchText, setUserSearchText] = useState('');
+
+    useEffect(() => {
+        const fetchUData = async () => {
+            try {
+                const response = await axiosInstance.get('/api/stat/userAprBlk');
+                setUserStatData(response.data);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchUData();
+    }, []);
 
     return (
         <PageLayout>
@@ -40,51 +56,59 @@ export default function UserListPage() {
                         </div>
                     </div>
                 </Col>
-                {floats.map((float, index) => (
-                    <Col xl={6} key={index}>
-                        <FloatCardComponent variant={float.variant} digit={float.digit} title={float.title} icon={float.icon} />
-                    </Col>
-                ))}
+                <Col xl={6}>
+                    <FloatCardComponent
+                        variant={'lg green'}
+                        digit={userStatData?.aprUser}
+                        title={'approved users'}
+                        icon={'check_circle'}
+                    />
+                </Col>
+                <Col xl={6}>
+                    <FloatCardComponent
+                        variant={'lg red'}
+                        digit={userStatData?.blkUser}
+                        title={'blocked users'}
+                        icon={'remove_circle'}
+                    />
+                </Col>
                 <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
                             <h4 className="mc-card-title">{t('registered_users')}</h4>
-                            {/* <Dropdown bsPrefix="mc-dropdown">
-                                <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                    <i className='material-icons'>more_horiz</i>
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>edit</i><span>{t('edit')}</span></button>
-                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete')}</span></button>
-                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>download</i><span>{t('download')}</span></button>
-                                </Dropdown.Menu>
-                            </Dropdown> */}
                         </div>
-                        <Row xs={1} sm={3} xl={3}>
+                        <Row xs={1} sm={2} xl={2}>
                             <Col>
                                 <LabelFieldComponent
                                     label={t('show_by')}
-                                    option={['12 row', '24 row', '36 row']}
+                                    option={['6 row', '12 row', '24 row']}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        let a = e.target.value;
+                                        const temp = a.split(' ');
+                                        setRowView(parseInt(temp[0]));
+                                        setCurrentPage(1);
+                                    }}
                                 />
                             </Col>
                             {/* <Col>
                                 <LabelFieldComponent
                                     label={t('role_by')}
-                                    option={["admin", "member", "client", "manager", "vendor"]}
+                                    option={["admin", "user","vendor"]}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
                                 />
                             </Col> */}
-                            <Col>
+                            {/* <Col>
                                 <LabelFieldComponent
                                     label={t('status_by')}
-                                    option={['approved', 'pending', 'blocked']}
+                                    option={['active', 'banned']}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
                                 />
-                            </Col>
+                            </Col> */}
                             <Col>
                                 <LabelFieldComponent
                                     type="search"
@@ -92,11 +116,33 @@ export default function UserListPage() {
                                     placeholder={t('id') + ' / ' + t('name') + ' / ' + t('email') + ' / ' + t('number')}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
+                                    onChange={debounce(
+                                        (e) => {
+                                            // console.log(e.target.value);
+                                            setUserSearchText(e.target.value);
+                                            setCurrentPage(1);
+                                        },
+                                        [500],
+                                    )}
                                 />
                             </Col>
                         </Row>
-                        <UsersTableComponent thead={users.thead} tbody={users.tbody} />
-                        <PaginationComponent />
+                        <UsersTableComponent
+                            thead={users.thead}
+                            tbody={users.tbody}
+                            rowView={rowView}
+                            currentPage={currentPage}
+                            setPages={setPages}
+                            userSearchText={userSearchText}
+                        />
+                        {pages !== 0 ? (
+                            <PaginationComponent
+                                currentPage={currentPage}
+                                setCurrentPage={setCurrentPage}
+                                pages={pages}
+                                rowShow={rowView}
+                            />
+                        ) : null}
                     </div>
                 </Col>
             </Row>

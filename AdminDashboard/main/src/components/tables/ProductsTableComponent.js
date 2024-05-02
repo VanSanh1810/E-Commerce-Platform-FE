@@ -146,14 +146,16 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                                     >
                                         {'edit'}
                                     </AnchorComponent>
-                                    <ButtonComponent
-                                        type="button"
-                                        title="Delete"
-                                        className="material-icons delete"
-                                        onClick={() => setAlertModal(true)}
-                                    >
-                                        {'delete'}
-                                    </ButtonComponent>
+                                    {isVendor ? (
+                                        <ButtonComponent
+                                            type="button"
+                                            title="Delete"
+                                            className="material-icons delete"
+                                            onClick={() => setAlertModal(true)}
+                                        >
+                                            {'delete'}
+                                        </ButtonComponent>
+                                    ) : null}
                                 </div>
                             </td>
                         </tr>

@@ -1,11 +1,60 @@
-import React, { useContext } from "react";
-import { TranslatorContext } from "../../context/Translator";
-import { SalesChartComponent } from "../charts";
-import { Dropdown } from "react-bootstrap";
+import React, { useContext, useEffect, useState } from 'react';
+import { TranslatorContext } from '../../context/Translator';
+import { SalesChartComponent } from '../charts';
+import { Dropdown } from 'react-bootstrap';
+import axiosInstance from '../../configs/axiosInstance';
 
-export default function SalesCardComponent () {
+export default function SalesCardComponent() {
+    const { t } = useContext(TranslatorContext);
 
-    const { t } = useContext(TranslatorContext)
+    const [salesType, setSalesType] = useState('day');
+    const [salesData, setSalesData] = useState([]);
+    const [preSale, setPreSale] = useState(0);
+    const [curSale, setCurSale] = useState(0);
+
+    useEffect(() => {
+        const fetchSalesData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/stat/sale?type=${salesType}`);
+                console.log(response.data);
+                let totalTemp = 0;
+                switch (salesType) {
+                    case 'day':
+                        setSalesData(
+                            response.data.saleData.map((item) => {
+                                totalTemp += item.sale;
+                                return { week: item.week, sale: item.sale };
+                            }),
+                        );
+                        break;
+                    case 'month':
+                        setSalesData(
+                            response.data.saleData.map((item) => {
+                                totalTemp += item.sale;
+                                return { week: item.week, sale: item.sale };
+                            }),
+                        );
+                        break;
+                    case 'year':
+                        const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const temp = response.data.saleData.map((item) => {
+                            totalTemp += item.sale;
+                            return { week: month[parseInt(item.week)], sale: item.sale };
+                        });
+                        console.log(temp);
+                        setSalesData([...temp]);
+                        break;
+                    default:
+                        break;
+                }
+                setCurSale(totalTemp);
+                setPreSale(response.data.preSale);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchSalesData();
+    }, [salesType]);
 
     return (
         <div className="mc-sales-card">
@@ -14,26 +63,54 @@ export default function SalesCardComponent () {
                     <h4 className="mc-card-title">{t('total_sales')}</h4>
                     <Dropdown bsPrefix="mc-dropdown">
                         <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                            <i className='material-icons'>more_horiz</i>
+                            <i className="material-icons">more_horiz</i>
                         </Dropdown.Toggle>
                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>history</i><span>{t('last_day')}</span></button>
-                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>history</i><span>{t('last_week')}</span></button>
-                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>history</i><span>{t('last_month')}</span></button>
-                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>history</i><span>{t('last_year')}</span></button>
+                            <button
+                                type="button"
+                                className="mc-dropdown-menu"
+                                onClick={() => {
+                                    setSalesType('day');
+                                }}
+                            >
+                                <i className="material-icons">history</i>
+                                <span>{t('last_day')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className="mc-dropdown-menu"
+                                onClick={() => {
+                                    setSalesType('month');
+                                }}
+                            >
+                                <i className="material-icons">history</i>
+                                <span>{t('last_month')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className="mc-dropdown-menu"
+                                onClick={() => {
+                                    setSalesType('year');
+                                }}
+                            >
+                                <i className="material-icons">history</i>
+                                <span>{t('last_year')}</span>
+                            </button>
                         </Dropdown.Menu>
                     </Dropdown>
                 </div>
-                <div className='mc-sales-card-amount trending_up green'>
-                    <h3>$3,787,681.00</h3>
+                <div className={`mc-sales-card-amount ${curSale - preSale > 0 ? 'trending_up green' : 'trending_down red'}`}>
+                    <h3>${curSale}</h3>
                     <p>
-                        40.63%
-                        <i className='material-icons'>trending_up</i>
+                        {preSale === 0 ? 100 : (Math.abs(curSale - preSale) / preSale) * 100}%
+                        <i className="material-icons">{curSale - preSale > 0 ? 'trending_up' : 'trending_down'}</i>
                     </p>
                 </div>
-                <p className="mc-sales-card-compare">$3,578.90 in {t('last_month')}</p>
+                <p className="mc-sales-card-compare">
+                    ${preSale} in {t(`last ${salesType}`)}
+                </p>
             </div>
-            <SalesChartComponent />
+            <SalesChartComponent data={salesData} />
         </div>
     );
 }

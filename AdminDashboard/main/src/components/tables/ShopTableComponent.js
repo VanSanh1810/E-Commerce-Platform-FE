@@ -4,7 +4,7 @@ import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function ShopTableComponent({ thead, tbody }) {
+export default function ShopTableComponent({ thead, tbody, rowView, currentPage, setPages, shopSearchText }) {
     const { t } = useContext(TranslatorContext);
 
     const [data, setData] = useState([]);
@@ -30,17 +30,20 @@ export default function ShopTableComponent({ thead, tbody }) {
     };
 
     useEffect(() => {
-        const fetchAllUsers = async () => {
+        const fetchAllShops = async () => {
             try {
-                const result = await axiosInstance.get('/api/shop/');
-                console.log(result.data.data);
+                const result = await axiosInstance.get(
+                    `/api/shop?&currentPage=${currentPage}&limit=${rowView}&searchText=${shopSearchText || ''}`,
+                );
+                console.log(result.data);
                 setData(result.data.data.shops);
+                setPages(result.data.pages);
             } catch (e) {
                 console.error(e);
             }
         };
-        fetchAllUsers();
-    }, [reloadAction]);
+        fetchAllShops();
+    }, [reloadAction, rowView, currentPage, setPages, shopSearchText]);
 
     return (
         <div className="mc-table-responsive">

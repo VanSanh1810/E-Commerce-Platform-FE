@@ -4,7 +4,7 @@ import Modal from 'react-bootstrap/Modal';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function OrderTableComponent({ thead, tbody }) {
+export default function OrderTableComponent({ thead, tbody, rowView, currentPage, setPages, orderSearchText, date }) {
     const [alertModal, setAlertModal] = React.useState(false);
     const [data, setData] = useState([]);
 
@@ -13,14 +13,20 @@ export default function OrderTableComponent({ thead, tbody }) {
     useEffect(() => {
         const fetchOrdersData = async () => {
             try {
-                const response = await axiosInstance.get('/api/order?target=adminPage');
+                const response = await axiosInstance.get(
+                    `/api/order?target=adminPage&currentPage=${currentPage}&limit=${rowView}&searchText=${
+                        orderSearchText || ''
+                    }&date=${date}`,
+                );
+                console.log(response.data);
                 setData([...response.data.orders]);
+                setPages(response.data.pages);
             } catch (err) {
                 console.error(err);
             }
         };
         fetchOrdersData();
-    }, []);
+    }, [rowView, currentPage, setPages, orderSearchText, date]);
 
     const orderSatusView = (status) => {
         switch (status) {
@@ -75,7 +81,7 @@ export default function OrderTableComponent({ thead, tbody }) {
                             <td>
                                 <p className={`mc-table-badge ${orderSatusView(item.status)}`}>{item.status}</p>
                             </td>
-                            <td>{Date(item.createDate)}</td>
+                            <td>{new Date(parseInt(item.createDate)).toLocaleDateString()}</td>
                             <td>
                                 <div className="mc-table-action">
                                     <AnchorComponent title="View" to={`/order/${item._id}`} className="material-icons view">

@@ -82,14 +82,14 @@ export default function HeaderLayout() {
                     <button type="button" className="mc-header-icon toggle" onClick={toggleSidebar}>
                         <i className="material-icons">{sidebar ? 'menu_open' : 'menu'}</i>
                     </button>
-                    <div className={`mc-header-search-group ${search}`}>
+                    {/* <div className={`mc-header-search-group ${search}`}>
                         <form className="mc-header-search" ref={searchRef}>
                             <button type="button" className="material-icons">
                                 search
                             </button>
                             <input type="search" placeholder={t('quick_finding') + '...'} />
                         </form>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="mc-header-right">
@@ -100,7 +100,7 @@ export default function HeaderLayout() {
                     {/*================================
                             LANGUAGE PART START
                     ================================*/}
-                    <Dropdown>
+                    {/* <Dropdown>
                         <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon language">
                             <i className="material-icons">language</i>
                         </Dropdown.Toggle>
@@ -118,7 +118,7 @@ export default function HeaderLayout() {
                                 </button>
                             ))}
                         </Dropdown.Menu>
-                    </Dropdown>
+                    </Dropdown> */}
                     {/*================================
                             LANGUAGE PART END
                     ================================*/}

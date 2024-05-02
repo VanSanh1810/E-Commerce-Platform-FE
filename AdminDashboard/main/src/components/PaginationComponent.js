@@ -71,14 +71,16 @@ export default function PaginationComponent({ currentPage, setCurrentPage, pages
                 {/* <li className="mc-paginate-item">{n(2)}</li>
                 <li className="mc-paginate-item">{n(3)}</li> */}
                 {parseInt(arrViewAble[pageViewable - 1]) < Math.ceil(pages / rowShow) - 1 ? <li>...</li> : null}
-                <li
-                    className={`mc-paginate-item ${currentPage === Math.ceil(pages / rowShow) ? 'active' : ''}`}
-                    onClick={() => {
-                        setCurrentPage(Math.ceil(pages / rowShow));
-                    }}
-                >
-                    {n(Math.ceil(pages / rowShow))}
-                </li>
+                {Math.ceil(pages / rowShow) > 1 ? (
+                    <li
+                        className={`mc-paginate-item ${currentPage === Math.ceil(pages / rowShow) ? 'active' : ''}`}
+                        onClick={() => {
+                            setCurrentPage(Math.ceil(pages / rowShow));
+                        }}
+                    >
+                        {n(Math.ceil(pages / rowShow))}
+                    </li>
+                ) : null}
                 <li className="mc-paginate-item">
                     {currentLanguage?.dir === 'ltr' ? (
                         <i

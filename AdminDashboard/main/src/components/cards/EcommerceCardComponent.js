@@ -35,7 +35,7 @@ export default function EcommerceCardComponent({ variant, trend, number, title, 
                             <i className="material-icons">history</i>
                             <span>{t('last_day')}</span>
                         </button>
-                        <button
+                        {/* <button
                             type="button"
                             className="mc-dropdown-menu"
                             onClick={() => {
@@ -44,7 +44,7 @@ export default function EcommerceCardComponent({ variant, trend, number, title, 
                         >
                             <i className="material-icons">history</i>
                             <span>{t('last_week')}</span>
-                        </button>
+                        </button> */}
                         <button
                             type="button"
                             className="mc-dropdown-menu"

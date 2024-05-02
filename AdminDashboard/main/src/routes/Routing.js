@@ -21,6 +21,7 @@ import Private2 from './Private2';
 import { LoginPage, RegisterPage } from '../pages/auth';
 import ShopListPage from '../pages/main/ShopListPage';
 import ShopProfilePage from '../pages/main/ShopProfilePage';
+import ReportListPage from '../pages/main/ReportListPage';
 
 function Routing() {
     return (
@@ -163,6 +164,24 @@ function Routing() {
                             </Private>
                         }
                     />
+
+                    <Route
+                        path="report/:reportId"
+                        element={
+                            <Private roleAllow={'admin'}>
+                                <CategoryPage />
+                            </Private>
+                        }
+                    />
+                    <Route
+                        path="report"
+                        element={
+                            <Private roleAllow={'admin'}>
+                                <ReportListPage />
+                            </Private>
+                        }
+                    />
+
                     <Route
                         exact
                         path="/"

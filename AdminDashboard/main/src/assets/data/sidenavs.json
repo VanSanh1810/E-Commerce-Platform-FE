@@ -2,23 +2,19 @@
     {
         "title": "main_pages",
         "menus": [
-            { 
-                "icon": "dashboard", 
+            {
+                "icon": "dashboard",
                 "text": "dashboard",
-                "submenus": [
-                    { "path": "/", "text": "ecommerce" }
-                ]
+                "submenus": [{ "path": "/", "text": "ecommerce" }]
             },
-            { 
-                "icon": "account_circle", 
-                "text": "users", 
+            {
+                "icon": "account_circle",
+                "text": "users",
                 "badge": { "text": "hot", "variant": "red square" },
-                "submenus": [
-                    { "path": "/user", "text": "user_list" }
-                ]
+                "submenus": [{ "path": "/user", "text": "user_list" }]
             },
-            { 
-                "icon": "pix", 
+            {
+                "icon": "pix",
                 "text": "products",
                 "badge": { "text": "new", "variant": "purple square" },
                 "submenus": [
@@ -29,26 +25,30 @@
             },
             {
                 "icon": "store",
-                "path":  "/shop",
+                "path": "/shop",
                 "text": "shops"
             },
-            { 
+            {
                 "path": "#",
-                "icon": "article", 
+                "icon": "article",
                 "text": "invoices",
-                "submenus": [
-                    { "path": "/invoice", "text": "invoice_list" }
-                ]
+                "submenus": [{ "path": "/invoice", "text": "invoice_list" }]
             },
-            { 
+            {
                 "path": "/order",
-                "icon": "shopping_cart", 
+                "icon": "shopping_cart",
                 "text": "orders",
                 "badge": { "count": 5, "variant": "primary round" }
             },
-            { 
+            {
+                "path": "/report",
+                "icon": "warning",
+                "text": "Reports",
+                "badge": { "count": 5, "variant": "primary round" }
+            },
+            {
                 "path": "/notification",
-                "icon": "notifications", 
+                "icon": "notifications",
                 "text": "notifications",
                 "badge": { "count": 9, "variant": "primary round" }
             }

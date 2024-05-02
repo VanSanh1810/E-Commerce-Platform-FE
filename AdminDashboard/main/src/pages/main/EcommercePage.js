@@ -20,23 +20,211 @@ export default function EcommercePage() {
 
     const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
+    const dateGapByType = (date1, date2, type) => {
+        switch (type) {
+            case 'day':
+                return Math.abs(date1.getTime() - date2.getTime());
+            case 'month':
+                const formattedDate1 = `${date1.getFullYear()}-${date1.getMonth() + 1}`;
+                const formattedDate2 = `${date2.getFullYear()}-${date2.getMonth() + 1}`;
+                return Math.abs(formattedDate1.getTime() - formattedDate2.getTime());
+            case 'year':
+                return Math.abs(date1.getFullYear() - date2.getFullYear());
+            default:
+                return;
+        }
+    };
+
+    // product stat
     const [productStatType, setProductStatType] = useState('day');
     const [productStatData, setProductStatData] = useState({});
 
     useEffect(() => {
-        const fetchAnalysticData = async () => {
+        const fetchAnalysticProductData = async () => {
             try {
                 const response = await axiosInstance.get(`/api/stat/product?type=${productStatType}`);
                 console.log(response.data);
                 const temp = { ...response.data };
                 // temp.product
-                setProductStatData({total: temp.total});
+                const now = new Date();
+                let trend;
+                let minGap;
+                let currentTotal = 0; // total product added in the current day
+                let preTotal = 0; // total product added in the most recent day
+                for (let i = 0; i < temp.product.length; i++) {
+                    const d = new Date(temp.product[i].dateT);
+                    if (dateGapByType(d, now, productStatType) === 0) {
+                        currentTotal = temp.product[i].count;
+                    } else {
+                        if (minGap) {
+                            if (dateGapByType(d, now, productStatType) < minGap) {
+                                minGap = dateGapByType(d, now, productStatType);
+                                preTotal = temp.product[i].count;
+                            }
+                        } else {
+                            minGap = dateGapByType(d, now, productStatType);
+                            preTotal = temp.product[i].count;
+                        }
+                    }
+                }
+                // console.log(currentTotal);
+                // console.log(preTotal);
+                if (temp.total - currentTotal === 0) {
+                    trend = 100;
+                } else {
+                    trend = (currentTotal / (temp.total - currentTotal)) * 100;
+                }
+                setProductStatData({ total: temp.total, trend: trend });
             } catch (err) {
                 console.error(err);
             }
         };
-        fetchAnalysticData();
+        fetchAnalysticProductData();
     }, [isVendor, shopId, productStatType]);
+
+    // user stat
+    const [userStatType, setUserStatType] = useState('day');
+    const [userStatData, setUserStatData] = useState({});
+
+    useEffect(() => {
+        const fetchAnalysticUserData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/stat/user?type=${userStatType}`);
+                console.log(response.data);
+                const temp = { ...response.data };
+                // temp.user
+                const now = new Date();
+                let trend;
+                let minGap;
+                let currentTotal = 0; // total user added in the current day
+                let preTotal = 0; // total user added in the most recent day
+                for (let i = 0; i < temp.user.length; i++) {
+                    const d = new Date(temp.user[i].dateT);
+
+                    if (dateGapByType(d, now, userStatType) === 0) {
+                        currentTotal = temp.user[i].count;
+                    } else {
+                        if (minGap) {
+                            if (dateGapByType(d, now, userStatType) < minGap) {
+                                minGap = dateGapByType(d, now, userStatType);
+                                preTotal = temp.user[i].count;
+                            }
+                        } else {
+                            minGap = dateGapByType(d, now, userStatType);
+                            preTotal = temp.user[i].count;
+                        }
+                    }
+                }
+                // console.log(currentTotal);
+                // console.log(preTotal);
+                if (temp.total - currentTotal === 0) {
+                    trend = 100;
+                } else {
+                    trend = (currentTotal / (temp.total - currentTotal)) * 100;
+                }
+                setUserStatData({ total: temp.total, trend: trend });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchAnalysticUserData();
+    }, [isVendor, shopId, userStatType]);
+
+    // order stat
+    const [orderStatType, setOrderStatType] = useState('day');
+    const [orderStatData, setOrderStatData] = useState({});
+
+    useEffect(() => {
+        const fetchAnalysticOrderData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/stat/order?type=${orderStatType}`);
+                console.log(response.data);
+                const temp = { ...response.data };
+                // temp.user
+                const now = new Date();
+                let trend;
+                let minGap;
+                let currentTotal = 0; // total order added in the current day
+                let preTotal = 0; // total order added in the most recent day
+                for (let i = 0; i < temp.order.length; i++) {
+                    const d = new Date(temp.order[i].dateT);
+
+                    if (dateGapByType(d, now, orderStatType) === 0) {
+                        currentTotal = temp.order[i].count;
+                    } else {
+                        if (minGap) {
+                            if (dateGapByType(d, now, orderStatType) < minGap) {
+                                minGap = dateGapByType(d, now, orderStatType);
+                                preTotal = temp.order[i].count;
+                            }
+                        } else {
+                            minGap = dateGapByType(d, now, orderStatType);
+                            preTotal = temp.order[i].count;
+                        }
+                    }
+                }
+                // console.log(currentTotal);
+                // console.log(preTotal);
+                if (temp.total - currentTotal === 0) {
+                    trend = 100;
+                } else {
+                    trend = (currentTotal / (temp.total - currentTotal)) * 100;
+                }
+                setOrderStatData({ total: temp.total, trend: trend });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchAnalysticOrderData();
+    }, [isVendor, shopId, orderStatType]);
+
+    // review stat
+    const [reviewStatType, setReviewStatType] = useState('day');
+    const [reviewStatData, setReviewStatData] = useState({});
+
+    useEffect(() => {
+        const fetchAnalysticReviewData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/stat/review?type=${reviewStatType}`);
+                console.log(response.data);
+                const temp = { ...response.data };
+                // temp.user
+                const now = new Date();
+                let trend;
+                let minGap;
+                let currentTotal = 0; // total review added in the current day
+                let preTotal = 0; // total review added in the most recent day
+                for (let i = 0; i < temp.review.length; i++) {
+                    const d = new Date(temp.review[i].dateT);
+
+                    if (dateGapByType(d, now, reviewStatType) === 0) {
+                        currentTotal = temp.review[i].count;
+                    } else {
+                        if (minGap) {
+                            if (dateGapByType(d, now, reviewStatType) < minGap) {
+                                minGap = dateGapByType(d, now, reviewStatType);
+                                preTotal = temp.review[i].count;
+                            }
+                        } else {
+                            minGap = dateGapByType(d, now, reviewStatType);
+                            preTotal = temp.review[i].count;
+                        }
+                    }
+                }
+                // console.log(currentTotal);
+                // console.log(preTotal);
+                if (temp.total - currentTotal === 0) {
+                    trend = 100;
+                } else {
+                    trend = (currentTotal / (temp.total - currentTotal)) * 100;
+                }
+                setReviewStatData({ total: temp.total, trend: trend });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchAnalysticReviewData();
+    }, [isVendor, shopId, reviewStatType]);
 
     return (
         <PageLayout>
@@ -67,48 +255,60 @@ export default function EcommercePage() {
                 </Col>
                 <Col xs={12} xl={12}>
                     <Row xs={1} sm={2}>
-                        <Col>
-                            <EcommerceCardComponent
-                                icon={'account_circle'}
-                                trend={'trending_up'}
-                                title={t('total_users')}
-                                variant={'green'}
-                                number={n(277)}
-                                percent={95}
-                            />
-                        </Col>
-                        <Col>
-                            <EcommerceCardComponent
-                                icon={'shopping_cart'}
-                                trend={'trending_down'}
-                                title={t('total_orders')}
-                                variant={'purple'}
-                                number={n(338)}
-                                percent={30}
-                            />
-                        </Col>
+                        {!isVendor ? (
+                            <Col>
+                                <EcommerceCardComponent
+                                    icon={'account_circle'}
+                                    trend={userStatData.trend > 0 ? 'trending_up' : 'trending_down'}
+                                    title={t('total_users')}
+                                    variant={'green'}
+                                    number={n(userStatData.total)}
+                                    percent={userStatData.trend}
+                                    statType={userStatType}
+                                    setStatType={setUserStatType}
+                                />
+                            </Col>
+                        ) : null}
+                        {isVendor ? (
+                            <Col>
+                                <EcommerceCardComponent
+                                    icon={'shopping_cart'}
+                                    trend={orderStatData.trend > 0 ? 'trending_up' : 'trending_down'}
+                                    title={t('total_orders')}
+                                    variant={'purple'}
+                                    number={n(orderStatData.total)}
+                                    percent={orderStatData.trend}
+                                    statType={orderStatType}
+                                    setStatType={setOrderStatType}
+                                />
+                            </Col>
+                        ) : null}
                         <Col>
                             <EcommerceCardComponent
                                 icon={'shopping_bag'}
-                                trend={'trending_down'}
+                                trend={productStatData.trend > 0 ? 'trending_up' : 'trending_down'}
                                 title={t('total_products')}
                                 variant={'blue'}
                                 number={n(productStatData.total)}
-                                percent={25}
+                                percent={productStatData.trend}
                                 statType={productStatType}
                                 setStatType={setProductStatType}
                             />
                         </Col>
-                        <Col>
-                            <EcommerceCardComponent
-                                icon={'hotel_class'}
-                                trend={'trending_up'}
-                                title={t('total_reviews')}
-                                variant={'yellow'}
-                                number={n(166)}
-                                percent={45}
-                            />
-                        </Col>
+                        {isVendor ? (
+                            <Col>
+                                <EcommerceCardComponent
+                                    icon={'hotel_class'}
+                                    trend={reviewStatData.trend > 0 ? 'trending_up' : 'trending_down'}
+                                    title={t('total_reviews')}
+                                    variant={'yellow'}
+                                    number={n(reviewStatData.total)}
+                                    percent={reviewStatData.trend}
+                                    statType={reviewStatType}
+                                    setStatType={setReviewStatType}
+                                />
+                            </Col>
+                        ) : null}
                     </Row>
                 </Col>
                 <Col xl={12}>

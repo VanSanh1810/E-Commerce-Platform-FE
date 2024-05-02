@@ -3,9 +3,11 @@ import { TranslatorContext } from '../../context/Translator';
 import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
+import { useSelector } from 'react-redux';
 
-export default function UsersTableComponent({ thead, tbody }) {
+export default function UsersTableComponent({ thead, tbody, rowView, currentPage, setPages, userSearchText }) {
     const { t } = useContext(TranslatorContext);
+    const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
     const [data, setData] = useState([]);
     const [userData, setUserData] = React.useState('');
@@ -31,15 +33,18 @@ export default function UsersTableComponent({ thead, tbody }) {
     useEffect(() => {
         const fetchAllUsers = async () => {
             try {
-                const result = await axiosInstance.get('/api/user/');
+                const result = await axiosInstance.get(
+                    `/api/user?currentPage=${currentPage}&limit=${rowView}&searchText=${userSearchText || ''}`,
+                );
                 console.log(result.data.data);
                 setData(result.data.data);
+                setPages(result.data.pages);
             } catch (e) {
                 console.error(e);
             }
         };
         fetchAllUsers();
-    }, [reloadAction]);
+    }, [reloadAction, currentPage, rowView, setPages, userSearchText]);
 
     return (
         <div className="mc-table-responsive">
