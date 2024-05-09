@@ -7,6 +7,7 @@ import compare from './compare';
 import productFilters from './productFilters';
 import user from './user';
 import cartSelected from './cartSelected';
+import userId from './userId';
 
 const rootReducer = combineReducers({
     products,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     productFilters,
     user,
     cartSelected,
+    userId,
 });
 
 export default rootReducer;

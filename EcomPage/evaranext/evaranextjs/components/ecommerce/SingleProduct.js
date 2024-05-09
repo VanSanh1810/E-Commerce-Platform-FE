@@ -8,6 +8,7 @@ import { addToCompare } from '../../redux/action/compareAction';
 import { openQuickView } from '../../redux/action/quickViewAction';
 import { addToWishlist } from '../../redux/action/wishlistAction';
 import Loader from './../elements/Loader';
+import axiosInstance from '../../config/axiosInstance';
 
 const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQuickView, user }) => {
     const router = useRouter();
@@ -15,12 +16,13 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
 
     const [productVariantDetailTable, setProductVariantDetailTable] = useState([]);
     const [productPrice, setProductPrice] = useState();
+    const [productDiscount, setProductDiscount] = useState();
 
     useEffect(() => {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-        }, 2000);
+        }, 1000);
     }, []);
     const initProductVariantDetailTable = useCallback((node, depth, routeMap) => {
         if (node.detail) {
@@ -48,6 +50,9 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
         if (product.variantDetail) {
             setProductVariantDetailTable([]);
             startInitProductVariantDetailTable();
+        } else {
+            const temp = ((parseFloat(product.price) - parseFloat(product.discountPrice)) / parseFloat(product.price)) * 100;
+            setProductDiscount(Math.round(temp));
         }
     }, [product, initProductVariantDetailTable]);
 
@@ -78,7 +83,7 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                     min = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
                 }
             });
-            setProductPrice(min === max ? `${min}` : `${min} - $${max}`);
+            setProductPrice(min === max ? `$${min}` : `$${min} - $${max}`);
         };
         // console.log(productVariantDetailTable);
         // console.log(product.name);
@@ -86,6 +91,21 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
             getShowPrice();
         }
     }, [productVariantDetailTable]);
+
+    const [voucherData, setVoucherData] = useState();
+
+    useEffect(() => {
+        const checkVoucher = async () => {
+            try {
+                const result = await axiosInstance.get(`api/banner/details/${product.category._id}`);
+                console.log(result.data);
+                setVoucherData(result.data.voucherData);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        checkVoucher();
+    }, [product]);
 
     const handleCart = (product) => {
         if (!product.variantData) {
@@ -96,14 +116,53 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
         }
     };
 
-    const handleCompare = (product) => {
-        addToCompare(product);
-        toast.success('Add to Compare !');
-    };
-
-    const handleWishlist = (product) => {
-        addToWishlist(product);
-        toast.success('Add to Wishlist !');
+    const calculateVoucherPrice = (price) => {
+        // console.log(typeof price);
+        if (typeof price === 'number') {
+            const discountAmount = (parseFloat(price) / 100) * parseFloat(voucherData.discount);
+            if (discountAmount <= parseFloat(voucherData.maxValue)) {
+                return parseFloat(price) - discountAmount;
+            } else {
+                return parseFloat(price) - parseFloat(voucherData.maxValue);
+            }
+        } else {
+            if (typeof price === 'string') {
+                const tempArray = price.split(' ');
+                let min = tempArray[0];
+                let max = tempArray[2];
+                if (!max) {
+                    max = min;
+                }
+                console.log('tempArray ', tempArray);
+                console.log('min ', min);
+                console.log('max ', max);
+                min = min.slice(1).trim();
+                max = max.slice(1).trim();
+                console.log('voucher', voucherData);
+                //
+                let minStr;
+                let maxStr;
+                const discountAmountMin = (parseFloat(min.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMin <= parseFloat(voucherData.maxValue)) {
+                    minStr = parseFloat(min.trim()) - discountAmountMin;
+                } else {
+                    minStr = parseFloat(min.trim()) - parseFloat(voucherData.maxValue);
+                }
+                //
+                const discountAmountMax = (parseFloat(max.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMax <= parseFloat(voucherData.maxValue)) {
+                    maxStr = parseFloat(max.trim()) - discountAmountMax;
+                } else {
+                    maxStr = parseFloat(max.trim()) - parseFloat(voucherData.maxValue);
+                }
+                if (maxStr === minStr) {
+                    console.log(minStr);
+                    return `$${minStr}`;
+                }
+                console.log(minStr, maxStr);
+                return `$${minStr} - $${maxStr}`;
+            }
+        }
     };
     return (
         <>
@@ -120,11 +179,9 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                             style={{ height: '100%', objectFit: 'scale-down' }}
                                             alt=""
                                         />
-                                        {/* <img
-                                    className="hover-img"
-                                    src={product.images[1]?.img}
-                                    alt=""
-                                /> */}
+                                        {/* {product.images[1]?.url ? (
+                                            <img className="hover-img" src={product.images[1]?.url} alt="" />
+                                        ) : null} */}
                                     </a>
                                 </Link>
                             </div>
@@ -137,24 +194,15 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                 >
                                     <i className="fi-rs-eye"></i>
                                 </a>
-                                {/* <a
-                                    aria-label="Add To Wishlist"
-                                    className="action-btn hover-up"
-                                    onClick={(e) => handleWishlist(product)}
-                                >
-                                    <i className="fi-rs-heart"></i>
-                                </a>
-                                <a aria-label="Compare" className="action-btn hover-up" onClick={(e) => handleCompare(product)}>
-                                    <i className="fi-rs-shuffle"></i>
-                                </a> */}
                             </div>
-
                             <div className="product-badges product-badges-position product-badges-mrg">
-                                {/* {product.trending ? <span className="hot">Hot</span>:null } */}
-                                {/* {product.created ? <span className="new">New</span>:null }
-                        {product.totalSell > 100 ? <span className="best">Best Sell</span>:null }
-                        {product.discount.isActive ? <span className="sale">Sale</span>:null } */}
-                                {/* {product.discount.percentage >= 5 ? <span className="hot">{product.discount.percentage}%</span>:null } */}
+                                {voucherData?.discount ? <span className="hot">Event: {voucherData?.discount}%</span> : null}
+                                {/* {product.created ? <span className="new">New</span> : null}
+                                {product.totalSell > 100 ? <span className="best">Best Sell</span> : null} */}
+                                {productDiscount ? <span className="sale">Sale {productDiscount}%</span> : null}
+                                {/* {product.discount.percentage >= 5 ? (
+                                    <span className="hot">{product.discount.percentage}%</span>
+                                ) : null} */}
                             </div>
                         </div>
                         <div className="product-content-wrap">
@@ -189,7 +237,20 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                             <div className="product-price">
                                 {!product.variantData ? (
                                     <>
-                                        <span>${product.discountPrice !== 0 ? product.discountPrice : product.price} </span>
+                                        <span>
+                                            $
+                                            {!voucherData?.discount
+                                                ? product.discountPrice !== 0
+                                                    ? product.discountPrice
+                                                    : product.price
+                                                : calculateVoucherPrice(
+                                                      parseFloat(
+                                                          product.discountPrice !== 0 ? product.discountPrice : product.price,
+                                                      ),
+                                                      voucherData,
+                                                  )}
+                                        </span>
+                                        {/* <span>${product.discountPrice !== 0 ? product.discountPrice : product.price}</span> */}
                                         {product.discountPrice !== 0 && product.price !== product.discountPrice ? (
                                             <span className="old-price">
                                                 {product.discountPrice ? `$ ${product.price}` : null}
@@ -197,7 +258,9 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                         ) : null}
                                     </>
                                 ) : (
-                                    <span>${productPrice} </span>
+                                    <span>
+                                        {!voucherData?.discount ? productPrice : calculateVoucherPrice(productPrice, voucherData)}
+                                    </span>
                                 )}
                             </div>
                             <div className="product-action-1 show">

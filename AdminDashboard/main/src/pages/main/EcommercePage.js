@@ -249,10 +249,12 @@ export default function EcommercePage() {
                         </div>
                     </div>
                 </Col>
-                <Col xs={12} xl={12}>
-                    {' '}
-                    <SalesCardComponent />{' '}
-                </Col>
+                {isVendor ? (
+                    <Col xs={12} xl={12}>
+                        {' '}
+                        <SalesCardComponent />{' '}
+                    </Col>
+                ) : null}
                 <Col xs={12} xl={12}>
                     <Row xs={1} sm={2}>
                         {!isVendor ? (

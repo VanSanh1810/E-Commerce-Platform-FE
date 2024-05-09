@@ -29,7 +29,7 @@ const Login = ({ user, userLogin, userLogout }) => {
                 password: l_passRef.current.value,
             });
             console.log(result.data);
-            userLogin(result.data.token);
+            userLogin(result.data.token, result.data.data.userId);
             // dispatch(authenticateUser());
             router.push('/');
         } catch (err) {

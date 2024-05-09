@@ -100,17 +100,93 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     ...tempArr,
                     {
                         proIndex: id + variant.join(),
-                        price:
-                            (productTreeDetail?.disPrice
-                                ? productTreeDetail?.disPrice === 0
-                                    ? productTreeDetail?.price
-                                    : productTreeDetail?.disPrice
-                                : productTreeDetail?.price) * quantity,
+                        price: !voucherData?.discount
+                            ? (productTreeDetail?.disPrice
+                                  ? productTreeDetail?.disPrice === 0
+                                      ? productTreeDetail?.price
+                                      : productTreeDetail?.disPrice
+                                  : productTreeDetail?.price) * quantity
+                            : calculateVoucherPrice(
+                                  parseFloat(
+                                      (productTreeDetail?.disPrice
+                                          ? productTreeDetail?.disPrice === 0
+                                              ? productTreeDetail?.price
+                                              : productTreeDetail?.disPrice
+                                          : productTreeDetail?.price) * quantity,
+                                  ),
+                              ),
                     },
                 ]);
             }
         }
-    }, [quantity]);
+    }, [quantity, voucherData]);
+
+    ////////////////////////////////
+    const [voucherData, setVoucherData] = useState();
+
+    useEffect(() => {
+        const checkVoucher = async () => {
+            try {
+                const result = await axiosInstance.get(`api/banner/details/${productData.category._id}`);
+                console.log(result.data);
+                setVoucherData(result.data.voucherData);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        if (productData?.category?._id) {
+            checkVoucher();
+        }
+    }, [productData]);
+
+    const calculateVoucherPrice = (price) => {
+        // console.log(typeof price);
+        if (typeof price === 'number') {
+            const discountAmount = (parseFloat(price) / 100) * parseFloat(voucherData.discount);
+            if (discountAmount <= parseFloat(voucherData.maxValue)) {
+                return parseFloat(price) - discountAmount;
+            } else {
+                return parseFloat(price) - parseFloat(voucherData.maxValue);
+            }
+        } else {
+            if (typeof price === 'string') {
+                const tempArray = price.split(' ');
+                let min = tempArray[0];
+                let max = tempArray[2];
+                if (!max) {
+                    max = min;
+                }
+                console.log('tempArray ', tempArray);
+                console.log('min ', min);
+                console.log('max ', max);
+                min = min.slice(1).trim();
+                max = max.slice(1).trim();
+                console.log('voucher', voucherData);
+                //
+                let minStr;
+                let maxStr;
+                const discountAmountMin = (parseFloat(min.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMin <= parseFloat(voucherData.maxValue)) {
+                    minStr = parseFloat(min.trim()) - discountAmountMin;
+                } else {
+                    minStr = parseFloat(min.trim()) - parseFloat(voucherData.maxValue);
+                }
+                //
+                const discountAmountMax = (parseFloat(max.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMax <= parseFloat(voucherData.maxValue)) {
+                    maxStr = parseFloat(max.trim()) - discountAmountMax;
+                } else {
+                    maxStr = parseFloat(max.trim()) - parseFloat(voucherData.maxValue);
+                }
+                if (maxStr === minStr) {
+                    console.log(minStr);
+                    return `$${minStr}`;
+                }
+                console.log(minStr, maxStr);
+                return `$${minStr} - $${maxStr}`;
+            }
+        }
+    };
     return (
         <>
             {isProductExist ? (
@@ -125,6 +201,21 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                                 onChange={(e) => {
                                     if (e.currentTarget.checked) {
                                         if (!selectedIndexWithPrice.find((element) => element.proIndex === id + variant.join())) {
+                                            const price = !voucherData?.discount
+                                                ? (productTreeDetail?.disPrice
+                                                      ? productTreeDetail?.disPrice === 0
+                                                          ? productTreeDetail?.price
+                                                          : productTreeDetail?.disPrice
+                                                      : productTreeDetail?.price) * quantity
+                                                : calculateVoucherPrice(
+                                                      parseFloat(
+                                                          (productTreeDetail?.disPrice
+                                                              ? productTreeDetail?.disPrice === 0
+                                                                  ? productTreeDetail?.price
+                                                                  : productTreeDetail?.disPrice
+                                                              : productTreeDetail?.price) * quantity,
+                                                      ),
+                                                  );
                                             setSelectedIndexWithPrice([
                                                 ...selectedIndexWithPrice,
                                                 {
@@ -132,12 +223,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                                                     _id: id,
                                                     variant: variant,
                                                     quantity: quantity,
-                                                    price:
-                                                        (productTreeDetail?.disPrice
-                                                            ? productTreeDetail?.disPrice === 0
-                                                                ? productTreeDetail?.price
-                                                                : productTreeDetail?.disPrice
-                                                            : productTreeDetail?.price) * quantity,
+                                                    price: price,
                                                 },
                                             ]);
                                         }
@@ -181,22 +267,42 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     </td>
                     <td className="price" data-title="price">
                         <span>
-                            {productTreeDetail?.disPrice
-                                ? productTreeDetail?.disPrice === 0
-                                    ? productTreeDetail?.price
-                                    : productTreeDetail?.disPrice
-                                : productTreeDetail?.price}
+                            {!voucherData?.discount
+                                ? productTreeDetail?.disPrice
+                                    ? productTreeDetail?.disPrice === 0
+                                        ? productTreeDetail?.price
+                                        : productTreeDetail?.disPrice
+                                    : productTreeDetail?.price
+                                : calculateVoucherPrice(
+                                      parseFloat(
+                                          productTreeDetail?.disPrice
+                                              ? productTreeDetail?.disPrice === 0
+                                                  ? productTreeDetail?.price
+                                                  : productTreeDetail?.disPrice
+                                              : productTreeDetail?.price,
+                                      ),
+                                  )}
                             $
                         </span>
                     </td>
                     {children}
                     <td className="price" data-title="subPrice">
                         <span>
-                            {(productTreeDetail?.disPrice
-                                ? productTreeDetail?.disPrice === 0
-                                    ? productTreeDetail?.price
-                                    : productTreeDetail?.disPrice
-                                : productTreeDetail?.price) * quantity}
+                            {!voucherData?.discount
+                                ? (productTreeDetail?.disPrice
+                                      ? productTreeDetail?.disPrice === 0
+                                          ? productTreeDetail?.price
+                                          : productTreeDetail?.disPrice
+                                      : productTreeDetail?.price) * quantity
+                                : calculateVoucherPrice(
+                                      parseFloat(
+                                          (productTreeDetail?.disPrice
+                                              ? productTreeDetail?.disPrice === 0
+                                                  ? productTreeDetail?.price
+                                                  : productTreeDetail?.disPrice
+                                              : productTreeDetail?.price) * quantity,
+                                      ),
+                                  )}
                             $
                         </span>
                     </td>

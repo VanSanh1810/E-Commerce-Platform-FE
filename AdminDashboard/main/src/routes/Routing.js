@@ -8,6 +8,7 @@ import {
     EcommercePage,
     InvoiceDetailsPage,
     InvoiceListPage,
+    MessagePage,
     MyAccountPage,
     NotificationPage,
     OrderListPage,
@@ -22,6 +23,7 @@ import { LoginPage, RegisterPage } from '../pages/auth';
 import ShopListPage from '../pages/main/ShopListPage';
 import ShopProfilePage from '../pages/main/ShopProfilePage';
 import ReportListPage from '../pages/main/ReportListPage';
+import BannerListPage from '../pages/main/BannerListPage';
 
 function Routing() {
     return (
@@ -178,6 +180,24 @@ function Routing() {
                         element={
                             <Private roleAllow={'admin'}>
                                 <ReportListPage />
+                            </Private>
+                        }
+                    />
+
+                    <Route
+                        path="message"
+                        element={
+                            <Private>
+                                <MessagePage />
+                            </Private>
+                        }
+                    />
+
+                    <Route
+                        path="banner"
+                        element={
+                            <Private roleAllow={'admin'}>
+                                <BannerListPage />
                             </Private>
                         }
                     />

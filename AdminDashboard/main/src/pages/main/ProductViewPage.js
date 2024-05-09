@@ -8,9 +8,11 @@ import PageLayout from '../../layouts/PageLayout';
 import specifics from '../../assets/data/specifics.json';
 import reviews from '../../assets/data/reviews.json';
 import axiosInstance from '../../configs/axiosInstance';
+import { useSelector } from 'react-redux';
 
 export default function ProductViewPage() {
     const { productId } = useParams();
+    const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
     const { t } = useContext(TranslatorContext);
     const [productVariantDetailTable, setProductVariantDetailTable] = useState([]);
@@ -132,6 +134,17 @@ export default function ProductViewPage() {
         }
     }, [productVariantDetailTable]);
 
+    const hiddenProductAdminAction = async (action) => {
+        try {
+            const response = await axiosInstance.post(`/api/product/disable/${productId}`, {
+                isHidden: !!action,
+            });
+            console.log(response.data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     return (
         <PageLayout>
             <div className="mc-card mb-4">
@@ -223,6 +236,27 @@ export default function ProductViewPage() {
                                         </div>
                                     );
                                 })}
+                                {!isVendor ? (
+                                    <div className="custome-checkbox mt-4">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            name="isHome"
+                                            id="HomeCheckbox"
+                                            onChange={(e) => {
+                                                hiddenProductAdminAction(e.target.checked);
+                                            }}
+                                            defaultChecked={productData?.status === 'disabled' ? true : false}
+                                        />
+                                        <label
+                                            style={{ userSelect: 'none' }}
+                                            className="form-check-label ms-2"
+                                            htmlFor="HomeCheckbox"
+                                        >
+                                            <span>Hidden</span>
+                                        </label>
+                                    </div>
+                                ) : null}
                             </div>
                         </Col>
                         <Col xl={12}>

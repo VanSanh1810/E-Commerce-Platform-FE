@@ -9,6 +9,7 @@ import ProductTab from '../elements/ProductTab';
 import RelatedSlider from '../sliders/Related';
 import ThumbSlider from '../sliders/Thumb';
 import Modal from 'react-responsive-modal';
+import axiosInstance from '../../config/axiosInstance';
 
 const ProductDetails = ({
     product,
@@ -149,7 +150,7 @@ const ProductDetails = ({
                                 : parseFloat(obj.detail.price);
                     }
                 });
-                setPriceRange(min === max ? `${min}` : `${min} - $${max}`);
+                setPriceRange(min === max ? `$${min}` : `$${min} - $${max}`);
                 setProductStock(totalStock);
             }
         }
@@ -201,6 +202,71 @@ const ProductDetails = ({
             setProductReportModal(false);
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    ////////////////////////////////
+    const [voucherData, setVoucherData] = useState();
+
+    useEffect(() => {
+        const checkVoucher = async () => {
+            try {
+                const result = await axiosInstance.get(`api/banner/details/${product.category._id}`);
+                console.log(result.data);
+                setVoucherData(result.data.voucherData);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        checkVoucher();
+    }, [product]);
+
+    const calculateVoucherPrice = (price) => {
+        // console.log(typeof price);
+        if (typeof price === 'number') {
+            const discountAmount = (parseFloat(price) / 100) * parseFloat(voucherData.discount);
+            if (discountAmount <= parseFloat(voucherData.maxValue)) {
+                return parseFloat(price) - discountAmount;
+            } else {
+                return parseFloat(price) - parseFloat(voucherData.maxValue);
+            }
+        } else {
+            if (typeof price === 'string') {
+                const tempArray = price.split(' ');
+                let min = tempArray[0];
+                let max = tempArray[2];
+                if (!max) {
+                    max = min;
+                }
+                console.log('tempArray ', tempArray);
+                console.log('min ', min);
+                console.log('max ', max);
+                min = min.slice(1).trim();
+                max = max.slice(1).trim();
+                console.log('voucher', voucherData);
+                //
+                let minStr;
+                let maxStr;
+                const discountAmountMin = (parseFloat(min.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMin <= parseFloat(voucherData.maxValue)) {
+                    minStr = parseFloat(min.trim()) - discountAmountMin;
+                } else {
+                    minStr = parseFloat(min.trim()) - parseFloat(voucherData.maxValue);
+                }
+                //
+                const discountAmountMax = (parseFloat(max.trim()) / 100) * parseFloat(voucherData.discount);
+                if (discountAmountMax <= parseFloat(voucherData.maxValue)) {
+                    maxStr = parseFloat(max.trim()) - discountAmountMax;
+                } else {
+                    maxStr = parseFloat(max.trim()) - parseFloat(voucherData.maxValue);
+                }
+                if (maxStr === minStr) {
+                    console.log(minStr);
+                    return `$${minStr}`;
+                }
+                console.log(minStr, maxStr);
+                return `$${minStr} - $${maxStr}`;
+            }
         }
     };
 
@@ -283,23 +349,33 @@ const ProductDetails = ({
                                                         <ins>
                                                             <span className="text-brand">
                                                                 $
-                                                                {product.discountPrice === 0
-                                                                    ? product.price
-                                                                    : product.discountPrice}
+                                                                {!voucherData?.discount
+                                                                    ? product.discountPrice !== 0
+                                                                        ? product.discountPrice
+                                                                        : product.price
+                                                                    : calculateVoucherPrice(
+                                                                          parseFloat(
+                                                                              product.discountPrice !== 0
+                                                                                  ? product.discountPrice
+                                                                                  : product.price,
+                                                                          ),
+                                                                          voucherData,
+                                                                      )}
                                                             </span>
                                                         </ins>
-                                                        {product.discountPrice !== 0 && product.price !== product.disPrice ? (
+                                                        {product.discountPrice !== 0 &&
+                                                        product.price !== product.discountPrice ? (
                                                             <>
                                                                 <ins>
                                                                     <span className="old-price font-md ml-15">
                                                                         ${product.price}
                                                                     </span>
                                                                 </ins>
-                                                                <span className="save-price  font-md color3 ml-15">
+                                                                {/* <span className="save-price font-md color3 ml-15">
                                                                     {((product.price - product.discountPrice) / product.price) *
                                                                         100}
                                                                     % Off
-                                                                </span>
+                                                                </span> */}
                                                             </>
                                                         ) : null}
                                                     </div>
@@ -307,7 +383,18 @@ const ProductDetails = ({
                                                     <div className="product-price primary-color float-left">
                                                         <ins>
                                                             <span className="text-brand">
-                                                                ${producDistPrice !== 0 ? producDistPrice : productPrice}
+                                                                {!voucherData?.discount
+                                                                    ? producDistPrice !== 0
+                                                                        ? producDistPrice
+                                                                        : productPrice
+                                                                    : calculateVoucherPrice(
+                                                                          parseFloat(
+                                                                              producDistPrice !== 0
+                                                                                  ? producDistPrice
+                                                                                  : productPrice,
+                                                                          ),
+                                                                          voucherData,
+                                                                      )}
                                                             </span>
                                                         </ins>
                                                         {producDistPrice !== 0 && productPrice !== producDistPrice ? (
@@ -317,16 +404,21 @@ const ProductDetails = ({
                                                                         ${productPrice}
                                                                     </span>
                                                                 </ins>
-                                                                <span className="save-price  font-md color3 ml-15">
+                                                                {/* <span className="save-price  font-md color3 ml-15">
                                                                     {((productPrice - producDistPrice) / productPrice) * 100}% Off
-                                                                </span>
+                                                                </span> */}
                                                             </>
                                                         ) : null}
                                                     </div>
                                                 ) : (
                                                     <div className="product-price primary-color float-left">
                                                         <ins>
-                                                            <span className="text-brand">${priceRange}</span>
+                                                            <span className="text-brand">
+                                                                {/* ${priceRange} */}
+                                                                {!voucherData?.discount
+                                                                    ? priceRange
+                                                                    : calculateVoucherPrice(priceRange, voucherData)}
+                                                            </span>
                                                         </ins>
                                                     </div>
                                                 )}
@@ -402,15 +494,6 @@ const ProductDetails = ({
                                                 </div>
                                                 <div className="product-extra-link2">
                                                     <button
-                                                        // disabled={
-                                                        //     product.variantData
-                                                        //         ? productStock > 0
-                                                        //             ? true
-                                                        //             : false
-                                                        //         : product.stock > 0
-                                                        //         ? true
-                                                        //         : false
-                                                        // }
                                                         onClick={(e) => {
                                                             if (product.variantData?.length > 0) {
                                                                 // have variant data

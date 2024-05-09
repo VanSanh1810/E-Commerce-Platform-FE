@@ -51,6 +51,12 @@
                 "icon": "notifications",
                 "text": "notifications",
                 "badge": { "count": 9, "variant": "primary round" }
+            },
+            {
+                "path": "/banner",
+                "icon": "percent",
+                "text": "Banner",
+                "badge": { "count": 9, "variant": "primary round" }
             }
         ]
     }

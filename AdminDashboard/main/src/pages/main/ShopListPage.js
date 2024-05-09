@@ -13,10 +13,6 @@ import { debounce } from 'lodash';
 import axiosInstance from '../../configs/axiosInstance';
 
 export default function ShopListPage() {
-    const floats = [
-        { title: 'approved shop', digit: '605', icon: 'check_circle', variant: 'lg green' },
-        { title: 'blocked users', digit: '249', icon: 'remove_circle', variant: 'lg red' },
-    ];
 
     const [rowView, setRowView] = useState(6);
     const [pages, setPages] = useState(0);

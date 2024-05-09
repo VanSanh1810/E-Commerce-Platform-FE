@@ -40,15 +40,15 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                         <li>
                                             <i className="fi-rs-smartphone"></i>
                                             <Link href="/#">
-                                                <a>(+01) - 2345 - 6789</a>
+                                                <a>0838464006</a>
                                             </Link>
                                         </li>
-                                        <li>
+                                        {/* <li>
                                             <i className="fi-rs-marker"></i>
                                             <Link href="/page-contact">
                                                 <a>Our location</a>
                                             </Link>
-                                        </li>
+                                        </li> */}
                                     </ul>
                                 </div>
                             </div>

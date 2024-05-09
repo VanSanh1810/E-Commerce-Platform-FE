@@ -4,7 +4,7 @@ import { ButtonComponent } from '../../components/elements';
 import IconFieldComponent from '../../components/fields/IconFieldComponent';
 import LogoComponent from '../../components/LogoComponent';
 import { useDispatch } from 'react-redux';
-import { setAdminToken, setRole, setShopId } from '../../store/reducers/authReducer';
+import { setAdminToken, setRole, setShopId, setUserId } from '../../store/reducers/authReducer';
 import { Toast } from 'react-bootstrap';
 import axiosInstance from '../../configs/axiosInstance';
 import { setToastState, toastType } from '../../store/reducers/toastReducer';
@@ -32,6 +32,7 @@ export default function LoginPage() {
             dispatch(setAdminToken(result.data.token));
             dispatch(setRole(result.data.data.role));
             dispatch(setShopId(result.data.data.shop));
+            dispatch(setUserId(result.data.data.userId));
         } catch (e) {
             console.log(e);
             dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Wrong username or password' }));

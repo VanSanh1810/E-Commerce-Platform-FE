@@ -11,33 +11,29 @@ import users from '../../assets/data/users.json';
 import ShopTableComponent from '../../components/tables/ShopTableComponent';
 import { debounce } from 'lodash';
 import axiosInstance from '../../configs/axiosInstance';
+import ReportTableComponent from '../../components/tables/ReportTableComponent';
 
 export default function ReportListPage() {
-    const floats = [
-        { title: 'approved shop', digit: '605', icon: 'check_circle', variant: 'lg green' },
-        { title: 'blocked users', digit: '249', icon: 'remove_circle', variant: 'lg red' },
-    ];
-
     const [rowView, setRowView] = useState(6);
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const [shopSearchText, setShopSearchText] = useState('');
+    const [reportType, setReportType] = useState('');
 
     const { t } = useContext(TranslatorContext);
 
-    const [shopStat, setShopStat] = useState({});
+    const [reportStat, setReportStat] = useState({});
 
     useEffect(() => {
-        const fetchShopStat = async () => {
+        const fetchReportStat = async () => {
             try {
-                const response = await axiosInstance.get('/api/stat/shopStat');
+                const response = await axiosInstance.get('/api/stat/reportStat');
                 console.log(response.data);
-                setShopStat(response.data);
+                setReportStat(response.data);
             } catch (err) {
                 console.error(err);
             }
         };
-        fetchShopStat();
+        fetchReportStat();
     }, []);
 
     return (
@@ -46,59 +42,43 @@ export default function ReportListPage() {
                 <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-breadcrumb">
-                            <h3 className="mc-breadcrumb-title">{t('Shop list')}</h3>
+                            <h3 className="mc-breadcrumb-title">{t('Report list')}</h3>
                             <ul className="mc-breadcrumb-list">
                                 <li className="mc-breadcrumb-item">
                                     <Link to="#" className="mc-breadcrumb-link">
                                         {t('home')}
                                     </Link>
                                 </li>
-                                <li className="mc-breadcrumb-item">
+                                {/* <li className="mc-breadcrumb-item">
                                     <Link to="#" className="mc-breadcrumb-link">
-                                        {t('shops')}
+                                        {t('Reports')}
                                     </Link>
-                                </li>
-                                <li className="mc-breadcrumb-item">{t('shop list')}</li>
+                                </li> */}
+                                <li className="mc-breadcrumb-item">{t('Reports')}</li>
                             </ul>
                         </div>
                     </div>
                 </Col>
-                <Col xl={3}>
+                <Col xl={6}>
                     <FloatCardComponent
                         variant={'lg green'}
-                        digit={shopStat?.activeShop}
-                        title={'approved shop'}
+                        digit={reportStat?.doneReport}
+                        title={'approved reports'}
                         icon={'check_circle'}
                     />
                 </Col>
-                <Col xl={3}>
-                    <FloatCardComponent
-                        variant={'lg red'}
-                        digit={shopStat?.bannedShop}
-                        title={'banned shops'}
-                        icon={'remove_circle'}
-                    />
-                </Col>
-                <Col xl={3}>
-                    <FloatCardComponent
-                        variant={'lg purple'}
-                        digit={shopStat?.stopShop}
-                        title={'stop shops'}
-                        icon={'pause_circle'}
-                    />
-                </Col>
-                <Col xl={3}>
+                <Col xl={6}>
                     <FloatCardComponent
                         variant={'lg yellow'}
-                        digit={shopStat?.pendingShop}
-                        title={'pending shops'}
+                        digit={reportStat?.pendingReport}
+                        title={'pending reports'}
                         icon={'pending'}
                     />
                 </Col>
                 <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
-                            <h4 className="mc-card-title">{t('registered shops')}</h4>
+                            <h4 className="mc-card-title">{t('Reports')}</h4>
                             {/* <Dropdown bsPrefix="mc-dropdown">
                                 <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
                                     <i className='material-icons'>more_horiz</i>
@@ -126,39 +106,27 @@ export default function ReportListPage() {
                                     }}
                                 />
                             </Col>
-                            {/* <Col>
-                                <LabelFieldComponent
-                                    label={t('status_by')}
-                                    option={['approved', 'pending', 'blocked']}
-                                    labelDir="label-col"
-                                    fieldSize="mb-4 w-100 h-md"
-                                />
-                            </Col> */}
                             <Col>
                                 <LabelFieldComponent
-                                    type="search"
-                                    label={t('search_by')}
-                                    placeholder={t('id') + ' / ' + t('name') + ' / ' + t('email') + ' / ' + t('number')}
+                                    label={t('status_by')}
+                                    option={['all', 'pending', 'done']}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
-                                    onChange={debounce(
-                                        (e) => {
-                                            // console.log(e.target.value);
-                                            setShopSearchText(e.target.value);
-                                            setCurrentPage(1);
-                                        },
-                                        [500],
-                                    )}
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        setReportType(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
                                 />
                             </Col>
                         </Row>
-                        <ShopTableComponent
+                        <ReportTableComponent
                             thead={users.thead}
                             tbody={users.tbody}
                             rowView={rowView}
                             currentPage={currentPage}
                             setPages={setPages}
-                            shopSearchText={shopSearchText}
+                            reportType={reportType}
                         />
                         <PaginationComponent
                             currentPage={currentPage}

@@ -17,6 +17,7 @@ import Preloader from './../components/elements/Preloader';
 import storage from '../util/localStorage';
 import axiosInstance from '../config/axiosInstance';
 import * as Types from '../redux/constants/actionTypes';
+import { SocketIOProvider } from '../contexts/SocketIOContext';
 
 const MyApp = ({ Component, pageProps }) => {
     const [loading, setLoading] = useState(false);
@@ -30,18 +31,24 @@ const MyApp = ({ Component, pageProps }) => {
         //     window.WOW = require('wowjs');
         // }
         // new WOW.WOW().init();
+        console.log('ready');
     }, []);
     return (
         <Provider store={store}>
             <StorageWrapper>
-                {!loading ? (
+                <SocketIOProvider>
                     <div>
                         <ToastContainer />
                         <Component {...pageProps} />
                     </div>
-                ) : (
-                    <Preloader />
-                )}
+                    {/* {!loading ? (
+                        <div>
+                            
+                        </div>
+                    ) : (
+                        <Preloader />
+                    )} */}
+                </SocketIOProvider>
             </StorageWrapper>
         </Provider>
     );

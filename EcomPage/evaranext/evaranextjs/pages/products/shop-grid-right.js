@@ -31,8 +31,9 @@ const Products = ({}) => {
     const [sortType, setSortType] = useState('');
     const [sortPrice, setSortPrice] = useState('lowToHigh');
 
-    // let Router = useRouter(),
-    //     searchTerm = Router.query.search,
+    let Router = useRouter();
+    let searchTerm = Router.query.search;
+    let cate = Router.query.category;
     //     showLimit = 12,
     //     showPagination = 4;
 
@@ -44,13 +45,16 @@ const Products = ({}) => {
     useEffect(() => {
         // fetchProduct(searchTerm, '/static/product.json', productFilters);
         // cratePagination();
+        console.log(searchTerm);
         const fetchProducts = async () => {
             console.log(currentPage, limit, selectedClassify, sortType, sortPrice);
             try {
                 const result = await axiosInstance.get(
                     `/api/product?currentPage=${currentPage}&limit=${limit}&classify=${
                         selectedClassify ? selectedClassify : ''
-                    }&sortType=${sortType}&sortPrice=${sortPrice}`,
+                    }&sortType=${sortType}&sortPrice=${sortPrice}&searchText=${searchTerm ? searchTerm : ''}&category=${
+                        cate ? cate : ''
+                    }`,
                 );
                 setProducts(result.data.data);
                 cratePagination(result.data.pages);
@@ -61,7 +65,7 @@ const Products = ({}) => {
             }
         };
         fetchProducts();
-    }, [currentPage, limit, selectedClassify, sortType, sortPrice]);
+    }, [currentPage, limit, selectedClassify, sortType, sortPrice, searchTerm, cate]);
 
     const cratePagination = (_pages) => {
         // set pagination

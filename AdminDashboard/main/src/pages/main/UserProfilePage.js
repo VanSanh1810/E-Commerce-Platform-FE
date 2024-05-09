@@ -18,6 +18,7 @@ export default function UserProfilePage() {
     ];
 
     const [userData, setUserData] = useState();
+    const [userStat, setUserStat] = useState({});
 
     useEffect(() => {
         console.log(uid);
@@ -31,6 +32,20 @@ export default function UserProfilePage() {
             }
         };
         fetchUserData();
+    }, [uid]);
+
+    useEffect(() => {
+        console.log(uid);
+        const fetchUserStat = async () => {
+            try {
+                const result = await axiosInstance.get(`/api/stat/user/${uid}`);
+                console.log(result.data);
+                setUserStat(result.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchUserStat();
     }, [uid]);
     return (
         <PageLayout>
@@ -97,12 +112,14 @@ export default function UserProfilePage() {
                                         <i className="material-icons">feed</i>
                                         <span>{userData?.email}</span>
                                     </li>
-                                    <li>
-                                        <i className="material-icons">person</i>
-                                        <AnchorComponent to={`/shop/${userData?.shop._id}`}>
-                                            {userData?.shop.name}
-                                        </AnchorComponent>
-                                    </li>
+                                    {userData?.shop?._id ? (
+                                        <li>
+                                            <i className="material-icons">person</i>
+                                            <AnchorComponent to={`/shop/${userData?.shop?._id}`}>
+                                                {userData?.shop.name}
+                                            </AnchorComponent>
+                                        </li>
+                                    ) : null}
                                     {/* <li>
                                         <i className="material-icons">public</i>
                                         <span>examplehotash.com</span>
@@ -151,16 +168,22 @@ export default function UserProfilePage() {
                 </Col>
                 <Col xl={7}>
                     <Row>
-                        {floats.map((float, index) => (
-                            <Col md={4} lg={4} key={index}>
-                                <FloatCardComponent
-                                    variant={float.variant}
-                                    digit={float.digit}
-                                    title={float.title}
-                                    icon={float.icon}
-                                />
-                            </Col>
-                        ))}
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm purple'}
+                                digit={userStat?.totalOrder}
+                                title={'total_orders'}
+                                icon={'shopping_cart'}
+                            />
+                        </Col>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm yellow'}
+                                digit={userStat?.totalReview}
+                                title={'total_reviews'}
+                                icon={'hotel_class'}
+                            />
+                        </Col>
                         <Col xl={12}>
                             <ActivityCardComponent />
                         </Col>

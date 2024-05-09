@@ -1,5 +1,5 @@
 {
-    "thead": ["product", "category", "price", "stock", "rating", "order", "sales", "action"],
+    "thead": ["product", "category", "price", "stock", "rating", "order", "status", "action"],
     "tbody": [
         {
             "image": "images/product/01.webp",

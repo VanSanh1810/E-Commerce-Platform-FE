@@ -604,6 +604,7 @@ export default function ProductUploadPage() {
                 setproductClassify(result.data.data.classify?._id);
 
                 setProductTag(result.data.data.tag);
+                setIsDraft(result.data.data.status === 'draft' ? true : false);
 
                 console.log(result.data);
                 setProductImages(
@@ -1244,7 +1245,7 @@ export default function ProductUploadPage() {
                                     </label>
                                 </div>
                             </div>
-                            <div className="custome-checkbox mt-4">
+                            <div className="custome-checkbox mt-4" key={isDraft}>
                                 <input
                                     className="form-check-input"
                                     type="checkbox"

@@ -13,12 +13,6 @@ import axiosInstance from '../../configs/axiosInstance';
 export default function ProductListPage() {
     const { t, n } = useContext(TranslatorContext);
 
-    const floats = [
-        { title: 'Total Product', digit: 547, icon: 'shopping_bag', variant: 'lg blue' },
-        { title: 'Total categories', digit: 605, icon: 'widgets', variant: 'lg green' },
-        { title: 'Average Start', digit: 249, icon: 'star', variant: 'lg yellow' },
-    ];
-
     const [rowView, setRowView] = useState(6);
     const [sortPrice, setSortPrice] = useState('lowToHigh');
     const [pages, setPages] = useState(0);

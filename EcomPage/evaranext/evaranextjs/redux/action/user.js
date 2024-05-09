@@ -3,11 +3,11 @@ import * as Types from '../constants/actionTypes';
 import storage from '../../util/localStorage';
 
 // login
-export const userLogin = (loginData) => async (dispatch) => {
+export const userLogin = (loginData, userId) => async (dispatch) => {
     try {
         dispatch({
             type: Types.USER_LOGIN,
-            payload: { userToken: loginData },
+            payload: { userToken: loginData, userId: userId },
         });
         authenticateUser();
     } catch (error) {
@@ -27,6 +27,7 @@ export const authenticateUser = () => {
     return async (dispatch) => {
         try {
             const storedToken = localStorage.getItem('dokani_user');
+            const userId = localStorage.getItem('dokani_userId');
             if (storedToken) {
                 console.log('Stored token', storedToken);
                 const response = await axiosInstance.post('/api/auth/validate', {
@@ -36,7 +37,7 @@ export const authenticateUser = () => {
                     console.log(response.data);
                     const serverCart = await response.data.data.cart.items;
                     console.log(serverCart);
-                    dispatch({ type: Types.USER_LOGIN, payload: { userToken: storedToken } }); // Cập nhật token vào Redux state
+                    dispatch({ type: Types.USER_LOGIN, payload: { userToken: storedToken, userId: userId } }); // Cập nhật token vào Redux state
                     dispatch({
                         type: Types.INIT_LOCALSTORAGE,
                         payload: { cart: serverCart ? [...serverCart] : [], wishlist: [], compare: [] },

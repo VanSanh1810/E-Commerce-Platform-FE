@@ -21,6 +21,7 @@ export default function OrderListPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [orderSearchText, setOrderSearchText] = useState('');
     const [orderSearchDate, setOrderSearchDate] = useState();
+    const [orderSearchStatus, setOrderSearchStatus] = useState('');
 
     useEffect(() => {
         const fetchOrderStat = async () => {
@@ -118,9 +119,16 @@ export default function OrderListPage() {
                             <Col>
                                 <LabelFieldComponent
                                     label={t('status_by')}
-                                    option={['pending', 'shipped', 'recieved', 'cancelled']}
+                                    option={['all', 'Pending', 'Shipped', 'Done', 'Cancel']}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
+                                    onChange={(e) => {
+                                        if (e.target.value === 'all') {
+                                            setOrderSearchStatus('');
+                                            return;
+                                        }
+                                        setOrderSearchStatus(e.target.value);
+                                    }}
                                 />
                             </Col>
                             <Col>
@@ -165,6 +173,7 @@ export default function OrderListPage() {
                             setPages={setPages}
                             orderSearchText={orderSearchText}
                             date={orderSearchDate}
+                            orderSearchStatus={orderSearchStatus}
                         />
                         <PaginationComponent
                             currentPage={currentPage}

@@ -77,7 +77,7 @@ export default function Home() {
                 <section className="section-padding">
                     <div className="container wow fadeIn animated">
                         <h3 className="section-title mb-20">
-                            <span>New</span> Arrivals
+                            <span>Recommend</span> Products
                         </h3>
                         <div className="carausel-6-columns-cover position-relative">
                             <NewArrival />
@@ -85,7 +85,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="deals section-padding">
+                {/* <section className="deals section-padding">
                     <div className="container">
                         <div className="row">
                             <div className="col-lg-6 deal-co">
@@ -96,7 +96,7 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 <section className="section-padding">
                     <div className="container">
@@ -109,11 +109,11 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="bg-grey-9 section-padding">
+                {/* <section className="bg-grey-9 section-padding">
                     <div className="container pt-25 pb-25">
                         <FeatchTab2 />
                     </div>
-                </section>
+                </section> */}
 
                 {/* <section className="section-padding">
                     <div className="container pt-25 pb-20">
@@ -133,7 +133,7 @@ export default function Home() {
                     </div>
                 </section> */}
 
-                <section className="mb-50">
+                {/* <section className="mb-50">
                     <div className="container">
                         <div className="row">
                             <div className="col-12">
@@ -141,9 +141,9 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> */}
 
-                <Bottom />
+                {/* <Bottom /> */}
 
                 <QuickView />
             </Layout>

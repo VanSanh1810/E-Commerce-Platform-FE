@@ -94,7 +94,7 @@ function Account({ userLogout, isLoggedIn }) {
             const response = await axiosInstance.patch(`/api/address/${addressModal._id}`, {
                 name: e.target.name.value,
                 phone: e.target.phone.value,
-                addressData: {
+                address: {
                     province: selectedAddress[0],
                     district: selectedAddress[1],
                     ward: selectedAddress[2],
@@ -260,14 +260,30 @@ function Account({ userLogout, isLoggedIn }) {
                 } catch (e) {
                     console.error(e);
                 }
-            } else {
             }
         } catch (err) {
             console.error(err);
         }
     };
 
-    const reviewAction = async () => {};
+    const cancelOrderAction = async (oId) => {
+        try {
+            if (orderViewModal.status === 'Pending') {
+                //change order status
+                try {
+                    const response = await axiosInstance.post(`/api/order/${orderViewModal._id}`, {
+                        status: 'Cancel',
+                    });
+                    console.log(response.data);
+                    setOrderViewModal(false);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     useEffect(() => {
         const fetchShopAddress = async () => {
@@ -1140,7 +1156,8 @@ function Account({ userLogout, isLoggedIn }) {
                                 <p>Create at: {new Date(parseInt(orderViewModal?.createDate)).toLocaleDateString()}</p>
                             </div>
                             <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
-                                {orderViewModal?.onlPayStatus === 'Pending' || orderViewModal?.onlPayStatus === 'Fail' ? (
+                                {(orderViewModal?.onlPayStatus === 'Pending' || orderViewModal?.onlPayStatus === 'Fail') &&
+                                orderViewModal.status === 'Pending' ? (
                                     <button
                                         onClick={() => {
                                             window.location.href = orderViewModal.paymentUrl;
@@ -1170,6 +1187,17 @@ function Account({ userLogout, isLoggedIn }) {
                                         className="btn mt-2 mx-3"
                                     >
                                         Review
+                                    </button>
+                                ) : null}
+                                {orderViewModal?.status === 'Pending' ? (
+                                    <button
+                                        onClick={() => {
+                                            cancelOrderAction(orderViewModal._id);
+                                        }}
+                                        style={{ backgroundColor: '#39fa5d' }}
+                                        className="btn mt-2 mx-3"
+                                    >
+                                        Cancel order
                                     </button>
                                 ) : null}
                                 <button style={{ backgroundColor: 'gray' }} className="btn mt-2 mx-3" onClick={printOrder}>

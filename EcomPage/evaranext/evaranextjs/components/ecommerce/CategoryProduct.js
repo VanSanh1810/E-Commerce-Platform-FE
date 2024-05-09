@@ -1,13 +1,13 @@
-import { useRouter } from "next/router";
-import { connect } from "react-redux";
-import { updateProductCategory } from "../../redux/action/productFiltersAction";
+import { useRouter } from 'next/router';
+import { connect } from 'react-redux';
+import { updateProductCategory } from '../../redux/action/productFiltersAction';
 
 const CategoryProduct = ({ updateProductCategory }) => {
     const router = useRouter();
 
     const removeSearchTerm = () => {
         router.push({
-            pathname: "/products",
+            pathname: '/products',
         });
     };
 
@@ -20,23 +20,17 @@ const CategoryProduct = ({ updateProductCategory }) => {
     return (
         <>
             <ul className="categories">
-                <li onClick={(e) => selectCategory(e, "")}>
+                <li onClick={(e) => selectCategory(e, '')}>
                     <a>All</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, "jeans")}>
-                    <a>Jeans</a>
+                <li onClick={(e) => selectCategory(e, 'jeans')}>
+                    <a>Trending</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, "shoe")}>
-                    <a>Shoe</a>
+                <li onClick={(e) => selectCategory(e, 'shoe')}>
+                    <a>Popular</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, "jacket")}>
-                    <a>Jacket</a>
-                </li>
-                <li onClick={(e) => selectCategory(e, "trousers")}>
-                    <a>Trousers</a>
-                </li>
-                <li onClick={(e) => selectCategory(e, "accessories")}>
-                    <a>Accessories</a>
+                <li onClick={(e) => selectCategory(e, 'jacket')}>
+                    <a>New added</a>
                 </li>
             </ul>
         </>

@@ -4,9 +4,13 @@ import Modal from 'react-bootstrap/Modal';
 import { AnchorComponent, ButtonComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
 export default function ProductsTableComponent({ thead, tbody, sortPrice, rowView, currentPage, setPages, productSearchText }) {
     const { t } = useContext(TranslatorContext);
+    const dispatch = useDispatch();
+
     const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
     const [alertModal, setAlertModal] = useState(false);
     const [data, setData] = useState([]);
@@ -79,6 +83,30 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
         return sum;
     };
 
+    const productSatusView = (status) => {
+        switch (status) {
+            case 'draft':
+                return 'yellow';
+            case 'active':
+                return 'green';
+            case 'disabled':
+                return 'red';
+            default:
+                return 'yellow';
+        }
+    };
+
+    const deleteProductAction = async (id) => {
+        try {
+            const response = await axiosInstance.delete(`/api/product/${id}`);
+            console.log(response.data);
+            dispatch(dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'product deleted' })));
+            setAlertModal(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     return (
         <div className="mc-table-responsive">
             <table className="mc-table product">
@@ -133,7 +161,9 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                                 </div>
                             </td>
                             <td>{item.ordersCount}</td>
-                            <td>{item.sales ? 0 : 0}</td>
+                            <td>
+                                <p className={`mc-table-badge ${productSatusView(item.status)}`}>{item.status}</p>
+                            </td>
                             <td>
                                 <div className="mc-table-action">
                                     <AnchorComponent to={`/product/${item.id}`} title="View" className="material-icons view">
@@ -151,7 +181,7 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                                             type="button"
                                             title="Delete"
                                             className="material-icons delete"
-                                            onClick={() => setAlertModal(true)}
+                                            onClick={() => setAlertModal(item.id)}
                                         >
                                             {'delete'}
                                         </ButtonComponent>
@@ -172,7 +202,7 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                         <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setAlertModal(false)}>
                             {t('close')}
                         </ButtonComponent>
-                        <ButtonComponent type="button" className="btn btn-danger" onClick={() => setAlertModal(false)}>
+                        <ButtonComponent type="button" className="btn btn-danger" onClick={() => deleteProductAction(alertModal)}>
                             {t('delete')}
                         </ButtonComponent>
                     </Modal.Footer>

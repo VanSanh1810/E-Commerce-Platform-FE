@@ -16,7 +16,7 @@ import Pagination from '../../components/ecommerce/Pagination';
 import axiosInstance from '../../config/axiosInstance';
 import AddressStaticData from '../../public/static/dataprovince';
 
-function Test({ products, productFilters, fetchProduct }) {
+function Test({ products, productFilters, fetchProduct, user }) {
     const router = useRouter();
     const {
         query: { shopId },
@@ -42,6 +42,8 @@ function Test({ products, productFilters, fetchProduct }) {
     const [sortType, setSortType] = useState('');
     const [sortPrice, setSortPrice] = useState('lowToHigh');
 
+    const [isFollow, setIsFollow] = useState(false);
+
     const selectClassifyHandler = (value) => {
         setSelectedClassify(value);
     };
@@ -60,6 +62,7 @@ function Test({ products, productFilters, fetchProduct }) {
                 setTotalProducts(result.data.data.totalProduct);
                 setAverageShopReview(result.data.data.averageShopReview);
                 setTotalFolower(result.data.data.totalFollowers);
+                setIsFollow(result.data.isFollow ? true : false);
                 const addressData = result.data.data.shop.addresses;
                 const province = AddressStaticData.treeDataProvince[addressData.address.province].label;
                 const district =
@@ -133,6 +136,19 @@ function Test({ products, productFilters, fetchProduct }) {
         setCurrentPage(1);
     };
 
+    const followShopAction = async () => {
+        //
+        try {
+            const response = await axiosInstance.put(`/api/shop/follow/${shopId}`);
+            // if (isFollow) {
+            // } else {
+            // }
+            setIsFollow(!isFollow);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     function timeDifference(startDate, endDate) {
         const millisecondsPerSecond = 1000;
         const millisecondsPerMinute = millisecondsPerSecond * 60;
@@ -170,7 +186,11 @@ function Test({ products, productFilters, fetchProduct }) {
                                     <p className="flex-grow-1">{shopData?.name}</p>
                                 </div>
                                 <div className="d-flex flex-row justify-content-start align-items-center">
-                                    <button className="btn flex-fill">follow</button>
+                                    {user ? (
+                                        <button className="btn flex-fill" onClick={followShopAction}>
+                                            {isFollow ? 'unfollow' : 'follow'}
+                                        </button>
+                                    ) : null}
                                 </div>
                             </div>
                             <div className="col-lg-9 ps-4" style={{ borderLeft: '1px solid #d1d1d1' }}>
@@ -359,6 +379,7 @@ function Test({ products, productFilters, fetchProduct }) {
 const mapStateToProps = (state) => ({
     products: state.products,
     productFilters: state.productFilters,
+    user: state.user,
 });
 
 const mapDidpatchToProps = {

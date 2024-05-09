@@ -4,7 +4,16 @@ import Modal from 'react-bootstrap/Modal';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function OrderTableComponent({ thead, tbody, rowView, currentPage, setPages, orderSearchText, date }) {
+export default function OrderTableComponent({
+    thead,
+    tbody,
+    rowView,
+    currentPage,
+    setPages,
+    orderSearchText,
+    date,
+    orderSearchStatus,
+}) {
     const [alertModal, setAlertModal] = React.useState(false);
     const [data, setData] = useState([]);
 
@@ -16,7 +25,7 @@ export default function OrderTableComponent({ thead, tbody, rowView, currentPage
                 const response = await axiosInstance.get(
                     `/api/order?target=adminPage&currentPage=${currentPage}&limit=${rowView}&searchText=${
                         orderSearchText || ''
-                    }&date=${date}`,
+                    }&date=${date || ''}&orderStatus=${orderSearchStatus}`,
                 );
                 console.log(response.data);
                 setData([...response.data.orders]);
@@ -26,7 +35,7 @@ export default function OrderTableComponent({ thead, tbody, rowView, currentPage
             }
         };
         fetchOrdersData();
-    }, [rowView, currentPage, setPages, orderSearchText, date]);
+    }, [rowView, currentPage, setPages, orderSearchText, date, orderSearchStatus]);
 
     const orderSatusView = (status) => {
         switch (status) {

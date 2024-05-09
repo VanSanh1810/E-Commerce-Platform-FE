@@ -1,11 +1,41 @@
-import Link from "next/link";
-import { Navigation, Pagination } from "swiper";
-import "swiper/css/pagination";
-import { Swiper, SwiperSlide } from "swiper/react";
-
-
+import Link from 'next/link';
+import { Navigation, Pagination } from 'swiper';
+import 'swiper/css/pagination';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import React from 'react';
+import Timer from '../elements/Timer';
+import { useEffect } from 'react';
+import axiosInstance from '../../config/axiosInstance';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 const Intro1 = () => {
+    const router = useRouter();
+    const fixDate = new Date();
+    const [listBanners, setListBanners] = useState([]);
+    useEffect(() => {
+        const fetchBannerData = async () => {
+            try {
+                const response = await axiosInstance.get('api/banner');
+                console.log(response.data);
+                setListBanners(response.data.data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchBannerData();
+    }, []);
+
+    const handleSearch = (_searchCate) => {
+        console.log('click');
+        router.push({
+            pathname: '/products/shop-grid-right',
+            query: {
+                category: _searchCate,
+            },
+        });
+    };
+
     return (
         <>
             <Swiper
@@ -14,44 +44,79 @@ const Intro1 = () => {
                 // loop={false}
                 //pagination={true}
                 navigation={{
-                    prevEl: ".custom_prev_i1",
-                    nextEl: ".custom_next_i1",
+                    prevEl: '.custom_prev_i1',
+                    nextEl: '.custom_next_i1',
                 }}
                 className="hero-slider-1 dot-style-1 dot-style-1-position-1"
             >
+                {listBanners.map((banner) => {
+                    return (
+                        <SwiperSlide>
+                            <div
+                                className="deal wow fadeIn animated mb-md-4 mb-sm-4 mb-lg-0"
+                                style={{
+                                    backgroundImage: `url(${banner.image.url})`,
+                                }}
+                            >
+                                <div className="deal-top">
+                                    <h2 className="text-brand">{banner.title}</h2>
+                                    <h5>{banner.category.name}</h5>
+                                </div>
+                                <div className="deal-content">
+                                    <h6 className="product-title">
+                                        <div
+                                            onClick={() => {
+                                                handleSearch(banner.category._id);
+                                            }}
+                                        >
+                                            <a>{banner.description}</a>
+                                        </div>
+                                        {/* <Link href={`/products/shop-grid-right?category=${banner.category._id}`}>
+                                            <a>{banner.description}</a>
+                                        </Link> */}
+                                    </h6>
+                                    <div className="product-price">
+                                        <span className="new-price">Discount: {banner.discount}%</span>
+                                        <span className="price">Up to: {banner.maxValue}$</span>
+                                    </div>
+                                </div>
+                                <div className="deal-bottom">
+                                    <p>Hurry Up! Offer End In:</p>
+                                    {/* <Timer endDateTime="2023-11-27 00:00:00" /> */}
+                                    {/* <Timer endDateTime={fixDate.setDate(fixDate.getDate() + 2)} /> */}
+                                    <Timer endDateTime={banner.endDate} />
+                                    <div
+                                        onClick={() => {
+                                            handleSearch(banner.category._id);
+                                        }}
+                                    >
+                                        <a className="btn hover-up">
+                                            Shop Now <i className="fi-rs-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </SwiperSlide>
+                    );
+                })}
                 <SwiperSlide>
                     <div className="single-hero-slider single-animation-wrap">
                         <div className="container">
                             <div className="row align-items-center slider-animated-1">
                                 <div className="col-lg-5 col-md-6">
                                     <div className="hero-slider-content-2">
-                                        <h4 className="animated">
-                                            Trade-in offer
-                                        </h4>
-                                        <h2 className="animated fw-900">
-                                            Supper value deals
-                                        </h2>
-                                        <h1 className="animated fw-900 text-brand">
-                                            On all products
-                                        </h1>
-                                        <p className="animated">
-                                            Save more with coupons & up to 70%
-                                            off
-                                        </p>
+                                        <h4 className="animated">Trade-in offer</h4>
+                                        <h2 className="animated fw-900">Supper value deals</h2>
+                                        <h1 className="animated fw-900 text-brand">On all products</h1>
+                                        <p className="animated">Save more with coupons & up to 70% off</p>
                                         <Link href="/products/shop-grid-right">
-                                            <a className="animated btn btn-brush btn-brush-3">
-                                                Shop Now
-                                            </a>
+                                            <a className="animated btn btn-brush btn-brush-3">Shop Now</a>
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="col-lg-7 col-md-6">
                                     <div className="single-slider-img single-slider-img-1">
-                                        <img
-                                            className="animated slider-1-1"
-                                            src="assets/imgs/slider/slider-1.png"
-                                            alt=""
-                                        />
+                                        <img className="animated slider-1-1" src="assets/imgs/slider/slider-1.png" alt="" />
                                     </div>
                                 </div>
                             </div>
@@ -64,33 +129,18 @@ const Intro1 = () => {
                             <div className="row align-items-center slider-animated-1">
                                 <div className="col-lg-5 col-md-6">
                                     <div className="hero-slider-content-2">
-                                        <h4 className="animated">
-                                            Hot promotions
-                                        </h4>
-                                        <h2 className="animated fw-900">
-                                            Fashion Trending
-                                        </h2>
-                                        <h1 className="animated fw-900 text-7">
-                                            Great Collection
-                                        </h1>
-                                        <p className="animated">
-                                            Save more with coupons & up to 20%
-                                            off
-                                        </p>
+                                        <h4 className="animated">Hot promotions</h4>
+                                        <h2 className="animated fw-900">Fashion Trending</h2>
+                                        <h1 className="animated fw-900 text-7">Great Collection</h1>
+                                        <p className="animated">Save more with coupons & up to 20% off</p>
                                         <Link href="/products/shop-grid-right">
-                                            <a className="animated btn btn-brush btn-brush-2">
-                                                Discover Now
-                                            </a>
+                                            <a className="animated btn btn-brush btn-brush-2">Discover Now</a>
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="col-lg-7 col-md-6">
                                     <div className="single-slider-img single-slider-img-1">
-                                        <img
-                                            className="animated slider-1-2"
-                                            src="assets/imgs/slider/slider-2.png"
-                                            alt=""
-                                        />
+                                        <img className="animated slider-1-2" src="assets/imgs/slider/slider-2.png" alt="" />
                                     </div>
                                 </div>
                             </div>
@@ -103,32 +153,18 @@ const Intro1 = () => {
                             <div className="row align-items-center slider-animated-1">
                                 <div className="col-lg-5 col-md-6">
                                     <div className="hero-slider-content-2">
-                                        <h4 className="animated">
-                                            Upcoming Offer
-                                        </h4>
-                                        <h2 className="animated fw-900">
-                                            Big Deals From
-                                        </h2>
-                                        <h1 className="animated fw-900 text-8">
-                                            Manufacturer
-                                        </h1>
-                                        <p className="animated">
-                                            Clothing, Shoes, Bags, Wallets...
-                                        </p>
+                                        <h4 className="animated">Upcoming Offer</h4>
+                                        <h2 className="animated fw-900">Big Deals From</h2>
+                                        <h1 className="animated fw-900 text-8">Manufacturer</h1>
+                                        <p className="animated">Clothing, Shoes, Bags, Wallets...</p>
                                         <Link href="/products/shop-grid-right">
-                                            <a className="animated btn btn-brush btn-brush-1">
-                                                Shop Now
-                                            </a>
+                                            <a className="animated btn btn-brush btn-brush-1">Shop Now</a>
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="col-lg-7 col-md-6">
                                     <div className="single-slider-img single-slider-img-1">
-                                        <img
-                                            className="animated slider-1-3"
-                                            src="assets/imgs/slider/slider-3.png"
-                                            alt=""
-                                        />
+                                        <img className="animated slider-1-3" src="assets/imgs/slider/slider-3.png" alt="" />
                                     </div>
                                 </div>
                             </div>

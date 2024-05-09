@@ -12,13 +12,8 @@ export default function ShopProfilePage() {
     const { t } = useContext(TranslatorContext);
     const { uid } = useParams();
 
-    const floats = [
-        { title: 'total_orders', digit: 5789, icon: 'shopping_cart', variant: 'sm purple' },
-        { title: 'total_reviews', digit: 2373, icon: 'hotel_class', variant: 'sm yellow' },
-        { title: 'total_products', digit: 7893, icon: 'shopping_bag', variant: 'sm green' },
-    ];
-
     const [shopData, setShopData] = useState();
+    const [shopStat, setShopStat] = useState({});
     const [adName, setAdName] = useState({});
 
     useEffect(() => {
@@ -47,6 +42,26 @@ export default function ShopProfilePage() {
         };
         fetchShopData();
     }, [uid]);
+
+    useEffect(() => {
+        console.log(uid);
+        const fetchShopStat = async () => {
+            try {
+                const result = await axiosInstance.get(`/api/stat/shopStat/${uid}`);
+                setShopStat(result.data);
+                console.log(result.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchShopStat();
+    }, [uid]);
+
+    const floats = [
+        { title: 'total_orders', digit: shopStat?.totalOrder, icon: 'shopping_cart', variant: 'sm purple' },
+        { title: 'total_reviews', digit: shopStat?.totalOrder, icon: 'hotel_class', variant: 'sm yellow' },
+        { title: 'total_products', digit: shopStat?.totalProduct, icon: 'shopping_bag', variant: 'sm green' },
+    ];
     return (
         <PageLayout>
             <Row>
@@ -171,16 +186,22 @@ export default function ShopProfilePage() {
                 </Col>
                 <Col xl={7}>
                     <Row>
-                        {floats.map((float, index) => (
-                            <Col md={4} lg={4} key={index}>
-                                <FloatCardComponent
-                                    variant={float.variant}
-                                    digit={float.digit}
-                                    title={float.title}
-                                    icon={float.icon}
-                                />
-                            </Col>
-                        ))}
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm purple'}
+                                digit={shopStat?.totalOrder}
+                                title={'total_orders'}
+                                icon={'shopping_cart'}
+                            />
+                        </Col>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm green'}
+                                digit={shopStat?.totalProduct}
+                                title={'total_products'}
+                                icon={'shopping_bag'}
+                            />
+                        </Col>
                         <Col xl={12}>
                             <ActivityCardComponent />
                         </Col>

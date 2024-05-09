@@ -1,23 +1,23 @@
-import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 
 const Search = () => {
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     const router = useRouter();
 
     const handleSearch = () => {
-        console.log("click");
+        console.log('click');
         router.push({
-            pathname: "/products",
+            pathname: '/products/shop-grid-right',
             query: {
                 search: searchTerm,
             },
         });
-        setSearchTerm("");
+        setSearchTerm('');
     };
 
     const handleInput = (e) => {
-        if (e.key === "Enter") {
+        if (e.key === 'Enter') {
             e.preventDefault();
             handleSearch();
         }
@@ -25,7 +25,7 @@ const Search = () => {
     return (
         <>
             <form>
-                <select className="select-active">
+                {/* <select className="select-active">
                     <option>All Categories</option>
                     <option>Women's</option>
                     <option>Men's</option>
@@ -37,7 +37,7 @@ const Search = () => {
                     <option>Luggage</option>
                     <option>Shoes</option>
                     <option>Mother & Kids</option>
-                </select>
+                </select> */}
                 <input
                     value={searchTerm}
                     onKeyDown={handleInput}
@@ -46,7 +46,6 @@ const Search = () => {
                     placeholder="Search"
                 />
             </form>
-
             {/* <Button>Search</Button> */}
             {/* <button onClick={handleSearch}>search</button> */}
         </>

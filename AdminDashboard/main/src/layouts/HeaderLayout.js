@@ -126,26 +126,34 @@ export default function HeaderLayout() {
                     {/*================================
                               ORDER PART START
                     ================================*/}
-                    {/* <Dropdown className='order'>
+                    <Dropdown className="order">
                         <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon">
-                            <i className='material-icons'>shopping_cart</i>
-                            <sup className='primary'>{n(12)}</sup>
+                            <i className="material-icons">shopping_cart</i>
+                            <sup className="primary">{n(12)}</sup>
                         </Dropdown.Toggle>
                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
                             <div className="mc-header-dropdown-group">
                                 <div className="mc-card-header">
                                     <h4 className="mc-card-title">
-                                        {t('orders') + ' '}
-                                        ({n(12)})
+                                        {t('orders') + ' '}({n(12)})
                                     </h4>
                                     <Dropdown bsPrefix="mc-dropdown">
                                         <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                            <i className='material-icons'>settings</i>
+                                            <i className="material-icons">settings</i>
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>drafts</i><span>{t('mark_all_as_read')}</span></button>
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>markunread</i><span>{t('mark_all_as_unread')}</span></button>
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete_all_order')}</span></button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">drafts</i>
+                                                <span>{t('mark_all_as_read')}</span>
+                                            </button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">markunread</i>
+                                                <span>{t('mark_all_as_unread')}</span>
+                                            </button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">delete</i>
+                                                <span>{t('delete_all_order')}</span>
+                                            </button>
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </div>
@@ -153,7 +161,7 @@ export default function HeaderLayout() {
                                 <ul className="mc-header-dropdown-list thin-scrolling">
                                     {orders?.map((order, index) => (
                                         <li key={index} className={`mc-header-dropdown-item`}>
-                                            <Link to='#' className='mc-header-dropdown-content'>
+                                            <Link to="#" className="mc-header-dropdown-content">
                                                 <div className="mc-header-dropdown-shop-media">
                                                     {order?.product?.images.map((image, index) => (
                                                         <img key={index} src={image} alt="product" />
@@ -165,29 +173,43 @@ export default function HeaderLayout() {
                                                         <cite>{order?.name}</cite>
                                                         <time>{order?.shortMoment}</time>
                                                     </h4>
-                                                    <p>({c(order?.price) + ' '}) {t('total_price')}</p>
+                                                    <p>
+                                                        ({c(order?.price) + ' '}) {t('total_price')}
+                                                    </p>
                                                 </div>
                                             </Link>
                                             <Dropdown bsPrefix="mc-dropdown">
                                                 <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                    <i className='material-icons'>more_vert</i>
+                                                    <i className="material-icons">more_vert</i>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>account_circle</i><span>{t('view_profile')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>mark_chat_read</i><span>{t('mark_as_unread')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete_order')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>remove_circle</i><span>{t('block_order')}</span></button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">account_circle</i>
+                                                        <span>{t('view_profile')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">mark_chat_read</i>
+                                                        <span>{t('mark_as_unread')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">delete</i>
+                                                        <span>{t('delete_order')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">remove_circle</i>
+                                                        <span>{t('block_order')}</span>
+                                                    </button>
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                         </li>
                                     ))}
                                 </ul>
-                                <Link to='#' className='mc-btn primary mc-header-dropdown-button'>
+                                <Link to="#" className="mc-btn primary mc-header-dropdown-button">
                                     {t('view_all_orders')}
                                 </Link>
                             </div>
                         </Dropdown.Menu>
-                    </Dropdown> */}
+                    </Dropdown>
                     {/*================================
                               ORDER PART END
                     ================================*/}
@@ -195,26 +217,34 @@ export default function HeaderLayout() {
                     {/*================================
                             MESSAGE PART START
                     ================================*/}
-                    {/* <Dropdown className='message'>
+                    <Dropdown className="message">
                         <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon">
-                            <i className='material-icons'>email</i>
-                            <sup className='primary'>{n(23)}</sup>
+                            <i className="material-icons">email</i>
+                            <sup className="primary">{n(23)}</sup>
                         </Dropdown.Toggle>
                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
                             <div className="mc-header-dropdown-group">
                                 <div className="mc-card-header">
                                     <h4 className="mc-card-title">
-                                        {t('messages') + ' '}
-                                        ({n(23)})
+                                        {t('messages') + ' '}({n(23)})
                                     </h4>
                                     <Dropdown bsPrefix="mc-dropdown">
                                         <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                            <i className='material-icons'>settings</i>
+                                            <i className="material-icons">settings</i>
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>drafts</i><span>{t('mark_all_as_read')}</span></button>
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>markunread</i><span>{t('mark_all_as_unread')}</span></button>
-                                            <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete_all_message')}</span></button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">drafts</i>
+                                                <span>{t('mark_all_as_read')}</span>
+                                            </button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">markunread</i>
+                                                <span>{t('mark_all_as_unread')}</span>
+                                            </button>
+                                            <button type="button" className="mc-dropdown-menu">
+                                                <i className="material-icons">delete</i>
+                                                <span>{t('delete_all_message')}</span>
+                                            </button>
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </div>
@@ -222,14 +252,12 @@ export default function HeaderLayout() {
                                 <ul className="mc-header-dropdown-list thin-scrolling">
                                     {messages?.map((message, index) => (
                                         <li key={index} className={`mc-header-dropdown-item`}>
-                                            <Link to='#' className='mc-header-dropdown-content'>
-
+                                            <Link to="#" className="mc-header-dropdown-content">
                                                 <div className="mc-header-dropdown-message-media">
-                                                    <div className='mc-round-avatar xs online'>
-                                                        <img src={ message?.user?.image } alt='avatar' />
+                                                    <div className="mc-round-avatar xs online">
+                                                        <img src={message?.user?.image} alt="avatar" />
                                                     </div>
                                                 </div>
-
 
                                                 <div className="mc-header-dropdown-meta">
                                                     <h4>
@@ -238,32 +266,43 @@ export default function HeaderLayout() {
                                                     </h4>
                                                     <p>{message?.chat}</p>
                                                 </div>
-
                                             </Link>
 
-                                            { message?.badge && <sup>{n(message?.badge)}</sup>}
+                                            {message?.badge && <sup>{n(message?.badge)}</sup>}
 
                                             <Dropdown bsPrefix="mc-dropdown">
                                                 <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                    <i className='material-icons'>more_vert</i>
+                                                    <i className="material-icons">more_vert</i>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>account_circle</i><span>{t('view_profile')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>mark_chat_read</i><span>{t('mark_as_unread')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>delete</i><span>{t('delete_message')}</span></button>
-                                                    <button type='button' className='mc-dropdown-menu'><i className='material-icons'>remove_circle</i><span>{t('block_message')}</span></button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">account_circle</i>
+                                                        <span>{t('view_profile')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">mark_chat_read</i>
+                                                        <span>{t('mark_as_unread')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">delete</i>
+                                                        <span>{t('delete_message')}</span>
+                                                    </button>
+                                                    <button type="button" className="mc-dropdown-menu">
+                                                        <i className="material-icons">remove_circle</i>
+                                                        <span>{t('block_message')}</span>
+                                                    </button>
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                         </li>
                                     ))}
                                 </ul>
 
-                                <Link to='#' className='mc-btn primary mc-header-dropdown-button'>
+                                <Link to="#" className="mc-btn primary mc-header-dropdown-button">
                                     {t('view_all_messages')}
                                 </Link>
                             </div>
                         </Dropdown.Menu>
-                    </Dropdown> */}
+                    </Dropdown>
                     {/*================================
                             MESSAGE PART END
                     ================================*/}

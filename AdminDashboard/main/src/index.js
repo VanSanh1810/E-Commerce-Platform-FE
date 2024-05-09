@@ -19,11 +19,12 @@ import { Provider } from 'react-redux';
 import { persistor, store } from './store/index';
 import { PersistGate } from 'redux-persist/integration/react';
 import App from './App';
+import { SocketIOProvider } from './context/SocketIOContext';
 
 createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-        <Provider store={store}>
-            <PersistGate persistor={persistor}>
+    <Provider store={store}>
+        <PersistGate persistor={persistor}>
+            <SocketIOProvider>
                 <ThemeProvider>
                     <LoaderProvider>
                         <TranslatorProvider>
@@ -33,7 +34,7 @@ createRoot(document.getElementById('root')).render(
                         </TranslatorProvider>
                     </LoaderProvider>
                 </ThemeProvider>
-            </PersistGate>
-        </Provider>
-    </React.StrictMode>,
+            </SocketIOProvider>
+        </PersistGate>
+    </Provider>,
 );
