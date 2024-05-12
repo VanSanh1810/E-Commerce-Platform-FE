@@ -573,7 +573,7 @@ const ProductDetails = ({
                                             </div>
                                             <div className="col-12">
                                                 <div className="row related-products position-relative">
-                                                    <RelatedSlider />
+                                                    <RelatedSlider productId={product._id} />
                                                 </div>
                                             </div>
                                         </div>

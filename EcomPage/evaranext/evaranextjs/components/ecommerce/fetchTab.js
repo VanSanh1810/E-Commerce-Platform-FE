@@ -7,7 +7,7 @@ import Link from 'next/link';
 import axiosInstance from '../../config/axiosInstance';
 
 function FeatchTab() {
-    const [active, setActive] = useState('1');
+    const [active, setActive] = useState('3');
     const [featured, setFeatured] = useState([]);
     const [trending, setTrending] = useState([]);
     const [newArrival, setNewArrival] = useState([]);
@@ -21,7 +21,7 @@ function FeatchTab() {
 
         const fetchAllProducts = async () => {
             try {
-                const result = await axiosInstance.get('/api/product');
+                const result = await axiosInstance.get('/api/product?sortType=trending');
                 console.log(result.data);
                 setFeatured(result.data.data);
             } catch (err) {
@@ -32,24 +32,34 @@ function FeatchTab() {
     };
 
     const trendingProduct = async () => {
-        const request = await fetch(`${server}/static/product.json`);
-        const allProducts = await request.json();
-        const trendingItem = allProducts.filter((item) => item.trending);
-        setTrending(trendingItem);
         setActive('2');
+        const fetchAllProducts = async () => {
+            try {
+                const result = await axiosInstance.get('/api/product?sortType=popular');
+                console.log(result.data);
+                setTrending(result.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchAllProducts();
     };
     const newArrivalProduct = async () => {
-        const request = await fetch(`${server}/static/product.json`);
-        const allProducts = await request.json();
-        const newArrivalItem = allProducts.sort(function (a, b) {
-            return a.created > b.created ? -1 : 1;
-        });
-        setNewArrival(newArrivalItem);
         setActive('3');
+        const fetchAllProducts = async () => {
+            try {
+                const result = await axiosInstance.get('/api/product?sortType=new');
+                console.log(result.data);
+                setNewArrival(result.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchAllProducts();
     };
 
     useEffect(() => {
-        featuredProduct();
+        newArrivalProduct();
     }, []);
 
     return (
@@ -87,7 +97,6 @@ function FeatchTab() {
                         <FeaturedTab products={featured} />
                     </div>
                 </div>
-
                 <div className={active === '2' ? 'tab-pane fade show active' : 'tab-pane fade'}>
                     <div className="product-grid-4 row">
                         <TrendingTab products={trending} />

@@ -13,35 +13,34 @@ const ChatWidget = () => {
     const [visible, setVisible] = useState(false);
 
     return (
-        
-            <div>
-                {/* Chat Button Component */}
+        <div>
+            {/* Call Modal Window */}
+            <ModalWindow visible={visible} />
+            {/* Chat Button Component */}
+            <div
+                onClick={() => setVisible(!visible)}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                style={{
+                    ...styles.chatWidget,
+                    ...{ border: hovered ? '1px solid black' : '', zIndex: '100' },
+                }}
+            >
+                {/* Inner Container */}
                 <div
-                    onClick={() => setVisible(!visible)}
-                    onMouseEnter={() => setHovered(true)}
-                    onMouseLeave={() => setHovered(false)}
                     style={{
-                        ...styles.chatWidget,
-                        ...{ border: hovered ? '1px solid black' : '' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                     }}
                 >
-                    {/* Call Modal Window */}
-                    <ModalWindow visible={visible} />
-                    {/* Inner Container */}
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        {/* Button Icon */}
-                        <BsFillChatFill size={20} color="white" />
-                        {/* Button Text */}
-                        <span style={{ ...styles.chatWidgetText, userSelect: 'none' }}>Chat Now!!</span>
-                    </div>
+                    {/* Button Icon */}
+                    <BsFillChatFill size={20} color="white" />
+                    {/* Button Text */}
+                    <span style={{ ...styles.chatWidgetText, userSelect: 'none' }}>Chat Now!!</span>
                 </div>
             </div>
+        </div>
     );
 };
 

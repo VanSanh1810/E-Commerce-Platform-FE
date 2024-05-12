@@ -4,19 +4,22 @@ import authReducer from './reducers/authReducer';
 import toastReducer from './reducers/toastReducer';
 import { persistReducer, persistStore } from 'redux-persist';
 import { configureStore } from '@reduxjs/toolkit';
-
-const persistConfig = {
-    key: 'root',
-    storage,
-    blacklist: ['toastReducer'],
-};
+import notificationReducer from './reducers/notificationReducer';
 
 const rootReducer = combineReducers({
     authReducer: authReducer,
     toastReducer: toastReducer,
+    notificationReducer: notificationReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(
+    {
+        key: 'root',
+        storage,
+        blacklist: ['toastReducer', 'notificationReducer'],
+    },
+    rootReducer,
+);
 
 export const store = configureStore({
     reducer: {

@@ -9,6 +9,7 @@ import { PaginationComponent } from '../../components';
 import PageLayout from '../../layouts/PageLayout';
 import products from '../../assets/data/products.json';
 import axiosInstance from '../../configs/axiosInstance';
+import { debounce } from 'lodash';
 
 export default function ProductListPage() {
     const { t, n } = useContext(TranslatorContext);
@@ -17,6 +18,7 @@ export default function ProductListPage() {
     const [sortPrice, setSortPrice] = useState('lowToHigh');
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [productSearchText, setProductSearchText] = useState('');
 
     const [totalProduct, setTotalProduct] = useState(0);
     const [totalCate, setTotalCate] = useState(0);
@@ -84,6 +86,7 @@ export default function ProductListPage() {
                 <Col sm={6} lg={4}>
                     <FloatCardComponent variant={'lg yellow'} digit={n(avgStar)} title={t('Average Start')} icon={'star'} />
                 </Col>
+
                 <Col xl={12}>
                     <div className="mc-card">
                         <Row>
@@ -102,14 +105,14 @@ export default function ProductListPage() {
                                     }}
                                 />
                             </Col>
-                            <Col xs={12} sm={6} md={4} lg={4}>
+                            {/* <Col xs={12} sm={6} md={3} lg={3}>
                                 <LabelFieldComponent
                                     label={t('rating_by')}
                                     option={['1 star', '2 star', '3 star', '4 star', '5 star']}
                                     labelDir="label-col"
                                     fieldSize="w-100 h-md mb-4"
                                 />
-                            </Col>
+                            </Col> */}
                             <Col xs={12} sm={6} md={4} lg={4}>
                                 <label className="mc-label-field-title">{'Sort price'}</label>
                                 <select
@@ -127,6 +130,23 @@ export default function ProductListPage() {
                                     <option value={'highToLow'}>High To Low</option>
                                 </select>
                             </Col>
+                            <Col xs={12} sm={6} md={4} lg={4}>
+                                <LabelFieldComponent
+                                    type="search"
+                                    label={t('search_by')}
+                                    placeholder={t('id') + ' / ' + t('name')}
+                                    labelDir="label-col"
+                                    fieldSize="mb-4 w-100 h-md"
+                                    onChange={debounce(
+                                        (e) => {
+                                            // console.log(e.target.value);
+                                            setProductSearchText(e.target.value);
+                                            setCurrentPage(1);
+                                        },
+                                        [500],
+                                    )}
+                                />
+                            </Col>
                             <Col xl={12}>
                                 <ProductsTableComponent
                                     thead={products.thead}
@@ -135,6 +155,7 @@ export default function ProductListPage() {
                                     rowView={rowView}
                                     currentPage={currentPage}
                                     setPages={setPages}
+                                    productSearchText={productSearchText}
                                 />
                                 <PaginationComponent
                                     currentPage={currentPage}

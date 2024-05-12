@@ -107,23 +107,23 @@ const Products = ({}) => {
                         <div className="row flex-row-reverse">
                             <div className="col-lg-3 primary-sidebar sticky-sidebar">
                                 <div className="widget-category mb-30">
-                                    <h5 className="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
-                                    <CategoryProduct />
+                                    <h5 className="section-title style-1 mb-30 wow fadeIn animated">Sort Type</h5>
+                                    <CategoryProduct setSortType={setSortType} />
                                 </div>
 
-                                <div className="sidebar-widget price_range range mb-30">
+                                {/* <div className="sidebar-widget price_range range mb-30">
                                     <div className="widget-header position-relative mb-20 pb-10">
                                         <h5 className="widget-title mb-10">Filter</h5>
                                         <div className="bt-1 border-color-1"></div>
                                     </div>
-                                    {/* 
+                                    
                                     <div className="price-filter">
                                         <div className="price-filter-inner">
                                             <br />
                                             <PriceRangeSlider />
                                             <br />
                                         </div>
-                                    </div> */}
+                                    </div>
 
                                     <div className="list-group">
                                         <div className="list-group-item mb-10 mt-10">
@@ -135,7 +135,6 @@ const Products = ({}) => {
                                     </div>
                                     <br />
                                 </div>
-
                                 <div className="sidebar-widget product-sidebar  mb-30 p-30 bg-grey border-radius-10">
                                     <div className="widget-header position-relative mb-20 pb-10">
                                         <h5 className="widget-title mb-10">New products</h5>
@@ -183,23 +182,7 @@ const Products = ({}) => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="banner-img wow fadeIn mb-45 animated d-lg-block d-none">
-                                    <img src="/assets/imgs/banner/banner-11.jpg" alt="" />
-                                    <div className="banner-text">
-                                        <span>Women Zone</span>
-                                        <h4>
-                                            Save 17% on <br />
-                                            Office Dress
-                                        </h4>
-                                        <Link href="/products">
-                                            <a>
-                                                Shop Now
-                                                <i className="fi-rs-arrow-right"></i>
-                                            </a>
-                                        </Link>
-                                    </div>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="col-lg-9">
                                 <div className="shop-product-fillter">

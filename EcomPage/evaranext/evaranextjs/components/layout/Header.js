@@ -182,11 +182,11 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                             <li>
                                                 <Link href="/products/shop-grid-right">
                                                     <a>
-                                                        Shop
-                                                        <i className="fi-rs-angle-down"></i>
+                                                        Products
+                                                        {/* <i className="fi-rs-angle-down"></i> */}
                                                     </a>
                                                 </Link>
-                                                <ul className="sub-menu">
+                                                {/* <ul className="sub-menu">
                                                     <li>
                                                         <Link href="/products/shop-grid-right">
                                                             <a>Shop Grid – Right Sidebar</a>
@@ -237,9 +237,9 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                                             <a>Shop – Compare</a>
                                                         </Link>
                                                     </li>
-                                                </ul>
+                                                </ul> */}
                                             </li>
-                                            <li className="position-static">
+                                            {/* <li className="position-static">
                                                 <Link href="/#">
                                                     <a>
                                                         Mega menu
@@ -440,7 +440,7 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                                 <Link href="/page-contact">
                                                     <a>Contact</a>
                                                 </Link>
-                                            </li>
+                                            </li> */}
                                         </ul>
                                     </nav>
                                 </div>
@@ -451,10 +451,10 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                     <span>Hotline</span> 1900 - 888
                                 </p>
                             </div>
-                            <p className="mobile-promotion">
+                            {/* <p className="mobile-promotion">
                                 Happy
                                 <span className="text-brand">Mother's Day</span>. Big Sale Up to 40%
-                            </p>
+                            </p> */}
                             <div className="header-action-right d-block d-lg-none">
                                 <div className="header-action-2">
                                     <div className="header-action-icon-2">

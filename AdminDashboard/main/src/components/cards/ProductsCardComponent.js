@@ -57,14 +57,6 @@ export default function ProductsCardComponent() {
                     />
                 </Col>
                 <Col>
-                    <LabelFieldComponent
-                        label={t('rating_by')}
-                        option={['1 star', '2 star', '3 star', '4 star', '5 star']}
-                        labelDir="label-col"
-                        fieldSize="w-100 h-md mb-4"
-                    />
-                </Col>
-                <Col>
                     <label className="mc-label-field-title">{'Sort price'}</label>
                     <select
                         style={{ backgroundImage: 'url(/images/dropdown.svg)' }}
@@ -85,7 +77,7 @@ export default function ProductsCardComponent() {
                     <LabelFieldComponent
                         type="search"
                         label={t('search_by')}
-                        placeholder={t('id') + ' / ' + t('name') + ' / ' + t('category') + ' / ' + t('brand')}
+                        placeholder={t('id') + ' / ' + t('name')}
                         labelDir="label-col"
                         fieldSize="mb-4 w-100 h-md"
                         onChange={debounce(

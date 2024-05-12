@@ -29,7 +29,7 @@ export const styles = {
         bottom: '70px',
         right: '20px',
         // Size
-        width: '370px',
+        width: '760px',
         // width: "420px",
         height: '65vh',
         maxWidth: 'calc(100% - 48px)',

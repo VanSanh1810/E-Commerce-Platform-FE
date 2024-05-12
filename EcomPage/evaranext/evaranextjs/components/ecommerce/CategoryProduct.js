@@ -2,34 +2,34 @@ import { useRouter } from 'next/router';
 import { connect } from 'react-redux';
 import { updateProductCategory } from '../../redux/action/productFiltersAction';
 
-const CategoryProduct = ({ updateProductCategory }) => {
-    const router = useRouter();
+const CategoryProduct = ({ setSortType }) => {
+    // const router = useRouter();
 
-    const removeSearchTerm = () => {
-        router.push({
-            pathname: '/products',
-        });
-    };
+    // const removeSearchTerm = () => {
+    //     router.push({
+    //         pathname: '/products',
+    //     });
+    // };
 
-    const selectCategory = (e, category) => {
-        e.preventDefault();
-        removeSearchTerm();
-        updateProductCategory(category);
-        // router.push('/')
-    };
+    // const selectCategory = (e, category) => {
+    //     e.preventDefault();
+    //     removeSearchTerm();
+    //     updateProductCategory(category);
+    //     // router.push('/')
+    // };
     return (
         <>
             <ul className="categories">
-                <li onClick={(e) => selectCategory(e, '')}>
+                <li onClick={() => setSortType('')}>
                     <a>All</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, 'jeans')}>
+                <li onClick={() => setSortType('trending')}>
                     <a>Trending</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, 'shoe')}>
+                <li onClick={() => setSortType('popular')}>
                     <a>Popular</a>
                 </li>
-                <li onClick={(e) => selectCategory(e, 'jacket')}>
+                <li onClick={() => setSortType('new')}>
                     <a>New added</a>
                 </li>
             </ul>

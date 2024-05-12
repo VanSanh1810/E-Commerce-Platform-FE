@@ -18,15 +18,20 @@ import { useSelector } from 'react-redux';
 import axiosInstance from '../configs/axiosInstance';
 import { logout } from '../store/reducers/authReducer';
 import { useDispatch } from 'react-redux';
+import { SocketIOContext } from '../context/SocketIOContext';
+import { clearNotificationList, initNotificationsList, setNotificationList } from '../store/reducers/notificationReducer';
+import { current } from '@reduxjs/toolkit';
 
 export default function HeaderLayout() {
     const dispatch = useDispatch();
+    const { socket } = useContext(SocketIOContext);
 
     const { theme, toggleTheme } = useContext(ThemeContext);
     const { sidebar, toggleSidebar } = useContext(SidebarContext);
     const { t, n, c, changeLanguage, currentLanguage } = useContext(TranslatorContext);
 
     const { adminToken } = useSelector((state) => state.persistedReducer.authReducer);
+    const { notificationList, newNotifiCount } = useSelector((state) => state.persistedReducer.notificationReducer);
 
     const searchRef = useRef();
 
@@ -49,6 +54,7 @@ export default function HeaderLayout() {
             const result = await axiosInstance.post('/api/auth/logout');
             console.log(result.data);
             dispatch(logout(''));
+            dispatch(clearNotificationList());
         } catch (e) {
             console.log(e);
         }
@@ -67,6 +73,90 @@ export default function HeaderLayout() {
         };
         fetchUserData();
     }, [adminToken]);
+
+    //notifications
+
+    useEffect(() => {
+        socket.on('receive-notify', async (notifyData) => {
+            console.log(notifyData);
+            dispatch(setNotificationList({ ...notifyData }));
+        });
+        return () => socket.off('receive-notify');
+    }, [socket, dispatch]);
+
+    useEffect(() => {
+        const fetchNotify = async () => {
+            try {
+                const response = await axiosInstance.get('/api/notify');
+                dispatch(initNotificationsList([...response.data.listNotify]));
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchNotify();
+    }, [adminToken, dispatch]);
+
+    const calculateTimeDifference = (referenceTimestamp) => {
+        // Lấy thời điểm hiện tại
+        const currentTime = new Date().getTime();
+
+        // Chênh lệch thời gian giữa thời điểm hiện tại và thời điểm mốc
+        const timeDiff = currentTime - referenceTimestamp;
+
+        // Chuyển đổi thời gian chênh lệch thành phút
+        const minutesDiff = Math.floor(timeDiff / (60 * 1000));
+
+        if (minutesDiff <= 5) {
+            return `Just now`;
+        } else if (minutesDiff < 60) {
+            return `${minutesDiff} minutes ago`;
+        } else if (minutesDiff < 24 * 60) {
+            const hoursDiff = Math.floor(minutesDiff / 60);
+            return `${hoursDiff} hours ago`;
+        } else {
+            // Format lại thời gian mốc thành ngày/giờ/phút
+            const referenceDate = new Date(referenceTimestamp);
+            const formattedDate = referenceDate.toLocaleString();
+
+            return `${formattedDate}`;
+        }
+    };
+
+    const getNotifyRoute = (type, id) => {
+        switch (type) {
+            case 'Review':
+                return `/product/${1}`;
+            case 'Order':
+                return `/order/${id}`;
+            case 'Report':
+                return `/report/${id}`;
+            case 'Product':
+                return `/product/${id}`;
+            default:
+                return '#';
+        }
+    };
+
+    const markAtReadAction = async (_id, readedAction) => {
+        // alert(_id);
+        try {
+            const response = await axiosInstance.post('/api/notify', {
+                listNotify: _id ? [_id] : null,
+                readedAction: readedAction,
+            });
+            dispatch(initNotificationsList([...response.data.newListNotify]));
+        } catch (e) {
+            console.error(e);
+        }
+    };
+    const deleteNotifyAction = async (_id) => {
+        try {
+            const response = await axiosInstance.delete(`/api/notify/${_id}`);
+            dispatch(initNotificationsList([...response.data.newListNotify]));
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     return (
         <header className={`mc-header ${scroll}`}>
@@ -96,123 +186,6 @@ export default function HeaderLayout() {
                     <button type="button" className="mc-header-icon theme" onClick={toggleTheme}>
                         <i className="material-icons">{theme}</i>
                     </button>
-
-                    {/*================================
-                            LANGUAGE PART START
-                    ================================*/}
-                    {/* <Dropdown>
-                        <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon language">
-                            <i className="material-icons">language</i>
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                            {languages.map((language, index) => (
-                                <button
-                                    onClick={() => changeLanguage(language.code)}
-                                    type="button"
-                                    key={index}
-                                    className="mc-header-language"
-                                >
-                                    <img src={language.flag} alt="language" />
-                                    <span>{language.name}</span>
-                                    {language.code === currentLanguage.code && <i className="material-icons">done</i>}
-                                </button>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown> */}
-                    {/*================================
-                            LANGUAGE PART END
-                    ================================*/}
-
-                    {/*================================
-                              ORDER PART START
-                    ================================*/}
-                    <Dropdown className="order">
-                        <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon">
-                            <i className="material-icons">shopping_cart</i>
-                            <sup className="primary">{n(12)}</sup>
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                            <div className="mc-header-dropdown-group">
-                                <div className="mc-card-header">
-                                    <h4 className="mc-card-title">
-                                        {t('orders') + ' '}({n(12)})
-                                    </h4>
-                                    <Dropdown bsPrefix="mc-dropdown">
-                                        <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                            <i className="material-icons">settings</i>
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">drafts</i>
-                                                <span>{t('mark_all_as_read')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">markunread</i>
-                                                <span>{t('mark_all_as_unread')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">delete</i>
-                                                <span>{t('delete_all_order')}</span>
-                                            </button>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                </div>
-
-                                <ul className="mc-header-dropdown-list thin-scrolling">
-                                    {orders?.map((order, index) => (
-                                        <li key={index} className={`mc-header-dropdown-item`}>
-                                            <Link to="#" className="mc-header-dropdown-content">
-                                                <div className="mc-header-dropdown-shop-media">
-                                                    {order?.product?.images.map((image, index) => (
-                                                        <img key={index} src={image} alt="product" />
-                                                    ))}
-                                                    <span>+{n(order?.product?.count)}</span>
-                                                </div>
-                                                <div className="mc-header-dropdown-meta">
-                                                    <h4>
-                                                        <cite>{order?.name}</cite>
-                                                        <time>{order?.shortMoment}</time>
-                                                    </h4>
-                                                    <p>
-                                                        ({c(order?.price) + ' '}) {t('total_price')}
-                                                    </p>
-                                                </div>
-                                            </Link>
-                                            <Dropdown bsPrefix="mc-dropdown">
-                                                <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                    <i className="material-icons">more_vert</i>
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">account_circle</i>
-                                                        <span>{t('view_profile')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">mark_chat_read</i>
-                                                        <span>{t('mark_as_unread')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">delete</i>
-                                                        <span>{t('delete_order')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">remove_circle</i>
-                                                        <span>{t('block_order')}</span>
-                                                    </button>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Link to="#" className="mc-btn primary mc-header-dropdown-button">
-                                    {t('view_all_orders')}
-                                </Link>
-                            </div>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {/*================================
-                              ORDER PART END
-                    ================================*/}
 
                     {/*================================
                             MESSAGE PART START
@@ -313,54 +286,61 @@ export default function HeaderLayout() {
                     <Dropdown className="notify">
                         <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon">
                             <i className="material-icons">notifications</i>
-                            <sup className="primary">{n(34)}</sup>
+                            {newNotifiCount > 0 ? <sup className="primary">{n(newNotifiCount)}</sup> : null}
                         </Dropdown.Toggle>
                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
                             <div className="mc-header-dropdown-group">
                                 <div className="mc-card-header">
                                     <h4 className="mc-card-title">
-                                        {t('notifications') + ' '}({n(34)})
+                                        {t('notifications') + ' '}
+                                        {newNotifiCount > 0 ? `(${n(newNotifiCount)})` : null}
                                     </h4>
                                     <Dropdown bsPrefix="mc-dropdown">
                                         <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
                                             <i className="material-icons">settings</i>
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                            <button type="button" className="mc-dropdown-menu">
+                                            <button
+                                                type="button"
+                                                className="mc-dropdown-menu"
+                                                onClick={() => markAtReadAction(null, true)}
+                                            >
                                                 <i className="material-icons">drafts</i>
                                                 <span>{t('mark_all_as_read')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">markunread</i>
-                                                <span>{t('mark_all_as_unread')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">delete</i>
-                                                <span>{t('delete_all_message')}</span>
                                             </button>
                                         </Dropdown.Menu>
                                     </Dropdown>
                                 </div>
 
                                 <ul className="mc-header-dropdown-list thin-scrolling">
-                                    {notifications?.map((notification, index) => (
+                                    {notificationList?.map((notification, index) => (
                                         <li
                                             key={index}
-                                            className={`mc-header-dropdown-item ${notification.isActive && 'active'}`}
+                                            className={`mc-header-dropdown-item ${!notification?.isSeen ? 'active' : ''}`}
                                         >
-                                            <Link to="#" className="mc-header-dropdown-content">
+                                            <Link
+                                                to={
+                                                    notification?.target?.type
+                                                        ? getNotifyRoute(notification.target.type, notification.target.id)
+                                                        : '#'
+                                                }
+                                                className="mc-header-dropdown-content"
+                                            >
                                                 <div className="mc-header-dropdown-notify-media">
-                                                    <img src={notification?.notify?.image} alt="avatar" />
+                                                    {/* <img src={notification?.notify?.image} alt="avatar" /> */}
+                                                    <i className={`material-icons ${notification?.target?.icon?.color}`}>
+                                                        {notification?.target?.icon?.name}
+                                                    </i>
+                                                    {/* <img src={notification?.notify?.image} alt="avatar" />
                                                     <i className={`material-icons ${notification?.notify?.variant}`}>
                                                         {notification?.notify?.icon}
-                                                    </i>
+                                                    </i> */}
                                                 </div>
-
                                                 <div className="mc-header-dropdown-meta">
                                                     <h4>
-                                                        <span dangerouslySetInnerHTML={{ __html: notification?.note }} />
+                                                        <span dangerouslySetInnerHTML={{ __html: notification?.title }} />
                                                     </h4>
-                                                    <p>{notification?.longMoment}</p>
+                                                    <p>{calculateTimeDifference(notification?.createDate)}</p>
                                                 </div>
                                             </Link>
 
@@ -369,17 +349,29 @@ export default function HeaderLayout() {
                                                     <i className="material-icons">more_vert</i>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                    <button type="button" className="mc-dropdown-menu">
+                                                    <button
+                                                        type="button"
+                                                        className="mc-dropdown-menu"
+                                                        onClick={() => markAtReadAction(notification._id, true)}
+                                                    >
                                                         <i className="material-icons">mark_chat_read</i>
+                                                        <span>{t('mark as read')}</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="mc-dropdown-menu"
+                                                        onClick={() => markAtReadAction(notification._id, false)}
+                                                    >
+                                                        <i className="material-icons">mark_chat_unread</i>
                                                         <span>{t('mark_as_unread')}</span>
                                                     </button>
-                                                    <button type="button" className="mc-dropdown-menu">
+                                                    <button
+                                                        type="button"
+                                                        className="mc-dropdown-menu"
+                                                        onClick={() => deleteNotifyAction(notification._id)}
+                                                    >
                                                         <i className="material-icons">delete</i>
                                                         <span>{t('delete_notification')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">remove_circle</i>
-                                                        <span>{t('block_notification')}</span>
                                                     </button>
                                                 </Dropdown.Menu>
                                             </Dropdown>
@@ -387,7 +379,7 @@ export default function HeaderLayout() {
                                     ))}
                                 </ul>
 
-                                <Link to="#" className="mc-btn primary mc-header-dropdown-button">
+                                <Link to="/notification" className="mc-btn primary mc-header-dropdown-button">
                                     {t('view_all_notifications')}
                                 </Link>
                             </div>

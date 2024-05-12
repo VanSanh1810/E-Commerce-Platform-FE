@@ -147,8 +147,16 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                                     </div>
                                 ) : (
                                     <div className="mc-table-price">
-                                        <del>{item.price}$</del>
-                                        <p>{item.discountPrice}$</p>
+                                        {!item.discountPrice || parseFloat(item.discountPrice) === 0 ? (
+                                            <p>{item.price}$</p>
+                                        ) : parseFloat(item.price) === parseFloat(item.discountPrice) ? (
+                                            <p>{item.price}$</p>
+                                        ) : (
+                                            <>
+                                                <del>{item.price}$</del>
+                                                <p>{item.discountPrice}$</p>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </td>

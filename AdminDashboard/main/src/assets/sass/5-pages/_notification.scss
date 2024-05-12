@@ -3,8 +3,26 @@
     padding: 20px 10px;
     border-bottom: 1px solid var(--lightBorder);
 
-    &:first-child { padding-top: 0px; }
-    &:last-child { border-bottom: none; }
+    &.active {
+        background-color: var(--activeBG);
+        .mc-notify-meta {
+            h4 span {
+                font-weight: 300;
+            }
+
+            h4 cite,
+            h4 span b,
+            p {
+                font-weight: 500;
+            }
+        }
+    }
+    &:first-child {
+        padding-top: 0px;
+    }
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .mc-notify-content {
@@ -12,7 +30,9 @@
     gap: 25px;
     color: var(--textColor);
 
-    &:hover { color: var(--textColor); }
+    &:hover {
+        color: var(--textColor);
+    }
 
     @include custom-breakpoint(0px, 450px) {
         flex-wrap: wrap;
@@ -32,20 +52,36 @@
         @include content-center(35px, 30px, 50%);
         border: 2px solid var(--lightBorder);
         color: var(--lightColor);
-        font-size: 18px;
-        position: absolute;
-        top: 30px;
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+        // align-items: center;
+        line-height: 55px;
+        // position: absolute;
+        // top: 30px;
 
-        &.favorite { background: rgba(var(--redRGB), 75%); }
-        &.rating { background: rgba(var(--yellowRGB), 75%); }
-        &.comment { background: rgba(var(--greenRGB), 75%); }
-        &.announce { background: rgba(var(--blueRGB), 75%); }
-        &.blog { background: rgba(var(--purpleRGB), 75%); }
-        &.privacy { background: rgba(var(--primaryRGB), 75%); }
+        &.red {
+            background: rgba(var(--redRGB), 75%);
+        }
+        &.yellow {
+            background: rgba(var(--yellowRGB), 75%);
+        }
+        &.green {
+            background: rgba(var(--greenRGB), 75%);
+        }
+        &.blue {
+            background: rgba(var(--blueRGB), 75%);
+        }
+        &.purple {
+            background: rgba(var(--purpleRGB), 75%);
+        }
+        &.privacy {
+            background: rgba(var(--primaryRGB), 75%);
+        }
     }
 }
 
-[dir="ltr"] {
+[dir='ltr'] {
     .mc-notify-media {
         i {
             right: -5px;
@@ -53,7 +89,7 @@
     }
 }
 
-[dir="rtl"] {
+[dir='rtl'] {
     .mc-notify-media {
         i {
             left: -5px;
@@ -68,8 +104,10 @@
     span {
         display: block;
         margin-bottom: 5px;
-        
-        b { font-weight: 500; }
+
+        b {
+            font-weight: 500;
+        }
     }
 
     small {
