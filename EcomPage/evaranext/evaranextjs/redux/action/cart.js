@@ -10,6 +10,18 @@ export const addToCart = (product, user) => async (dispatch) => {
                 variant: product.variant,
                 quantity: product.quantity,
             });
+        } else {
+            const result = await axiosInstance.get(`/api/product/${product.product}`);
+            const pTagList = result.data.data.tag.split(',').map((tag) => tag.trim());
+            const pushHistoryTag = async () => {
+                for (let i = 0; i < pTagList.length; i++) {
+                    dispatch({
+                        type: Types.ADD_TAG_HISTORY,
+                        payload: { name: pTagList[i], score: 10 },
+                    });
+                }
+            };
+            pushHistoryTag();
         }
         dispatch({
             type: Types.ADD_TO_CART,
@@ -27,6 +39,18 @@ export const deleteFromCart = (productId, productVariant, user) => async (dispat
                 product: productId,
                 variant: productVariant,
             });
+        } else {
+            const result = await axiosInstance.get(`/api/product/${productId}`);
+            const pTagList = result.data.data.tag.split(',').map((tag) => tag.trim());
+            const pushHistoryTag = async () => {
+                for (let i = 0; i < pTagList.length; i++) {
+                    dispatch({
+                        type: Types.ADD_TAG_HISTORY,
+                        payload: { name: pTagList[i], score: -10 },
+                    });
+                }
+            };
+            pushHistoryTag();
         }
         dispatch({
             type: Types.DELETE_FROM_CART,

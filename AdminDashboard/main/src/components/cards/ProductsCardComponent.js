@@ -19,7 +19,7 @@ export default function ProductsCardComponent() {
     return (
         <div className="mc-card">
             <div className="mc-card-header">
-                <h4 className="mc-card-title">{t('best_selling_products')}</h4>
+                <h4 className="mc-card-title">{t('products')}</h4>
                 <Dropdown bsPrefix="mc-dropdown">
                     <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
                         <i className="material-icons">more_horiz</i>
@@ -40,7 +40,7 @@ export default function ProductsCardComponent() {
                     </Dropdown.Menu>
                 </Dropdown>
             </div>
-            <Row xs={1} sm={2} xl={4}>
+            <Row xs={1} sm={3} xl={3}>
                 <Col>
                     <LabelFieldComponent
                         label={t('show_by')}

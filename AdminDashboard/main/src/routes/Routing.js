@@ -24,6 +24,7 @@ import ShopListPage from '../pages/main/ShopListPage';
 import ShopProfilePage from '../pages/main/ShopProfilePage';
 import ReportListPage from '../pages/main/ReportListPage';
 import BannerListPage from '../pages/main/BannerListPage';
+import ShipCostPage from '../pages/main/ShipCostPage';
 
 function Routing() {
     return (
@@ -180,6 +181,15 @@ function Routing() {
                         element={
                             <Private roleAllow={'admin'}>
                                 <ReportListPage />
+                            </Private>
+                        }
+                    />
+
+                    <Route
+                        path="shipCost"
+                        element={
+                            <Private roleAllow={'admin'}>
+                                <ShipCostPage />
                             </Private>
                         }
                     />

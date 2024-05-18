@@ -6,8 +6,17 @@ const notifyReducer = createSlice({
         // adminToken: AdToken ? AdToken : 'null',
         notificationList: [],
         newNotifiCount: 0,
+        //message
+        reloadListener: false,
+        newMessCount: 0,
     },
     reducers: {
+        setReload: (state, action) => {
+            state.reloadListener = !state.reloadListener;
+        },
+        setNewMessCount: (state, action) => {
+            state.newMessCount = action.payload;
+        },
         initNotificationsList: (state, action) => {
             state.notificationList = [...action.payload];
             state.newNotifiCount = [...action.payload].reduce((acc, curr) => (!curr.isSeen ? acc + 1 : acc), 0);
@@ -25,5 +34,6 @@ const notifyReducer = createSlice({
         },
     },
 });
-export const { setNotificationList, clearNotificationList, initNotificationsList } = notifyReducer.actions;
+export const { setNotificationList, clearNotificationList, initNotificationsList, setReload, setNewMessCount } =
+    notifyReducer.actions;
 export default notifyReducer.reducer;

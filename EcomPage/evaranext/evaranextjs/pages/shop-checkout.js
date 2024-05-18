@@ -262,8 +262,6 @@ const CartCheckout = ({
     clearCartSelected,
     user,
 }) => {
-    const router = useRouter();
-
     const [sortedCartItems, setSortedCartItems] = useState([]);
 
     const [shopOrderCheckoutDataList, setShopOrderCheckoutDataList] = useState([]);
@@ -692,7 +690,7 @@ const CartCheckout = ({
                                     </div>
                                     <div className="custome-checkbox mt-2">
                                         <input
-                                            key={selectedShippingAddress.isHome}
+                                            key={selectedShippingAddress?.isHome}
                                             className="form-check-input"
                                             type="checkbox"
                                             name="isHome"
@@ -714,7 +712,7 @@ const CartCheckout = ({
                                     </div>
                                     <div className="custome-checkbox mt-2">
                                         <input
-                                            key={selectedShippingAddress.isWork}
+                                            key={selectedShippingAddress?.isWork}
                                             className="form-check-input"
                                             type="checkbox"
                                             name="isWork"
@@ -778,10 +776,30 @@ const CartCheckout = ({
                                                                 }
                                                             </td>
                                                         </tr>
-                                                        <tr>
+                                                        <ShippingCostComponent
+                                                            total={
+                                                                shopOrderCheckoutDataList[
+                                                                    shopOrderCheckoutDataList.findIndex(
+                                                                        (item) => item.shopId === shop.shop._id,
+                                                                    )
+                                                                ].totalProductPrice
+                                                            }
+                                                            shopId={shop.shop._id}
+                                                            userAddress={selectedShippingAddress}
+                                                            addressState={useAddressState}
+                                                        />
+                                                        {/* <tr>
                                                             <th colSpan="6">Shipping</th>
                                                             <td>
-                                                                <em>Free Shipping</em>
+                                                                <em>
+                                                                    {
+                                                                        shopOrderCheckoutDataList[
+                                                                            shopOrderCheckoutDataList.findIndex(
+                                                                                (item) => item.shopId === shop.shop._id,
+                                                                            )
+                                                                        ].shippingFee
+                                                                    }
+                                                                </em>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -801,7 +819,7 @@ const CartCheckout = ({
                                                                         ].shippingFee}
                                                                 </span>
                                                             </td>
-                                                        </tr>
+                                                        </tr> */}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -931,3 +949,42 @@ const mapDispatchToProps = {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CartCheckout);
+
+const ShippingCostComponent = ({ shopId, userAddress, total, addressState }) => {
+    const [shipCost, setShipCost] = useState();
+    useEffect(() => {
+        const calculateShipCost = async () => {
+            try {
+                const response = await axiosInstance.post('/api/shipCost/calculateShipCost', {
+                    shopId: shopId,
+                    addressState: addressState,
+                    userAddress: userAddress,
+                });
+                setShipCost(response.data.shipCost);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        if (true) {
+            setShipCost();
+            calculateShipCost();
+        }
+    }, [shopId, userAddress, addressState]);
+
+    return (
+        <>
+            <tr>
+                <th colSpan="6">Shipping</th>
+                <td>
+                    <em>${shipCost ? shipCost : 'calculating ..'}</em>
+                </td>
+            </tr>
+            <tr>
+                <th colSpan="6">Total</th>
+                <td className="product-subtotal">
+                    <span className="font-xl text-brand fw-900">${shipCost ? shipCost + total : total}</span>
+                </td>
+            </tr>
+        </>
+    );
+};

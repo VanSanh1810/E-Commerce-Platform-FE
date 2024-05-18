@@ -317,7 +317,7 @@ export default function EcommercePage() {
                     {' '}
                     <ProductsCardComponent />{' '}
                 </Col>
-                <Col xl={8}>
+                {/* <Col xl={8}>
                     {' '}
                     <RevenueCardComponent />{' '}
                 </Col>
@@ -332,7 +332,7 @@ export default function EcommercePage() {
                 <Col xl={6}>
                     {' '}
                     <ActivityCardComponent />{' '}
-                </Col>
+                </Col> */}
             </Row>
         </PageLayout>
     );

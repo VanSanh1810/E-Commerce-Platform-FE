@@ -19,7 +19,12 @@ import axiosInstance from '../configs/axiosInstance';
 import { logout } from '../store/reducers/authReducer';
 import { useDispatch } from 'react-redux';
 import { SocketIOContext } from '../context/SocketIOContext';
-import { clearNotificationList, initNotificationsList, setNotificationList } from '../store/reducers/notificationReducer';
+import {
+    clearNotificationList,
+    initNotificationsList,
+    setNewMessCount,
+    setNotificationList,
+} from '../store/reducers/notificationReducer';
 import { current } from '@reduxjs/toolkit';
 
 export default function HeaderLayout() {
@@ -31,7 +36,9 @@ export default function HeaderLayout() {
     const { t, n, c, changeLanguage, currentLanguage } = useContext(TranslatorContext);
 
     const { adminToken } = useSelector((state) => state.persistedReducer.authReducer);
-    const { notificationList, newNotifiCount } = useSelector((state) => state.persistedReducer.notificationReducer);
+    const { notificationList, newNotifiCount, reloadListener, newMessCount } = useSelector(
+        (state) => state.persistedReducer.notificationReducer,
+    );
 
     const searchRef = useRef();
 
@@ -158,6 +165,42 @@ export default function HeaderLayout() {
         }
     };
 
+    //message
+    useEffect(() => {
+        const fetchUnReadMessages = async () => {
+            try {
+                const response = await axiosInstance.get('/api/conversation');
+                let total = 0;
+                if (response.data.totalUnseen && response.data.totalUnseen.length > 0) {
+                    for (let i = 0; i < response.data.totalUnseen.length; i++) {
+                        total = response.data.totalUnseen[i].total;
+                    }
+                }
+                dispatch(setNewMessCount(total));
+                console.log(response);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchUnReadMessages();
+        socket.on('receive-message', async (notifyData) => {
+            try {
+                const response = await axiosInstance.get('/api/conversation');
+                let total = 0;
+                if (response.data.totalUnseen && response.data.totalUnseen.length > 0) {
+                    for (let i = 0; i < response.data.totalUnseen.length; i++) {
+                        total = response.data.totalUnseen[i].total;
+                    }
+                }
+                dispatch(setNewMessCount(total));
+                console.log(response);
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        return () => socket.off('receive-message');
+    }, [socket, dispatch, reloadListener]);
+
     return (
         <header className={`mc-header ${scroll}`}>
             <Link to="/" className="mc-logo-group">
@@ -191,11 +234,16 @@ export default function HeaderLayout() {
                             MESSAGE PART START
                     ================================*/}
                     <Dropdown className="message">
-                        <Dropdown.Toggle className="mc-dropdown-toggle mc-header-icon">
+                        <Dropdown.Toggle
+                            className="mc-dropdown-toggle mc-header-icon"
+                            onClick={() => {
+                                alert('click');
+                            }}
+                        >
                             <i className="material-icons">email</i>
-                            <sup className="primary">{n(23)}</sup>
+                            {newMessCount > 0 ? <sup className="primary">{n(newMessCount)}</sup> : null}
                         </Dropdown.Toggle>
-                        <Dropdown.Menu align="end" className="mc-dropdown-paper">
+                        {/* <Dropdown.Menu align="end" className="mc-dropdown-paper">
                             <div className="mc-header-dropdown-group">
                                 <div className="mc-card-header">
                                     <h4 className="mc-card-title">
@@ -274,7 +322,7 @@ export default function HeaderLayout() {
                                     {t('view_all_messages')}
                                 </Link>
                             </div>
-                        </Dropdown.Menu>
+                        </Dropdown.Menu> */}
                     </Dropdown>
                     {/*================================
                             MESSAGE PART END

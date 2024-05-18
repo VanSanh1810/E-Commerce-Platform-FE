@@ -9,15 +9,13 @@ function SocketIOProvider({ children }) {
     const { userId } = useSelector((state) => {
         return state;
     });
-    const [_socket, setMySocket] = useState(null);
-
+    // const [_socket, setMySocket] = useState(null);
+    const socket = io(process.env.NEXT_PUBLIC_SERVER_DOMAIN);
     useEffect(() => {
-        const socket = io(process.env.NEXT_PUBLIC_SERVER_DOMAIN);
         console.log(userId);
         socket.once('connect', () => {
             if (userId) {
                 socket.emit('assign-user-data', userId, 'user');
-                setMySocket(socket);
                 console.log('assign-user-data', userId, 'user');
             }
         });
@@ -26,8 +24,8 @@ function SocketIOProvider({ children }) {
             socket.emit('logout', userId);
             socket.close();
         };
-    }, [userId]);
-    return <SocketIOContext.Provider value={{ socket: _socket }}>{children}</SocketIOContext.Provider>;
+    }, [userId, socket]);
+    return <SocketIOContext.Provider value={{ socket: socket }}>{children}</SocketIOContext.Provider>;
 }
 
 export { SocketIOContext, SocketIOProvider };

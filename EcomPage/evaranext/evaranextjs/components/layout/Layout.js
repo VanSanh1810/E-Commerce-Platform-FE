@@ -1,12 +1,14 @@
 import Head from 'next/head';
-import { useState } from 'react';
 import Breadcrumb from './Breadcrumb';
 import Footer from './Footer';
 import Header from './Header';
 import MobileMenu from './MobileMenu';
 import ChatWidget from './ChatWiget';
+import { useSelector } from 'react-redux';
+import { useState } from 'react';
 
 const Layout = ({ children, parent, sub, subChild, noBreadcrumb, headerStyle }) => {
+    const { user } = useSelector((state) => state);
     const [isToggled, setToggled] = useState(false);
     const toggleClick = () => {
         setToggled(!isToggled);
@@ -35,7 +37,7 @@ const Layout = ({ children, parent, sub, subChild, noBreadcrumb, headerStyle }) 
                 <Breadcrumb parent={parent} sub={sub} subChild={subChild} noBreadcrumb={noBreadcrumb} />
                 {children}
             </main>
-            <ChatWidget />
+            {user ? <ChatWidget /> : null}
             <Footer />
         </>
     );

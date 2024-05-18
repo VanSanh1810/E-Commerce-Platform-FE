@@ -8,6 +8,8 @@ import productFilters from './productFilters';
 import user from './user';
 import cartSelected from './cartSelected';
 import userId from './userId';
+import conversation from './conversation';
+import productTagHistory from './productTagHistory';
 
 const rootReducer = combineReducers({
     products,
@@ -19,6 +21,8 @@ const rootReducer = combineReducers({
     user,
     cartSelected,
     userId,
+    conversation,
+    productTagHistory,
 });
 
 export default rootReducer;

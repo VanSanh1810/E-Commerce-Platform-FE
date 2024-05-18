@@ -139,7 +139,9 @@ export default function MyAccountPage() {
                         <Tabs defaultActiveKey="profile" id="mc" className="mc-tabs">
                             <Tab eventKey="profile" title={t('edit_profile')} className="mc-tabpane profile">
                                 <div className="mc-tab-card">
-                                    <h6 className="mc-tab-card-title">{t('Shop Information')}</h6>
+                                    <h6 className="mc-tab-card-title">
+                                        {t('Shop Information')} - Balance: {shopData.balance ? shopData.balance : 0}$
+                                    </h6>
                                     <Row>
                                         <Col xl={4}>
                                             <div className="mc-user-avatar-upload">

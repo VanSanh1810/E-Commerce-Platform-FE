@@ -15,8 +15,9 @@ import QuickView from '../../components/ecommerce/QuickView';
 import Pagination from '../../components/ecommerce/Pagination';
 import axiosInstance from '../../config/axiosInstance';
 import AddressStaticData from '../../public/static/dataprovince';
+import { setSelectedConversation } from '../../redux/action/conversation';
 
-function Test({ products, productFilters, fetchProduct, user }) {
+function Test({ products, productFilters, fetchProduct, user, setSelectedConversation }) {
     const router = useRouter();
     const {
         query: { shopId },
@@ -137,13 +138,29 @@ function Test({ products, productFilters, fetchProduct, user }) {
     };
 
     const followShopAction = async () => {
-        //
+        // shopId
         try {
             const response = await axiosInstance.put(`/api/shop/follow/${shopId}`);
             // if (isFollow) {
             // } else {
             // }
             setIsFollow(!isFollow);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const chatToShopAction = async () => {
+        try {
+            const response = await axiosInstance.post(`/api/conversation`, {
+                targetId: shopId,
+                _role: 'vendor',
+            });
+            console.log(response.data.conversationId);
+            setSelectedConversation(response.data.conversationId);
+            // if (isFollow) {
+            // } else {
+            // }
         } catch (e) {
             console.error(e);
         }
@@ -187,9 +204,18 @@ function Test({ products, productFilters, fetchProduct, user }) {
                                 </div>
                                 <div className="d-flex flex-row justify-content-start align-items-center">
                                     {user ? (
-                                        <button className="btn flex-fill" onClick={followShopAction}>
-                                            {isFollow ? 'unfollow' : 'follow'}
-                                        </button>
+                                        <>
+                                            <button className="btn flex-fill" onClick={followShopAction}>
+                                                {isFollow ? 'unfollow' : 'follow'}
+                                            </button>
+                                            <button
+                                                style={{ marginLeft: '10px' }}
+                                                className="btn flex-fill"
+                                                onClick={chatToShopAction}
+                                            >
+                                                chat
+                                            </button>
+                                        </>
                                     ) : null}
                                 </div>
                             </div>
@@ -249,7 +275,7 @@ function Test({ products, productFilters, fetchProduct, user }) {
                                     </div>
                                 </div> */}
 
-                                <div className="sidebar-widget product-sidebar  mb-30 p-30 bg-grey border-radius-10">
+                                {/* <div className="sidebar-widget product-sidebar  mb-30 p-30 bg-grey border-radius-10">
                                     <div className="widget-header position-relative mb-20 pb-10">
                                         <h5 className="widget-title mb-10">New products</h5>
                                         <div className="bt-1 border-color-1"></div>
@@ -296,7 +322,7 @@ function Test({ products, productFilters, fetchProduct, user }) {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="col-lg-9">
                                 <div className="shop-product-fillter">
@@ -384,6 +410,7 @@ const mapStateToProps = (state) => ({
 
 const mapDidpatchToProps = {
     fetchProduct,
+    setSelectedConversation,
 };
 
 export default connect(mapStateToProps, mapDidpatchToProps)(Test);

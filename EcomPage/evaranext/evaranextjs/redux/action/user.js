@@ -42,6 +42,7 @@ export const authenticateUser = () => {
                         type: Types.INIT_LOCALSTORAGE,
                         payload: { cart: serverCart ? [...serverCart] : [], wishlist: [], compare: [] },
                     }); // Cập nhật token vào Redux state
+                    localStorage.setItem('dokani_tag_history', JSON.stringify([]));
                 } else {
                     localStorage.removeItem('dokani_user');
                     dispatch({
@@ -52,6 +53,11 @@ export const authenticateUser = () => {
                     dispatch({
                         type: Types.INIT_LOCALSTORAGE,
                         payload: { cart, wishlist: [], compare: [] },
+                    });
+                    const pHis = JSON.parse(localStorage.getItem('dokani_tag_history'));
+                    dispatch({
+                        type: Types.INIT_TAG_HISTORY,
+                        payload: { pHis },
                     });
                 }
             } else {

@@ -14,7 +14,7 @@ export default function SidebarLayout() {
 
     const { t, n, currentLanguage } = useContext(TranslatorContext);
     const { sidebar } = useContext(SidebarContext);
-    const { notificationList, newNotifiCount } = useSelector((state) => state.persistedReducer.notificationReducer);
+    const { newNotifiCount, newMessCount } = useSelector((state) => state.persistedReducer.notificationReducer);
     const { isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
     const handleLogoutClick = async () => {
@@ -115,6 +115,13 @@ export default function SidebarLayout() {
                                     </Link>
                                 ) : null}
                             </li>
+                            <li className="mc-sidebar-dropdown-item">
+                                {!isVendor ? (
+                                    <Link to={'/shipCost'} className="mc-sidebar-dropdown-link">
+                                        {'Ship cost'}
+                                    </Link>
+                                ) : null}
+                            </li>
                         </ul>
                     </li>
                     {/* shop */}
@@ -148,7 +155,7 @@ export default function SidebarLayout() {
                             <Link to={'/order'} className="mc-sidebar-menu-btn">
                                 <i className="material-icons">{'shopping_cart'}</i>
                                 <span>{'orders'}</span>
-                                <sup className={'primary square'}>{5}</sup>
+                                {/* <sup className={'primary square'}>{5}</sup> */}
                             </Link>
                         </li>
                     ) : null}
@@ -185,7 +192,7 @@ export default function SidebarLayout() {
                         <Link to={'/message'} className="mc-sidebar-menu-btn">
                             <i className="material-icons">{'chat_bubble'}</i>
                             <span>{'Message'}</span>
-                            <sup className={'primary square'}>{9}</sup>
+                            {newMessCount > 0 ? <sup className={'primary square'}>{newMessCount}</sup> : null}
                         </Link>
                     </li>
                 </ul>

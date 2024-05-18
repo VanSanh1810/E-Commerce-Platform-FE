@@ -64,12 +64,12 @@
     .mc-round-avatar {
         position: relative;
 
-        &::before {
-            @include content-center(13px, 13px, 50%);
-            border: 2px solid var(--lightBorder);
-            background-color: $gray-600;
-            content: "";
-        }
+        // &::before {
+        //     @include content-center(13px, 13px, 50%);
+        //     border: 2px solid var(--lightBorder);
+        //     background-color: $gray-600;
+        //     content: "";
+        // }
 
         &.online {
             &::before {
@@ -170,12 +170,12 @@
     .mc-round-avatar {
         position: relative;
 
-        &::before {
-            @include content-center(13px, 13px, 50%);
-            border: 2px solid var(--lightBorder);
-            background-color: $green-600;
-            content: "";
-        }
+        // &::before {
+        //     @include content-center(13px, 13px, 50%);
+        //     border: 2px solid var(--lightBorder);
+        //     background-color: $green-600;
+        //     content: "";
+        // }
     }
 
     .mc-duel-text {
@@ -255,7 +255,7 @@
         }
     }
 
-    &:nth-child(even) {
+    &.me {
         flex-direction: row-reverse;
 
         .mc-message-chat-text {
