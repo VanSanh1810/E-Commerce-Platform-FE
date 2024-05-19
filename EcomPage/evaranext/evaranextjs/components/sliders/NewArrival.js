@@ -18,12 +18,7 @@ const NewArrival = () => {
                 // With Category
                 const response = await axiosInstance.post('/api/product/recomend', {
                     hisList: [...productTagHistory],
-                });
-                // const allProducts = await request.json();
-
-                // const newArrivalProducts = allProducts.sort(function (a, b) {
-                //     return a.created > b.created ? -1 : 1;
-                // });
+                })
                 const temp = [...response.data.data];
                 temp.sort((a, b) => {
                     b.recommendRank - a.recommendRank;
@@ -35,7 +30,7 @@ const NewArrival = () => {
             }
         };
         fetchProducts();
-    }, []);
+    }, [productTagHistory]);
 
     return (
         <>

@@ -57,7 +57,7 @@ export const authenticateUser = () => {
                     const pHis = JSON.parse(localStorage.getItem('dokani_tag_history'));
                     dispatch({
                         type: Types.INIT_TAG_HISTORY,
-                        payload: { pHis },
+                        payload: [...pHis],
                     });
                 }
             } else {
@@ -69,6 +69,11 @@ export const authenticateUser = () => {
                 dispatch({
                     type: Types.INIT_LOCALSTORAGE,
                     payload: { cart, wishlist: [], compare: [] },
+                });
+                const pHis = JSON.parse(localStorage.getItem('dokani_tag_history'));
+                dispatch({
+                    type: Types.INIT_TAG_HISTORY,
+                    payload: [...pHis],
                 });
             }
         } catch (error) {

@@ -176,7 +176,7 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                         <img
                                             className="default-img"
                                             src={product.images[0]?.url}
-                                            style={{ height: '100%', objectFit: 'scale-down' }}
+                                            style={{ height: '17vw', width: '17vw', objectFit: 'contain' }}
                                             alt=""
                                         />
                                         {/* {product.images[1]?.url ? (
@@ -211,7 +211,7 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                     <a
                                         style={{
                                             display: '-webkit-box',
-                                            WebkitLineClamp: '2',
+                                            WebkitLineClamp: '1',
                                             WebkitBoxOrient: 'vertical',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
