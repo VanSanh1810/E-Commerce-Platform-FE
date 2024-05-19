@@ -204,8 +204,8 @@ export default function HeaderLayout() {
     return (
         <header className={`mc-header ${scroll}`}>
             <Link to="/" className="mc-logo-group">
-                <img src="/images/logo.webp" alt="logo" />
-                <span>hotash</span>
+                <img src="/images/4.png" alt="logo" />
+                <span>Host Page</span>
             </Link>
             <div className="mc-header-group">
                 <div className="mc-header-left">
@@ -233,97 +233,21 @@ export default function HeaderLayout() {
                     {/*================================
                             MESSAGE PART START
                     ================================*/}
-                    <Dropdown className="message">
+                    <Link className="mc-dropdown-toggle mc-header-icon" to={'/message'}>
+                        <i className="material-icons">email</i>
+                        {newMessCount > 0 ? <sup className="primary">{n(newMessCount)}</sup> : null}
+                    </Link>
+                    {/* <Dropdown className="message">
                         <Dropdown.Toggle
                             className="mc-dropdown-toggle mc-header-icon"
                             onClick={() => {
-                                alert('click');
+                                window.location.href = '/message';
                             }}
                         >
                             <i className="material-icons">email</i>
                             {newMessCount > 0 ? <sup className="primary">{n(newMessCount)}</sup> : null}
                         </Dropdown.Toggle>
-                        {/* <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                            <div className="mc-header-dropdown-group">
-                                <div className="mc-card-header">
-                                    <h4 className="mc-card-title">
-                                        {t('messages') + ' '}({n(23)})
-                                    </h4>
-                                    <Dropdown bsPrefix="mc-dropdown">
-                                        <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                            <i className="material-icons">settings</i>
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">drafts</i>
-                                                <span>{t('mark_all_as_read')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">markunread</i>
-                                                <span>{t('mark_all_as_unread')}</span>
-                                            </button>
-                                            <button type="button" className="mc-dropdown-menu">
-                                                <i className="material-icons">delete</i>
-                                                <span>{t('delete_all_message')}</span>
-                                            </button>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                </div>
-
-                                <ul className="mc-header-dropdown-list thin-scrolling">
-                                    {messages?.map((message, index) => (
-                                        <li key={index} className={`mc-header-dropdown-item`}>
-                                            <Link to="#" className="mc-header-dropdown-content">
-                                                <div className="mc-header-dropdown-message-media">
-                                                    <div className="mc-round-avatar xs online">
-                                                        <img src={message?.user?.image} alt="avatar" />
-                                                    </div>
-                                                </div>
-
-                                                <div className="mc-header-dropdown-meta">
-                                                    <h4>
-                                                        <cite>{message?.name}</cite>
-                                                        <time>{message?.shortMoment}</time>
-                                                    </h4>
-                                                    <p>{message?.chat}</p>
-                                                </div>
-                                            </Link>
-
-                                            {message?.badge && <sup>{n(message?.badge)}</sup>}
-
-                                            <Dropdown bsPrefix="mc-dropdown">
-                                                <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
-                                                    <i className="material-icons">more_vert</i>
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu align="end" className="mc-dropdown-paper">
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">account_circle</i>
-                                                        <span>{t('view_profile')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">mark_chat_read</i>
-                                                        <span>{t('mark_as_unread')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">delete</i>
-                                                        <span>{t('delete_message')}</span>
-                                                    </button>
-                                                    <button type="button" className="mc-dropdown-menu">
-                                                        <i className="material-icons">remove_circle</i>
-                                                        <span>{t('block_message')}</span>
-                                                    </button>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <Link to="#" className="mc-btn primary mc-header-dropdown-button">
-                                    {t('view_all_messages')}
-                                </Link>
-                            </div>
-                        </Dropdown.Menu> */}
-                    </Dropdown>
+                    </Dropdown> */}
                     {/*================================
                             MESSAGE PART END
                     ================================*/}

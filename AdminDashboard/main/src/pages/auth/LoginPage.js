@@ -43,8 +43,8 @@ export default function LoginPage() {
         <div className="mc-auth">
             <img src="images/pattern.webp" alt="pattern" className="mc-auth-pattern" />
             <div className="mc-auth-group">
-                <LogoComponent src="images/logo.webp" alt="logo" href="/ecommerce" className="mc-auth-logo" />
-                <h4 className="mc-auth-title">Login to Hotash</h4>
+                <LogoComponent src="images/4.png" alt="logo" href="/ecommerce" className="mc-auth-logo" />
+                <h4 className="mc-auth-title">Login to HostPage</h4>
                 <form className="mc-auth-form" onSubmit={(e) => loginHandler(e)}>
                     <IconFieldComponent
                         icon="email"

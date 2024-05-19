@@ -51,7 +51,7 @@ export default function SidebarLayout() {
     return (
         <aside as="aside" className={`mc-sidebar thin-scrolling ${sidebar && 'active'}`}>
             <menu className="mc-sidebar-menu">
-                <h5 className="mc-sidebar-menu-title">{'main_pages'}</h5>
+                <h5 className="mc-sidebar-menu-title">{'navigation'}</h5>
                 <ul className="mc-sidebar-menu-list">
                     {/* dashboard */}
                     <li className="mc-sidebar-menu-item">

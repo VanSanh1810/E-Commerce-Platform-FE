@@ -13,7 +13,11 @@ const Footer = () => {
                                     <div className="logo logo-width-1 wow fadeIn animated">
                                         <Link href="/">
                                             <a>
-                                                <img src="/assets/imgs/theme/logo.svg" alt="logo" />
+                                                <img
+                                                    src="/assets/imgs/theme/1.png"
+                                                    style={{ height: '100px', width: '200px', objectFit: 'cover' }}
+                                                    alt="logo"
+                                                />
                                             </a>
                                         </Link>
                                     </div>
@@ -47,7 +51,7 @@ const Footer = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-lg-2 col-md-3">
+                            {/* <div className="col-lg-2 col-md-3">
                                 <h5 className="widget-title wow fadeIn animated">About</h5>
                                 <ul className="footer-list wow fadeIn animated mb-sm-5 mb-md-0">
                                     <li>
@@ -112,7 +116,7 @@ const Footer = () => {
                                         <img className="wow fadeIn animated" src="/assets/imgs/theme/payment-method.png" alt="" />
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </section>

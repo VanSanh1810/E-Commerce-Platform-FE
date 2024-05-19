@@ -98,14 +98,18 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                 <div className="header-middle header-middle-ptb-1 d-none d-lg-block">
                     <div className="container">
                         <div className="header-wrap">
-                            <div className="logo logo-width-1">
+                            <div className="logo logo-width-1 me-2">
                                 <Link href="/">
                                     <a>
-                                        <img src="/assets/imgs/theme/logo.svg" alt="logo" />
+                                        <img
+                                            src="/assets/imgs/theme/1.png"
+                                            style={{ height: '70px', width: '225px', objectFit: 'cover', marginRight: '0px' }}
+                                            alt="logo"
+                                        />
                                     </a>
                                 </Link>
                             </div>
-                            <div className="header-right">
+                            <div className="header-right ms-2">
                                 <div className="search-style-2">
                                     <Search />
                                 </div>
@@ -161,7 +165,11 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                             <div className="logo logo-width-1 d-block d-lg-none">
                                 <Link href="/">
                                     <a>
-                                        <img src="/assets/imgs/theme/logo.svg" alt="logo" />
+                                        <img
+                                            src="/assets/imgs/theme/1.png"
+                                            style={{ height: '100px', width: '200px', objectFit: 'cover' }}
+                                            alt="logo"
+                                        />
                                     </a>
                                 </Link>
                             </div>
