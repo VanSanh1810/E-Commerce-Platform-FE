@@ -23,14 +23,15 @@ const Footer = () => {
                                     </div>
                                     <h5 className="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
                                     <p className="wow fadeIn animated">
-                                        <strong>Address: </strong>562 Wellington Road, Street 32, San Francisco
+                                        <strong>Address: </strong>5, 6 Street, Linh Chieu Ward, Thu Duc
                                     </p>
                                     <p className="wow fadeIn animated">
-                                        <strong>Phone: </strong>+01 2222 365 /(+91) 01 2345 6789
+                                        <strong>Phone: </strong>(+84) 838 464 006
                                     </p>
                                     <p className="wow fadeIn animated">
                                         <strong>Hours: </strong>10:00 - 18:00, Mon - Sat
                                     </p>
+                                    <Link href={'/tracking-order-page'}>Tracking my order</Link>
                                     <h5 className="mb-10 mt-30 fw-600 text-grey-4 wow fadeIn animated">Follow Us</h5>
                                     <div className="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0">
                                         <a href="#">

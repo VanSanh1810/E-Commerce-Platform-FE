@@ -5,7 +5,7 @@ import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
 
-export default function UsersTableComponent({ thead, tbody, rowView, currentPage, setPages, userSearchText }) {
+export default function UsersTableComponent({ thead, tbody, rowView, currentPage, setPages, userSearchText, _setReloadAction }) {
     const { t } = useContext(TranslatorContext);
     const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
@@ -25,6 +25,7 @@ export default function UsersTableComponent({ thead, tbody, rowView, currentPage
             });
             console.log(result.data.data);
             setReloadAction(!reloadAction);
+            _setReloadAction(!reloadAction)
         } catch (e) {
             console.error(e);
         }
@@ -105,13 +106,13 @@ export default function UsersTableComponent({ thead, tbody, rowView, currentPage
                                     >
                                         edit
                                     </ButtonComponent>
-                                    <ButtonComponent
+                                    {/* <ButtonComponent
                                         title="Delete"
                                         className="material-icons block"
                                         onClick={() => setEditModal(true, setUserData(item))}
                                     >
                                         delete
-                                    </ButtonComponent>
+                                    </ButtonComponent> */}
                                 </div>
                             </td>
                         </tr>

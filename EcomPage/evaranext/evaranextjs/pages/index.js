@@ -53,7 +53,7 @@ export default function Home() {
                     </div>
                 </section> */}
 
-                <section className="popular-categories section-padding mt-15 mb-25">
+                {/* <section className="popular-categories section-padding mt-15 mb-25">
                     <div className="container wow fadeIn animated">
                         <h3 className="section-title mb-20">
                             <span>Popular</span> Categories
@@ -64,7 +64,7 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 {/* <section className="banners mb-15">
                     <div className="container">

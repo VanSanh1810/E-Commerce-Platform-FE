@@ -18,12 +18,18 @@ export default (state = [], action) => {
 
             if (index !== -1) {
                 state[index].quantity += action.payload.product.quantity ? action.payload.product.quantity : 1;
+                if (state[index].quantity > action.payload.stockLeft) {
+                    state[index].quantity = stockLeft;
+                }
                 storage.set('dokani_cart', [...state]);
-
                 return [...state];
             } else {
                 if (!action.payload.product.quantity) {
                     action.payload.product.quantity = 1;
+                }
+
+                if (action.payload.product.quantity > action.payload.stockLeft) {
+                    action.payload.product.quantity = action.payload.stockLeft;
                 }
                 storage.set('dokani_cart', [...state, action.payload.product]);
 
@@ -49,6 +55,10 @@ export default (state = [], action) => {
             if (index === -1) return state;
 
             state[index].quantity += action.payload.gap ? action.payload.gap : 0;
+
+            if (state[index].quantity > action.payload.stock) {
+                state[index].quantity = action.payload.stock;
+            }
             storage.set('dokani_cart', [...state]);
 
             return [...state];
@@ -67,6 +77,10 @@ export default (state = [], action) => {
                 state[index].quantity = quantity;
             } else {
                 state[index].quantity = 1;
+            }
+
+            if (state[index].quantity > action.payload.stock) {
+                state[index].quantity = action.payload.stock;
             }
             storage.set('dokani_cart', [...state]);
 

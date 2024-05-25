@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice, setSelectedIndexWithPrice }) => {
     const [productData, setProductData] = useState({});
     const [productSelectedVariant, setProductSelectedVariant] = useState([]);
-    const [productTreeDetail, setProductTreeDetail] = useState({});
+    const [productTreeDetail, setProductTreeDetail] = useState();
     const [isProductExist, setIsProductExist] = useState(true);
 
     const inputCheckbox = useRef();
@@ -192,7 +192,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
             {isProductExist ? (
                 <>
                     <td>
-                        {productTreeDetail.stock > 0 ? (
+                        {productTreeDetail?.stock > 0 ? (
                             <input
                                 ref={inputCheckbox}
                                 id={id + variant.join()}
@@ -243,7 +243,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                                 )}
                             />
                         ) : (
-                            <p>Out of stock</p>
+                            <p style={{ color: 'red' }}>Out of stock</p>
                         )}
                     </td>
                     <td className="image product-thumbnail">
@@ -266,45 +266,59 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                         </span>
                     </td>
                     <td className="price" data-title="price">
-                        <span>
-                            {!voucherData?.discount
-                                ? productTreeDetail?.disPrice
-                                    ? productTreeDetail?.disPrice === 0
-                                        ? productTreeDetail?.price
-                                        : productTreeDetail?.disPrice
-                                    : productTreeDetail?.price
-                                : calculateVoucherPrice(
-                                      parseFloat(
-                                          productTreeDetail?.disPrice
-                                              ? productTreeDetail?.disPrice === 0
-                                                  ? productTreeDetail?.price
-                                                  : productTreeDetail?.disPrice
-                                              : productTreeDetail?.price,
-                                      ),
-                                  )}
-                            $
-                        </span>
+                        {productTreeDetail?.stock > 0 ? (
+                            <span>
+                                {!voucherData?.discount
+                                    ? productTreeDetail?.disPrice
+                                        ? productTreeDetail?.disPrice === 0
+                                            ? productTreeDetail?.price
+                                            : productTreeDetail?.disPrice
+                                        : productTreeDetail?.price
+                                    : calculateVoucherPrice(
+                                          parseFloat(
+                                              productTreeDetail?.disPrice
+                                                  ? productTreeDetail?.disPrice === 0
+                                                      ? productTreeDetail?.price
+                                                      : productTreeDetail?.disPrice
+                                                  : productTreeDetail?.price,
+                                          ),
+                                      )}
+                                $
+                            </span>
+                        ) : (
+                            <span>-</span>
+                        )}
                     </td>
-                    {children}
+                    {productTreeDetail?.stock > 0 ? (
+                        children
+                    ) : (
+                        <td className="price" data-title="Price">
+                            <input disabled={true} type="number" />
+                        </td>
+                    )}
                     <td className="price" data-title="subPrice">
-                        <span>
-                            {!voucherData?.discount
-                                ? (productTreeDetail?.disPrice
-                                      ? productTreeDetail?.disPrice === 0
-                                          ? productTreeDetail?.price
-                                          : productTreeDetail?.disPrice
-                                      : productTreeDetail?.price) * quantity
-                                : calculateVoucherPrice(
-                                      parseFloat(
-                                          (productTreeDetail?.disPrice
-                                              ? productTreeDetail?.disPrice === 0
-                                                  ? productTreeDetail?.price
-                                                  : productTreeDetail?.disPrice
-                                              : productTreeDetail?.price) * quantity,
-                                      ),
-                                  )}
-                            $
-                        </span>
+                        {productTreeDetail?.stock > 0 ? (
+                            <span>
+                                {!voucherData?.discount
+                                    ? (productTreeDetail?.disPrice
+                                          ? productTreeDetail?.disPrice === 0
+                                              ? productTreeDetail?.price
+                                              : productTreeDetail?.disPrice
+                                          : productTreeDetail?.price) * quantity
+                                    : calculateVoucherPrice(
+                                          parseFloat(
+                                              (productTreeDetail?.disPrice
+                                                  ? productTreeDetail?.disPrice === 0
+                                                      ? productTreeDetail?.price
+                                                      : productTreeDetail?.disPrice
+                                                  : productTreeDetail?.price) * quantity,
+                                          ),
+                                      )}
+                                $
+                            </span>
+                        ) : (
+                            <span>-</span>
+                        )}
                     </td>
                 </>
             ) : (

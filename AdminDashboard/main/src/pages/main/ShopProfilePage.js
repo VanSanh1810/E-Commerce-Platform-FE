@@ -7,6 +7,11 @@ import { FloatCardComponent, ActivityCardComponent } from '../../components/card
 import PageLayout from '../../layouts/PageLayout';
 import axiosInstance from '../../configs/axiosInstance';
 import AddressStaticData from '../../assets/data/static/dataprovince';
+import { PaginationComponent } from '../../components';
+import { ProductsTableComponent } from '../../components/tables';
+import { LabelFieldComponent } from '../../components/fields';
+import { debounce } from 'lodash';
+import products from '../../assets/data/products.json';
 
 export default function ShopProfilePage() {
     const { t } = useContext(TranslatorContext);
@@ -15,6 +20,12 @@ export default function ShopProfilePage() {
     const [shopData, setShopData] = useState();
     const [shopStat, setShopStat] = useState({});
     const [adName, setAdName] = useState({});
+    //
+    const [rowView, setRowView] = useState(6);
+    const [sortPrice, setSortPrice] = useState('lowToHigh');
+    const [pages, setPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productSearchText, setProductSearchText] = useState('');
 
     useEffect(() => {
         console.log(uid);
@@ -85,7 +96,27 @@ export default function ShopProfilePage() {
                         </div>
                     </div>
                 </Col>
-                <Col xl={5}>
+                <Col xl={12}>
+                    <Row>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm purple'}
+                                digit={shopStat?.totalOrder}
+                                title={'total_orders'}
+                                icon={'shopping_cart'}
+                            />
+                        </Col>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm green'}
+                                digit={shopStat?.totalProduct}
+                                title={'total_products'}
+                                icon={'shopping_bag'}
+                            />
+                        </Col>
+                    </Row>
+                </Col>
+                <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
                             <h4 className="mc-card-title">{t('user information')}</h4>
@@ -184,28 +215,86 @@ export default function ShopProfilePage() {
                         </div>
                     </div>
                 </Col>
-                <Col xl={7}>
-                    <Row>
-                        <Col md={6} lg={6}>
-                            <FloatCardComponent
-                                variant={'sm purple'}
-                                digit={shopStat?.totalOrder}
-                                title={'total_orders'}
-                                icon={'shopping_cart'}
-                            />
-                        </Col>
-                        <Col md={6} lg={6}>
-                            <FloatCardComponent
-                                variant={'sm green'}
-                                digit={shopStat?.totalProduct}
-                                title={'total_products'}
-                                icon={'shopping_bag'}
-                            />
-                        </Col>
-                        <Col xl={12}>
-                            <ActivityCardComponent />
-                        </Col>
-                    </Row>
+                <Col xl={12}>
+                    <div className="mc-card">
+                        <Row>
+                            <Col xs={12} sm={6} md={4} lg={4}>
+                                <LabelFieldComponent
+                                    label={t('show_by')}
+                                    option={['6 row', '12 row', '24 row']}
+                                    labelDir="label-col"
+                                    fieldSize="w-100 h-md mb-4"
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        let a = e.target.value;
+                                        const temp = a.split(' ');
+                                        setRowView(parseInt(temp[0]));
+                                        setCurrentPage(1);
+                                    }}
+                                />
+                            </Col>
+                            {/* <Col xs={12} sm={6} md={3} lg={3}>
+                                <LabelFieldComponent
+                                    label={t('rating_by')}
+                                    option={['1 star', '2 star', '3 star', '4 star', '5 star']}
+                                    labelDir="label-col"
+                                    fieldSize="w-100 h-md mb-4"
+                                />
+                            </Col> */}
+                            <Col xs={12} sm={6} md={4} lg={4}>
+                                <label className="mc-label-field-title">{'Sort price'}</label>
+                                <select
+                                    style={{ backgroundImage: 'url(/images/dropdown.svg)' }}
+                                    className={`mc-label-field-select w-100 h-md mb-4`}
+                                    onChange={(e) => {
+                                        // console.log(e.target.value);
+                                        setSortPrice(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option selected={true} value={'lowToHigh'}>
+                                        Low To High
+                                    </option>
+                                    <option value={'highToLow'}>High To Low</option>
+                                </select>
+                            </Col>
+                            <Col xs={12} sm={6} md={4} lg={4}>
+                                <LabelFieldComponent
+                                    type="search"
+                                    label={t('search_by')}
+                                    placeholder={t('id') + ' / ' + t('name')}
+                                    labelDir="label-col"
+                                    fieldSize="mb-4 w-100 h-md"
+                                    onChange={debounce(
+                                        (e) => {
+                                            // console.log(e.target.value);
+                                            setProductSearchText(e.target.value);
+                                            setCurrentPage(1);
+                                        },
+                                        [500],
+                                    )}
+                                />
+                            </Col>
+                            <Col xl={12}>
+                                <ProductsTableComponent
+                                    thead={products.thead}
+                                    tbody={products.tbody}
+                                    sortPrice={sortPrice}
+                                    rowView={rowView}
+                                    currentPage={currentPage}
+                                    setPages={setPages}
+                                    productSearchText={productSearchText}
+                                    _shopId={uid ? uid : ''}
+                                />
+                                <PaginationComponent
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                    pages={pages}
+                                    rowShow={rowView}
+                                />
+                            </Col>
+                        </Row>
+                    </div>
                 </Col>
             </Row>
         </PageLayout>

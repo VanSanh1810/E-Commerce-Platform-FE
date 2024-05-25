@@ -19,6 +19,8 @@ export default function ReportListPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [reportType, setReportType] = useState('');
 
+    const [realoadActions, setRealoadActions] = useState(false);
+
     const { t } = useContext(TranslatorContext);
 
     const [reportStat, setReportStat] = useState({});
@@ -34,7 +36,7 @@ export default function ReportListPage() {
             }
         };
         fetchReportStat();
-    }, []);
+    }, [realoadActions]);
 
     return (
         <PageLayout>
@@ -127,6 +129,7 @@ export default function ReportListPage() {
                             currentPage={currentPage}
                             setPages={setPages}
                             reportType={reportType}
+                            _setReloadAction={setRealoadActions}
                         />
                         <PaginationComponent
                             currentPage={currentPage}

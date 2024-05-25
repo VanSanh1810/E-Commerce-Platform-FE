@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Row, Col, Dropdown, Modal } from 'react-bootstrap';
 import { AnchorComponent, ButtonComponent } from '../../components/elements';
 import LabelTextareaComponent from '../../components/fields/LabelTextareaComponent';
@@ -10,8 +10,18 @@ import reviews from '../../assets/data/reviews.json';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
 
+// function useQuery() {
+//     return new URLSearchParams(useLocation().search);
+// }
+
 export default function ProductViewPage() {
     const { productId } = useParams();
+    // const query = useQ
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const reviewId = searchParams.get('reviewId');
+    const reportId = searchParams.get('reportId');
+    //
     const { shopId, isVendor } = useSelector((state) => state.persistedReducer.authReducer);
 
     const { t } = useContext(TranslatorContext);
@@ -139,6 +149,9 @@ export default function ProductViewPage() {
             const response = await axiosInstance.post(`/api/product/disable/${productId}`, {
                 isHidden: !!action,
             });
+            if (reportId) {
+                const result = await axiosInstance.post(`/api/report/${reportId}`);
+            }
             console.log(response.data);
         } catch (e) {
             console.error(e);
@@ -255,6 +268,11 @@ export default function ProductViewPage() {
                                         >
                                             <span>Hidden</span>
                                         </label>
+                                        {reportId ? (
+                                            <div>
+                                                <ReportFragment reportId={reportId} />
+                                            </div>
+                                        ) : null}
                                     </div>
                                 ) : null}
                             </div>
@@ -391,7 +409,11 @@ export default function ProductViewPage() {
                             <h6 className="mc-divide-title mt-5 mb-4">Customer Reviews</h6>
                             <ul className="mc-review-list">
                                 {reviewData?.reviews?.map((item, index) => (
-                                    <li key={item._id} className="mc-review-item">
+                                    <li
+                                        key={item._id}
+                                        className="mc-review-item"
+                                        style={reviewId ? { display: reviewId === item._id ? 'unset' : 'none' } : {}}
+                                    >
                                         <div className="mc-review-group row">
                                             <div className="mc-review-data">
                                                 <div className="mc-review-head">
@@ -490,3 +512,19 @@ export default function ProductViewPage() {
         </PageLayout>
     );
 }
+
+const ReportFragment = ({ reportId }) => {
+    const [reportData, setReportData] = useState();
+    useEffect(() => {
+        const fetchReport = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/report/${reportId}`);
+                setReportData({ ...response.data.report });
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchReport();
+    }, [reportId]);
+    return <div>Report reason : {reportData?.reason}</div>;
+};

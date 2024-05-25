@@ -16,7 +16,7 @@ export const LoaderProvider = ({ children }) => {
             { loading ? 
                 <div className="mc-spinner">
                     <img className="pattern" src="images/pattern.webp" alt="pattern" />
-                    <img className="favicon" src="images/logo.webp" alt="logo" />
+                    <img className="favicon" src="images/4.png" alt="logo" />
                     <div className="mc-spinner-group">
                         <h3>Loading</h3>
                         <PulseLoader 

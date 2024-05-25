@@ -13,7 +13,6 @@ import { debounce } from 'lodash';
 import axiosInstance from '../../configs/axiosInstance';
 
 export default function ShopListPage() {
-
     const [rowView, setRowView] = useState(6);
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -22,6 +21,7 @@ export default function ShopListPage() {
     const { t } = useContext(TranslatorContext);
 
     const [shopStat, setShopStat] = useState({});
+    const [reloadAction, setReloadAction] = useState(false);
 
     useEffect(() => {
         const fetchShopStat = async () => {
@@ -34,7 +34,7 @@ export default function ShopListPage() {
             }
         };
         fetchShopStat();
-    }, []);
+    }, [reloadAction]);
 
     return (
         <PageLayout>
@@ -155,6 +155,7 @@ export default function ShopListPage() {
                             currentPage={currentPage}
                             setPages={setPages}
                             shopSearchText={shopSearchText}
+                            _setReloadAction={setReloadAction}
                         />
                         <PaginationComponent
                             currentPage={currentPage}

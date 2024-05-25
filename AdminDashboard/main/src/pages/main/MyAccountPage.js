@@ -140,7 +140,7 @@ export default function MyAccountPage() {
                             <Tab eventKey="profile" title={t('edit_profile')} className="mc-tabpane profile">
                                 <div className="mc-tab-card">
                                     <h6 className="mc-tab-card-title">
-                                        {t('Shop Information')} - Balance: {shopData.balance ? shopData.balance : 0}$
+                                        {t('Shop Information')} - Balance: {shopData?.balance ? shopData?.balance : 0}$
                                     </h6>
                                     <Row>
                                         <Col xl={4}>

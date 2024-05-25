@@ -109,9 +109,9 @@ const ProductTab = ({ product }) => {
                                                 <div className="single-comment justify-content-between d-flex">
                                                     <div className="user justify-content-between d-flex">
                                                         <div className="thumb text-center">
-                                                            <img src="/assets/imgs/page/avatar-6.jpg" alt="" />
+                                                            {/* <img src="/assets/imgs/page/avatar-6.jpg" alt="" /> */}
                                                             <h6>
-                                                                <a href="#">{review.name}</a>
+                                                                <p>{review.name}</p>
                                                             </h6>
                                                             {/* <p className="font-xxs">Since 2012</p> */}
                                                         </div>
@@ -193,7 +193,7 @@ const ProductTab = ({ product }) => {
                                             aria-valuemin="0"
                                             aria-valuemax="100"
                                         >
-                                            {(starPercents[4] * 100).toString() + '%'}
+                                            {(starPercents[4] * 100).toFixed(2).toString() + '%'}
                                         </div>
                                     </div>
                                     <div className="progress">
@@ -208,7 +208,7 @@ const ProductTab = ({ product }) => {
                                             aria-valuemin="0"
                                             aria-valuemax="100"
                                         >
-                                            {(starPercents[3] * 100).toString() + '%'}
+                                            {(starPercents[3] * 100).toFixed(2).toString() + '%'}
                                         </div>
                                     </div>
                                     <div className="progress">
@@ -223,7 +223,7 @@ const ProductTab = ({ product }) => {
                                             aria-valuemin="0"
                                             aria-valuemax="100"
                                         >
-                                            {(starPercents[2] * 100).toString() + '%'}
+                                            {(starPercents[2] * 100).toFixed(2).toString() + '%'}
                                         </div>
                                     </div>
                                     <div className="progress">
@@ -238,7 +238,7 @@ const ProductTab = ({ product }) => {
                                             aria-valuemin="0"
                                             aria-valuemax="100"
                                         >
-                                            {(starPercents[1] * 100).toString() + '%'}
+                                            {(starPercents[1] * 100).toFixed(2).toString() + '%'}
                                         </div>
                                     </div>
                                     <div className="progress mb-30">
@@ -253,12 +253,12 @@ const ProductTab = ({ product }) => {
                                             aria-valuemin="0"
                                             aria-valuemax="100"
                                         >
-                                            {(starPercents[0] * 100).toString() + '%'}
+                                            {(starPercents[0] * 100).toFixed(2).toString() + '%'}
                                         </div>
                                     </div>
-                                    <a href="#" className="font-xs text-muted">
+                                    {/* <a href="#" className="font-xs text-muted">
                                         How are ratings calculated?
-                                    </a>
+                                    </a> */}
                                 </div>
                             </div>
                         </div>

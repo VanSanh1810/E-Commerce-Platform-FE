@@ -4,7 +4,7 @@ import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function ReportTableComponent({ thead, tbody, rowView, currentPage, setPages, reportType }) {
+export default function ReportTableComponent({ thead, tbody, rowView, currentPage, setPages, reportType, _setReloadAction }) {
     const { t } = useContext(TranslatorContext);
 
     const [data, setData] = useState([]);
@@ -23,6 +23,7 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                 const result = await axiosInstance.post(`/api/report/${_id}`);
                 console.log(result.data.data);
                 setReloadAction(!reloadAction);
+                _setReloadAction(!reloadAction);
             } catch (e) {
                 console.error(e);
             }
@@ -90,12 +91,12 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                                 {item.markAtRead === true && <p className="mc-table-badge green">Done</p>}
                                 {item.markAtRead === false && <p className="mc-table-badge yellow">Pending</p>}
                             </td>
-                            <td title={item.createDate}>{new Date(parseInt(item.createDate)).toUTCString()}</td>
+                            <td title={item.createDate}>{new Date(parseInt(item.createDate)).toLocaleString()}</td>
                             <td>
                                 <div className="mc-table-action">
                                     {item.target.type !== 'Review' ? (
                                         <AnchorComponent
-                                            to={`/product/${item.target.id}`}
+                                            to={`/product/${item.target.id}?reportId=${item._id}`}
                                             title="View"
                                             className="material-icons view"
                                         >
@@ -105,19 +106,24 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                                         <ButtonComponent
                                             title="View"
                                             className="material-icons view"
-                                            onClick={() => setAdminReportModal(item.target.id)}
+                                            onClick={() =>
+                                                setAdminReportModal({
+                                                    reviewId: item.target.id,
+                                                    reason: item.reason,
+                                                    id: item._id,
+                                                })
+                                            }
                                         >
                                             visibility
                                         </ButtonComponent>
                                     )}
-
-                                    {/* <ButtonComponent
+                                    <ButtonComponent
                                         title="Edit"
                                         className="material-icons edit"
                                         onClick={() => setEditModal(true, setUserData(item))}
                                     >
                                         edit
-                                    </ButtonComponent> */}
+                                    </ButtonComponent>
                                 </div>
                             </td>
                         </tr>
@@ -127,7 +133,7 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
             {/* report status */}
             <Modal show={editModal} onHide={() => setEditModal(false, setUserData(''))}>
                 <div className="mc-user-modal">
-                    <p>Set report status</p>
+                    <p className="mt-3">Set report status</p>
                     <Form.Group className="form-group inline">
                         <Form.Label>{t('status')}</Form.Label>
                         <Form.Select
@@ -160,12 +166,12 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                     </Modal.Footer>
                 </div>
             </Modal>
-
             {/* report detail */}
             <Modal show={adminReportModal} onHide={() => setAdminReportModal(false)}>
                 <div className="mc-user-modal">
                     <p className="mt-4">Report review</p>
-                    <ReportReviewComponent reviewId={adminReportModal} />
+                    <p>Reason : {adminReportModal.reason}</p>
+                    <ReportReviewComponent reviewId={adminReportModal.reviewId} reportId={adminReportModal.id} />
                     <Modal.Footer>
                         <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setAdminReportModal(false)}>
                             {t('close_popup')}
@@ -186,7 +192,7 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
     );
 }
 
-const ReportReviewComponent = ({ reviewId }) => {
+const ReportReviewComponent = ({ reviewId, reportId }) => {
     const [reviewData, setReviewData] = useState();
 
     useEffect(() => {
@@ -209,6 +215,9 @@ const ReportReviewComponent = ({ reviewId }) => {
             const response = await axiosInstance.post(`/api/review/${reviewId}`, {
                 isHidden: !!action,
             });
+            if (reportId) {
+                const result = await axiosInstance.post(`/api/report/${reportId}`);
+            }
             console.log(response.data);
         } catch (e) {
             console.error(e);
@@ -217,7 +226,7 @@ const ReportReviewComponent = ({ reviewId }) => {
 
     return (
         <div className="d-flex flex-column">
-            <div className="card">
+            <div className="card p-2">
                 <h5 className="mb-2">
                     User:{' '}
                     <a style={{ color: 'blue' }} href={`/user/${reviewData?.user}`}>

@@ -86,11 +86,14 @@ export default function EcommercePage() {
     const [userStatType, setUserStatType] = useState('day');
     const [userStatData, setUserStatData] = useState({});
 
+    const [totalVendor, setTotalVendor] = useState(0);
+
     useEffect(() => {
         const fetchAnalysticUserData = async () => {
             try {
                 const response = await axiosInstance.get(`/api/stat/user?type=${userStatType}`);
                 console.log(response.data);
+                setTotalVendor(response.data.totalVendor);
                 const temp = { ...response.data };
                 // temp.user
                 const now = new Date();
@@ -122,7 +125,7 @@ export default function EcommercePage() {
                 } else {
                     trend = (currentTotal / (temp.total - currentTotal)) * 100;
                 }
-                setUserStatData({ total: temp.total, trend: trend });
+                setUserStatData({ total: temp.total, trend: trend.toFixed(2) });
             } catch (err) {
                 console.error(err);
             }
@@ -170,7 +173,7 @@ export default function EcommercePage() {
                 } else {
                     trend = (currentTotal / (temp.total - currentTotal)) * 100;
                 }
-                setOrderStatData({ total: temp.total, trend: trend });
+                setOrderStatData({ total: parseFloat(temp.total).toFixed(2), trend: trend });
             } catch (err) {
                 console.error(err);
             }
@@ -226,6 +229,21 @@ export default function EcommercePage() {
         fetchAnalysticReviewData();
     }, [isVendor, shopId, reviewStatType]);
 
+    //report statistics
+
+    const [totalReport, setTotalReport] = useState(0);
+    useEffect(() => {
+        const fetchTotalReport = async () => {
+            try {
+                const response = await axiosInstance.get('/api/stat/reportStat');
+                setTotalReport(response.data.pendingReport);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchTotalReport();
+    }, []);
+
     return (
         <PageLayout>
             <Row>
@@ -272,7 +290,7 @@ export default function EcommercePage() {
                             </Col>
                         ) : null}
                         {isVendor ? (
-                            <Col>
+                            <Col xl={4}>
                                 <EcommerceCardComponent
                                     icon={'shopping_cart'}
                                     trend={orderStatData.trend > 0 ? 'trending_up' : 'trending_down'}
@@ -285,7 +303,7 @@ export default function EcommercePage() {
                                 />
                             </Col>
                         ) : null}
-                        <Col>
+                        <Col xl={isVendor ? 4 : 6}>
                             <EcommerceCardComponent
                                 icon={'shopping_bag'}
                                 trend={productStatData.trend > 0 ? 'trending_up' : 'trending_down'}
@@ -297,8 +315,68 @@ export default function EcommercePage() {
                                 setStatType={setProductStatType}
                             />
                         </Col>
+                        {!isVendor ? (
+                            <>
+                                <Col xl={6}>
+                                    <div className={`mc-ecommerce-card ${'yellow'}`}>
+                                        {/* <i className="mc-ecommerce-card-trend material-icons">{'trending_up'}</i> */}
+                                        <div className="mc-ecommerce-card-head">
+                                            <h4 className="mc-ecommerce-card-meta">
+                                                <span>{'Total vendor'}</span>
+                                                {totalVendor}
+                                            </h4>
+                                            <i className="mc-ecommerce-card-icon material-icons">{'store'}</i>
+                                        </div>
+                                        <div className="mc-ecommerce-card-foot">
+                                            <div className="mc-ecommerce-card-compare mb-4">
+                                                {/* <mark>+ {0}%</mark> */}
+                                                {/* <span>{t(`last ${''}`)}</span> */}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* <EcommerceCardComponent
+                                        icon={'store'}
+                                        trend={productStatData.trend > 0 ? 'trending_up' : 'trending_down'}
+                                        title={t('total vendors')}
+                                        variant={'yellow'}
+                                        number={n(totalVendor)}
+                                        percent={productStatData.trend}
+                                        statType={productStatType}
+                                        setStatType={setProductStatType}
+                                    /> */}
+                                </Col>
+                                <Col xl={6}>
+                                    <div className={`mc-ecommerce-card ${'purple'}`}>
+                                        {/* <i className="mc-ecommerce-card-trend material-icons">{'trending_up'}</i> */}
+                                        <div className="mc-ecommerce-card-head">
+                                            <h4 className="mc-ecommerce-card-meta">
+                                                <span>{'Report'}</span>
+                                                {totalReport}
+                                            </h4>
+                                            <i className="mc-ecommerce-card-icon material-icons">{'report'}</i>
+                                        </div>
+                                        <div className="mc-ecommerce-card-foot">
+                                            <div className="mc-ecommerce-card-compare mb-4">
+                                                {/* <mark>+ {0}%</mark> */}
+                                                {/* <span>{t(`last ${''}`)}</span> */}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* <EcommerceCardComponent
+                                        icon={'report'}
+                                        trend={productStatData.trend > 0 ? 'trending_up' : 'trending_down'}
+                                        title={t('Report')}
+                                        variant={'purple'}
+                                        number={n(productStatData.total)}
+                                        percent={productStatData.trend}
+                                        statType={productStatType}
+                                        setStatType={setProductStatType}
+                                    /> */}
+                                </Col>
+                            </>
+                        ) : null}
                         {isVendor ? (
-                            <Col>
+                            <Col xl={4}>
                                 <EcommerceCardComponent
                                     icon={'hotel_class'}
                                     trend={reviewStatData.trend > 0 ? 'trending_up' : 'trending_down'}

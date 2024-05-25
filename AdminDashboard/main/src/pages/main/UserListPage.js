@@ -21,6 +21,8 @@ export default function UserListPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [userSearchText, setUserSearchText] = useState('');
 
+    const [reloadAction, setReloadAction] = useState(false);
+
     useEffect(() => {
         const fetchUData = async () => {
             try {
@@ -31,7 +33,7 @@ export default function UserListPage() {
             }
         };
         fetchUData();
-    }, []);
+    }, [reloadAction]);
 
     return (
         <PageLayout>
@@ -134,6 +136,7 @@ export default function UserListPage() {
                             currentPage={currentPage}
                             setPages={setPages}
                             userSearchText={userSearchText}
+                            _setReloadAction={setReloadAction}
                         />
                         {pages !== 0 ? (
                             <PaginationComponent

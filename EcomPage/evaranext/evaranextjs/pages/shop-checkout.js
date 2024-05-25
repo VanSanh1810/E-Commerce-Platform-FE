@@ -262,6 +262,8 @@ const CartCheckout = ({
     clearCartSelected,
     user,
 }) => {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
     const [sortedCartItems, setSortedCartItems] = useState([]);
 
     const [shopOrderCheckoutDataList, setShopOrderCheckoutDataList] = useState([]);
@@ -332,6 +334,9 @@ const CartCheckout = ({
                 const result = await axiosInstance.get('/api/address/0');
                 console.log(result.data);
                 setAllUserAddresses([...result.data.data.addressList]);
+                if ([...result.data.data.addressList].length > 0) {
+                    setSelectedShippingAddress(result.data.data.addressList[0]._id);
+                }
             } catch (e) {
                 console.log(e);
             }
@@ -339,25 +344,41 @@ const CartCheckout = ({
         fetchUserAddress();
     }, [user]);
 
+    const removeItemFromCartAfterPlacedOrder = (_items_) => {
+        for (let i = 0; i < _items_.length; i++) {
+            const shopItems = [..._items_[i].items];
+            for (let j = 0; j < shopItems.length; j++) {
+                deleteFromCart(shopItems[j].product, shopItems[j].variant, user);
+            }
+        }
+    };
+
     const placeOrder = async () => {
         if (useAddressState) {
             // user address
             if (!isObject(selectedShippingAddress)) {
                 try {
-                    // toast.success('OK');
+                    setIsLoading(true);
                     const response = await axiosInstance.post('/api/order/placeOrder', {
                         address: { type: useAddressState, data: selectedShippingAddress },
                         itemData: [...sortedCartItems],
                         paymentMethod: paymentMethod,
                     });
                     console.log(response.data.url);
+                    //
+                    removeItemFromCartAfterPlacedOrder([...sortedCartItems]);
+                    //
                     if (!paymentMethod) {
                         window.location.href = response.data.url;
+                    } else {
+                        router.push('/page-account');
                     }
                     toast.success('Order placed !');
                 } catch (e) {
                     console.log(e);
                     return;
+                } finally {
+                    setIsLoading(false);
                 }
             } else {
                 toast.error('Please select a shipping address');
@@ -365,6 +386,16 @@ const CartCheckout = ({
         } else {
             //new address
             const validateNewAddress = (newAddress) => {
+                function isValidVietnamesePhoneNumber(phoneNumber) {
+                    const regex = /^(?:\+84|84|0)?(3[2-9]|5[6|8|9]|7[0|6|7|8|9]|8[1-9]|9[0-9])\d{7}$/;
+                    return regex.test(phoneNumber);
+                }
+                function isValidGmail(email) {
+                    // Biểu thức chính quy kiểm tra định dạng địa chỉ Gmail
+                    const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+                    return regex.test(email);
+                }
+                //
                 if (
                     !newAddress.name ||
                     !newAddress.province ||
@@ -376,18 +407,37 @@ const CartCheckout = ({
                 ) {
                     return false;
                 }
+                if (!isValidVietnamesePhoneNumber(newAddress.phone)) {
+                    return false;
+                }
+                if (!isValidGmail(newAddress.email)) {
+                    return false;
+                }
                 return true;
             };
             if (isObject(selectedShippingAddress) && validateNewAddress(selectedShippingAddress)) {
-                // toast.success('OK new');
-                const response = await axiosInstance.post('/api/order/placeOrder', {
-                    address: { type: useAddressState, data: selectedShippingAddress },
-                    itemData: [...sortedCartItems],
-                    paymentMethod: paymentMethod,
-                });
-                console.log(response.data);
-                if (!paymentMethod) {
-                    window.location.href = response.data.url;
+                try {
+                    setIsLoading(true);
+                    const response = await axiosInstance.post('/api/order/placeOrder', {
+                        address: { type: useAddressState, data: selectedShippingAddress },
+                        itemData: [...sortedCartItems],
+                        paymentMethod: paymentMethod,
+                    });
+                    console.log(response.data.url);
+                    //
+                    removeItemFromCartAfterPlacedOrder([...sortedCartItems]);
+                    //
+                    if (!paymentMethod) {
+                        window.location.href = response.data.url;
+                    } else {
+                        router.push('/page-account');
+                    }
+                    toast.success('Order placed !');
+                } catch (e) {
+                    console.log(e);
+                    return;
+                } finally {
+                    setIsLoading(false);
                 }
             } else {
                 toast.error('Please provide shipping address');
@@ -494,6 +544,7 @@ const CartCheckout = ({
                                                                         }
                                                                     });
                                                                 }}
+                                                                defaultChecked={addressData._id === selectedShippingAddress}
                                                             />
                                                         </div>
                                                         <div className="card-body">
@@ -917,8 +968,8 @@ const CartCheckout = ({
                                             </div>
                                         </div>
                                     </div>
-                                    <button className="btn btn-fill-out btn-block mt-30" onClick={placeOrder}>
-                                        Place Order
+                                    <button className="btn btn-fill-out btn-block mt-30" onClick={isLoading ? null : placeOrder}>
+                                        {isLoading ? 'Processing...' : 'Place Order'}
                                     </button>
                                 </div>
                             </div>
@@ -965,24 +1016,28 @@ const ShippingCostComponent = ({ shopId, userAddress, total, addressState }) => 
                 console.error(err);
             }
         };
-        if (true) {
+        if ((userAddress.province && !addressState) || (addressState && userAddress)) {
             setShipCost();
             calculateShipCost();
         }
     }, [shopId, userAddress, addressState]);
+    const fixTotalCost = (_shipCost, _total) => {
+        const temp = _shipCost + _total;
+        return temp.toFixed(2);
+    };
 
     return (
         <>
             <tr>
                 <th colSpan="6">Shipping</th>
                 <td>
-                    <em>${shipCost ? shipCost : 'calculating ..'}</em>
+                    <em>{shipCost ? `$${shipCost}` : 'Please select your address'}</em>
                 </td>
             </tr>
             <tr>
                 <th colSpan="6">Total</th>
                 <td className="product-subtotal">
-                    <span className="font-xl text-brand fw-900">${shipCost ? shipCost + total : total}</span>
+                    <span className="font-xl text-brand fw-900">${shipCost ? fixTotalCost(shipCost, total) : total}</span>
                 </td>
             </tr>
         </>

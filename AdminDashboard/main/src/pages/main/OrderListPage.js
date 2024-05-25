@@ -119,7 +119,7 @@ export default function OrderListPage() {
                             <Col>
                                 <LabelFieldComponent
                                     label={t('status_by')}
-                                    option={['all', 'Pending', 'Shipped', 'Done', 'Cancel']}
+                                    option={['all', 'Pending', 'Fail', 'Confirmed', 'Shipped', 'Delivered', 'Done', 'Cancel']}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
                                     onChange={(e) => {

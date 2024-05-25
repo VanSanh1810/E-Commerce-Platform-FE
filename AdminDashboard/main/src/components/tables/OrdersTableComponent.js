@@ -76,7 +76,7 @@ export default function OrderTableComponent({
                         <tr key={index}>
                             <td>
                                 <div className="mc-table-check">
-                                    <p>{item._id}</p>
+                                    <p>{item.code}</p>
                                 </div>
                             </td>
                             <td>

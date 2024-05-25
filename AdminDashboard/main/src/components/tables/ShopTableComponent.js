@@ -4,7 +4,7 @@ import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
 
-export default function ShopTableComponent({ thead, tbody, rowView, currentPage, setPages, shopSearchText }) {
+export default function ShopTableComponent({ thead, tbody, rowView, currentPage, setPages, shopSearchText, _setReloadAction }) {
     const { t } = useContext(TranslatorContext);
 
     const [data, setData] = useState([]);
@@ -21,6 +21,7 @@ export default function ShopTableComponent({ thead, tbody, rowView, currentPage,
                 const result = await axiosInstance.patch(`/api/shop/${_id}?status=${selectedStatus}`);
                 console.log(result.data.data);
                 setReloadAction(!reloadAction);
+                _setReloadAction(!reloadAction);
             } catch (e) {
                 console.error(e);
             }

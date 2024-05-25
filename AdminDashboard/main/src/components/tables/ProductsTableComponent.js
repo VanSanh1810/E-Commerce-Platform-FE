@@ -7,7 +7,16 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
-export default function ProductsTableComponent({ thead, tbody, sortPrice, rowView, currentPage, setPages, productSearchText }) {
+export default function ProductsTableComponent({
+    thead,
+    tbody,
+    sortPrice,
+    rowView,
+    currentPage,
+    setPages,
+    productSearchText,
+    _shopId,
+}) {
     const { t } = useContext(TranslatorContext);
     const dispatch = useDispatch();
 
@@ -26,24 +35,24 @@ export default function ProductsTableComponent({ thead, tbody, sortPrice, rowVie
                       }`
                     : `/api/product/?sortPrice=${sortPrice}&currentPage=${currentPage}&limit=${rowView}&searchText=${
                           productSearchText || ''
-                      }`;
+                      }&shopId=${_shopId ? _shopId : ''}`;
                 const results = await axiosInstance.get(pathString);
                 console.log(results);
                 const listProducts = [...results.data.data];
                 setPages(results.data.pages);
-                if (shopId) {
-                    const shopProduct = listProducts.filter((product) => product.shop._id === shopId);
-                    setData(shopProduct);
-                } else {
-                    setData(listProducts);
-                }
-                // setData(listProducts);
+                // if (shopId) {
+                //     const shopProduct = listProducts.filter((product) => product.shop._id === shopId);
+                //     setData(shopProduct);
+                // } else {
+                //     setData(listProducts);
+                // }
+                setData(listProducts);
             } catch (err) {
                 console.log(err);
             }
         };
         fetchAllProducts();
-    }, [shopId, isVendor, sortPrice, rowView, currentPage, setPages, productSearchText]);
+    }, [shopId, isVendor, sortPrice, rowView, currentPage, setPages, productSearchText, _shopId]);
 
     const priceRange = (routePath) => {
         let min;

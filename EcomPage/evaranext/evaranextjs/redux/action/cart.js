@@ -2,13 +2,28 @@ import * as Types from '../constants/actionTypes';
 import storage from '../../util/localStorage';
 import axiosInstance from '../../config/axiosInstance';
 
+const getProductStock = async (id, variant) => {
+    try {
+        const response = await axiosInstance.post('/api/product/stock', {
+            id: id,
+            variant: variant,
+        });
+        return parseInt(response.data.stock);
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+};
+
 export const addToCart = (product, user) => async (dispatch) => {
     try {
+        const stock = await getProductStock(product.product, product.variant);
         if (user) {
             await axiosInstance.post('/api/cart/', {
                 product: product.product,
                 variant: product.variant,
                 quantity: product.quantity,
+                stockLeft: stock,
             });
         } else {
             const result = await axiosInstance.get(`/api/product/${product.product}`);
@@ -25,7 +40,7 @@ export const addToCart = (product, user) => async (dispatch) => {
         }
         dispatch({
             type: Types.ADD_TO_CART,
-            payload: { product },
+            payload: { product, stockLeft: stock },
         });
     } catch (err) {
         console.error(err);
@@ -63,16 +78,18 @@ export const deleteFromCart = (productId, productVariant, user) => async (dispat
 
 export const increaseQuantity = (productId, variant, gap, user) => async (dispatch) => {
     try {
+        const stock = await getProductStock(productId, variant);
         if (user) {
             await axiosInstance.patch('/api/cart/', {
                 product: productId,
                 variant: variant,
                 gap: gap,
+                stockLeft: stock,
             });
         }
         dispatch({
             type: Types.INCREASE_QUANTITY,
-            payload: { productId, variant, gap },
+            payload: { productId, variant, gap, stock },
         });
     } catch (err) {
         console.error(err);
@@ -81,16 +98,18 @@ export const increaseQuantity = (productId, variant, gap, user) => async (dispat
 
 export const decreaseQuantity = (productId, variant, gap, user) => async (dispatch) => {
     try {
+        const stock = await getProductStock(productId, variant);
         if (user) {
             await axiosInstance.patch('/api/cart/', {
                 product: productId,
                 variant: variant,
                 gap: gap,
+                stockLeft: stock,
             });
         }
         dispatch({
             type: Types.DECREASE_QUANTITY,
-            payload: { productId, variant, gap },
+            payload: { productId, variant, gap, stock },
         });
     } catch (err) {
         console.error(err);

@@ -10,6 +10,7 @@ import RelatedSlider from '../sliders/Related';
 import ThumbSlider from '../sliders/Thumb';
 import Modal from 'react-responsive-modal';
 import axiosInstance from '../../config/axiosInstance';
+import { debounce } from 'lodash';
 
 const ProductDetails = ({
     product,
@@ -383,6 +384,7 @@ const ProductDetails = ({
                                                     <div className="product-price primary-color float-left">
                                                         <ins>
                                                             <span className="text-brand">
+                                                                $
                                                                 {!voucherData?.discount
                                                                     ? producDistPrice !== 0
                                                                         ? producDistPrice
@@ -454,9 +456,12 @@ const ProductDetails = ({
                                                                             selectedVariant.includes(v._id) ? 'active' : ''
                                                                         }
                                                                         onClick={() => {
-                                                                            let arr = [...selectedVariant];
-                                                                            arr[i] = v._id;
-                                                                            setSelectedVariant([...arr]);
+                                                                            if (!selectedVariant.includes(v._id)) {
+                                                                                let arr = [...selectedVariant];
+                                                                                arr[i] = v._id;
+                                                                                setSelectedVariant([...arr]);
+                                                                                setQuantity(1);
+                                                                            }
                                                                         }}
                                                                     >
                                                                         <a>{v.name}</a>
@@ -479,7 +484,33 @@ const ProductDetails = ({
                                                     >
                                                         <i className="fi-rs-angle-small-down"></i>
                                                     </a>
-                                                    <span className="qty-val">{quantity}</span>
+                                                    {/* <span className="qty-val">{quantity}</span> */}
+                                                    <input
+                                                        key={quantity}
+                                                        type="text"
+                                                        className="qty-val"
+                                                        defaultValue={quantity}
+                                                        style={{ border: 'none', height: '30px' }}
+                                                        onChange={debounce((e) => {
+                                                            if (parseInt(e.target.value)) {
+                                                                const stockLeft = product.variantData
+                                                                    ? productStock
+                                                                    : product.stock;
+                                                                setQuantity(
+                                                                    parseInt(e.target.value) > stockLeft
+                                                                        ? stockLeft
+                                                                        : parseInt(e.target.value),
+                                                                );
+                                                            } else {
+                                                                setQuantity(1);
+                                                            }
+                                                        }, 500)}
+                                                        onKeyPress={(e) => {
+                                                            if (!/[0-9]/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                    />
                                                     <a
                                                         onClick={() => {
                                                             const stockLeft = product.variantData ? productStock : product.stock;
@@ -535,7 +566,7 @@ const ProductDetails = ({
                                                     SKU:
                                                     <a href="#">FWM15VKT</a>
                                                 </li> */}
-                                                <li className="mb-5">
+                                                {/* <li className="mb-5">
                                                     Tags:{' '}
                                                     {product.tag.split(',').map((tag) => {
                                                         return (
@@ -544,7 +575,7 @@ const ProductDetails = ({
                                                             </a>
                                                         );
                                                     })}
-                                                </li>
+                                                </li> */}
                                                 <li>
                                                     Availability:
                                                     <span className="in-stock text-success ml-5">

@@ -129,10 +129,10 @@ export default function HeaderLayout() {
         }
     };
 
-    const getNotifyRoute = (type, id) => {
+    const getNotifyRoute = (type, id, secondId) => {
         switch (type) {
             case 'Review':
-                return `/product/${1}`;
+                return `/product/${secondId}?reviewId=${id}`;
             case 'Order':
                 return `/order/${id}`;
             case 'Report':
@@ -293,7 +293,11 @@ export default function HeaderLayout() {
                                             <Link
                                                 to={
                                                     notification?.target?.type
-                                                        ? getNotifyRoute(notification.target.type, notification.target.id)
+                                                        ? getNotifyRoute(
+                                                              notification.target.type,
+                                                              notification.target.id,
+                                                              notification.target.secondId,
+                                                          )
                                                         : '#'
                                                 }
                                                 className="mc-header-dropdown-content"

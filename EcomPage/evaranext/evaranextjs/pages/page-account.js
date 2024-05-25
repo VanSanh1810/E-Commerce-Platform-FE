@@ -11,6 +11,7 @@ import AddressStaticData from '../public/static/dataprovince';
 
 function Account({ userLogout, isLoggedIn }) {
     const [activeIndex, setActiveIndex] = useState(1);
+    const [reloadAction, setReloadAction] = useState(false);
 
     //****************ADDRESS TAB ******************/
     const [addressModal, setAddressModal] = useState(false);
@@ -45,9 +46,14 @@ function Account({ userLogout, isLoggedIn }) {
     };
 
     const addNewAddressHandler = async (e) => {
+        function isValidVietnamesePhoneNumber(phoneNumber) {
+            const regex = /^(?:\+84|84|0)?(3[2-9]|5[6|8|9]|7[0|6|7|8|9]|8[1-9]|9[0-9])\d{7}$/;
+            return regex.test(phoneNumber);
+        }
+        //
         e.preventDefault();
-        if (!isAllAddressSelected(selectedAddress)) {
-            toast.error('Please select a province, district and ward');
+        if (!isAllAddressSelected(selectedAddress) || !isValidVietnamesePhoneNumber(e.target.phone.value)) {
+            toast.error('Invalid address');
             return;
         }
         try {
@@ -64,6 +70,7 @@ function Account({ userLogout, isLoggedIn }) {
                 isWork: e.target.isWork.checked,
             });
             console.log(response);
+            setReloadAction(!reloadAction);
         } catch (err) {
             console.error(err);
         } finally {
@@ -72,9 +79,14 @@ function Account({ userLogout, isLoggedIn }) {
     };
 
     const updateAddressHandler = async (e) => {
+        function isValidVietnamesePhoneNumber(phoneNumber) {
+            const regex = /^(?:\+84|84|0)?(3[2-9]|5[6|8|9]|7[0|6|7|8|9]|8[1-9]|9[0-9])\d{7}$/;
+            return regex.test(phoneNumber);
+        }
+        //
         e.preventDefault();
-        if (!isAllAddressSelected(selectedAddress)) {
-            toast.error('Please select a province, district and ward');
+        if (!isAllAddressSelected(selectedAddress) || !isValidVietnamesePhoneNumber(e.target.phone.value)) {
+            toast.error('Invalid address');
             return;
         }
         if (
@@ -104,6 +116,7 @@ function Account({ userLogout, isLoggedIn }) {
                 isWork: e.target.isWork.checked,
             });
             console.log(response);
+            setReloadAction(!reloadAction);
         } catch (err) {
             console.error(err);
         } finally {
@@ -116,6 +129,7 @@ function Account({ userLogout, isLoggedIn }) {
             const response = await axiosInstance.delete(`/api/address/${delAddressModal}`);
             console.log(response);
             setDelAddressModal(false);
+            setReloadAction(!reloadAction);
         } catch (err) {
             console.error(err);
         }
@@ -193,6 +207,9 @@ function Account({ userLogout, isLoggedIn }) {
 
     const [shopAd, setShopAd] = useState();
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState();
+
     useEffect(() => {
         console.log(isLoggedIn);
         const tabAction = async () => {
@@ -200,9 +217,12 @@ function Account({ userLogout, isLoggedIn }) {
                 case 2: //orders
                     // toast.success('2');
                     try {
-                        const response = await axiosInstance.get('/api/order?target=userPage');
+                        const response = await axiosInstance.get(
+                            `/api/order?target=userPage&currentPage=${currentPage}&limit=${5}`,
+                        );
                         console.log(response.data.orders);
                         setUserOrders([...response.data.orders]);
+                        setTotalPages(Math.ceil(response.data.pages / 5));
                     } catch (err) {
                         console.error(err);
                     }
@@ -237,7 +257,7 @@ function Account({ userLogout, isLoggedIn }) {
             }
         };
         tabAction();
-    }, [activeIndex]);
+    }, [activeIndex, reloadAction, currentPage]);
 
     const orderActionState = () => {
         // COD - Pending
@@ -257,6 +277,7 @@ function Account({ userLogout, isLoggedIn }) {
                     });
                     console.log(response.data);
                     setOrderViewModal(false);
+                    setReloadAction(!reloadAction);
                 } catch (e) {
                     console.error(e);
                 }
@@ -276,6 +297,7 @@ function Account({ userLogout, isLoggedIn }) {
                     });
                     console.log(response.data);
                     setOrderViewModal(false);
+                    setReloadAction(!reloadAction);
                 } catch (e) {
                     console.error(e);
                 }
@@ -352,12 +374,12 @@ function Account({ userLogout, isLoggedIn }) {
                                                         Orders
                                                     </a>
                                                 </li>
-                                                <li className="nav-item" onClick={() => handleOnClick(3)}>
+                                                {/* <li className="nav-item" onClick={() => handleOnClick(3)}>
                                                     <a className={activeIndex === 3 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-shopping-cart-check mr-10"></i>
                                                         Track Your Order
                                                     </a>
-                                                </li>
+                                                </li> */}
                                                 <li className="nav-item" onClick={() => handleOnClick(4)}>
                                                     <a className={activeIndex === 4 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-marker mr-10"></i>
@@ -423,8 +445,50 @@ function Account({ userLogout, isLoggedIn }) {
                                                 aria-labelledby="orders-tab"
                                             >
                                                 <div className="card">
-                                                    <div className="card-header">
+                                                    <div
+                                                        className="card-header"
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                        }}
+                                                    >
                                                         <h5 className="mb-0">Your Orders</h5>
+                                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                            <button
+                                                                style={{
+                                                                    border: 'none',
+                                                                    lineHeight: '1px',
+                                                                    background: 'none',
+                                                                    fontSize: '20px',
+                                                                    visibility: currentPage <= 1 ? 'hidden' : 'visible',
+                                                                }}
+                                                                onClick={() => {
+                                                                    if (currentPage > 1) {
+                                                                        setCurrentPage(currentPage - 1);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <i className="fi-rs-angle-double-small-left"></i>
+                                                            </button>
+                                                            {currentPage}
+                                                            <button
+                                                                style={{
+                                                                    border: 'none',
+                                                                    lineHeight: '1px',
+                                                                    background: 'none',
+                                                                    fontSize: '20px',
+                                                                    visibility: currentPage >= totalPages ? 'hidden' : 'visible',
+                                                                }}
+                                                                onClick={() => {
+                                                                    if (currentPage < totalPages) {
+                                                                        setCurrentPage(currentPage + 1);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <i className="fi-rs-angle-double-small-right"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <div className="card-body">
                                                         <div className="table-responsive">
@@ -441,13 +505,94 @@ function Account({ userLogout, isLoggedIn }) {
                                                                 <tbody>
                                                                     {userOrders?.map((items) => (
                                                                         <tr key={items._id}>
-                                                                            <td>#{items._id}</td>
+                                                                            <td>
+                                                                                <div>
+                                                                                    <p style={{ fontWeight: '700' }}>
+                                                                                        #{items.code}
+                                                                                    </p>
+                                                                                    <div
+                                                                                        style={{
+                                                                                            display: 'flex',
+                                                                                            justifyContent: 'flex-start',
+                                                                                            alignItems: 'center',
+                                                                                            borderTop: '1px dashed #dddddd',
+                                                                                        }}
+                                                                                        className="mt-2 pt-2"
+                                                                                    >
+                                                                                        <img
+                                                                                            style={{
+                                                                                                width: '50px',
+                                                                                                height: '50px',
+                                                                                                marginRight: '3px',
+                                                                                            }}
+                                                                                            src={items.items[0].image}
+                                                                                        />
+                                                                                        <p
+                                                                                            style={{
+                                                                                                maxWidth: '120px',
+                                                                                                whiteSpace: 'nowrap',
+                                                                                                overflow: 'hidden',
+                                                                                                textOverflow: 'ellipsis',
+                                                                                                lineClamp: 1,
+                                                                                                marginRight: '10px',
+                                                                                                fontSize: '14px',
+                                                                                            }}
+                                                                                        >
+                                                                                            {items.items[0].name}
+                                                                                        </p>
+                                                                                        <p
+                                                                                            style={{
+                                                                                                flexGrow: 1,
+                                                                                                color: '#a0a0a0',
+                                                                                            }}
+                                                                                        >
+                                                                                            x{items.items[0].quantity}
+                                                                                        </p>
+                                                                                        <p style={{ color: '#088178' }}>
+                                                                                            ${items.items[0].price}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    {items.items.length !== 1 ? (
+                                                                                        <p
+                                                                                            style={{
+                                                                                                color: '#b0b0b0',
+                                                                                                fontSize: '12px',
+                                                                                            }}
+                                                                                        >
+                                                                                            {`and ${
+                                                                                                items.items.length - 1
+                                                                                            } more items`}
+                                                                                        </p>
+                                                                                    ) : null}
+                                                                                </div>
+                                                                            </td>
                                                                             <td>
                                                                                 {new Date(
                                                                                     parseInt(items.createDate),
                                                                                 ).toLocaleDateString()}
                                                                             </td>
-                                                                            <td>{items.status}</td>
+                                                                            <td>
+                                                                                <span
+                                                                                    className={`status `}
+                                                                                    style={{
+                                                                                        color:
+                                                                                            items.status === 'Pending'
+                                                                                                ? '#252525'
+                                                                                                : items.status === 'Fail' ||
+                                                                                                  items.status === 'Cancel'
+                                                                                                ? '#ff1616'
+                                                                                                : items.status === 'Confirmed'
+                                                                                                ? '#0007e1'
+                                                                                                : items.status === 'Shipped'
+                                                                                                ? '#dd7500'
+                                                                                                : items.status === 'Delivered'
+                                                                                                ? '#e300ff'
+                                                                                                : '#00b900',
+                                                                                    }}
+                                                                                >
+                                                                                    {items.status}
+                                                                                </span>
+                                                                            </td>
                                                                             <td>
                                                                                 ${items.total} for {items.totalItem} item
                                                                             </td>
@@ -1081,7 +1226,7 @@ function Account({ userLogout, isLoggedIn }) {
                                                         <td>
                                                             <div className="mc-table-product sm">
                                                                 <img src={item.image} alt="img" />
-                                                                <p>{item.name}</p>
+                                                                <p style={{ maxWidth: '10vw' }}>{item.name}</p>
                                                             </div>
                                                         </td>
                                                         <td>
@@ -1194,7 +1339,7 @@ function Account({ userLogout, isLoggedIn }) {
                                         onClick={() => {
                                             cancelOrderAction(orderViewModal._id);
                                         }}
-                                        style={{ backgroundColor: '#39fa5d' }}
+                                        style={{ backgroundColor: '#f5372a' }}
                                         className="btn mt-2 mx-3"
                                     >
                                         Cancel order
@@ -1251,6 +1396,7 @@ function Account({ userLogout, isLoggedIn }) {
                                             </div>
                                             <div>
                                                 <StarReview
+                                                    setReloadAction={setReloadAction}
                                                     reviewId={item.review}
                                                     itemId={snapshotObj._id}
                                                     itemVariant={item.variant}
@@ -1266,13 +1412,6 @@ function Account({ userLogout, isLoggedIn }) {
                                 })}
                             </div>
                             <div className="w-100 col-md-12 d-flex justify-content-end align-items-end">
-                                {/* <button
-                                    style={{ backgroundColor: '#ff3d3d' }}
-                                    className="btn btn-danger mt-2 mx-3"
-                                    onClick={deleteAddressHandler}
-                                >
-                                    Delete
-                                </button> */}
                                 <button
                                     style={{ backgroundColor: 'gray' }}
                                     className="btn btn-secondary mt-2"
@@ -1310,7 +1449,7 @@ const mapDispatchToProps = {
 
 export default connect(mapStateToProps, mapDispatchToProps)(Account);
 
-const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, productIndex }) => {
+const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, productIndex, setReloadAction }) => {
     const dispatch = useDispatch();
     const [imgArray, setImgArray] = useState([]);
     const [reviewState, setReviewState] = useState(0); //  0 : no review, 1 : already reviewed, 2 : update review
@@ -1378,6 +1517,7 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
             console.log(result);
             // dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Product created' }));
             setReviewState(1);
+            setReloadAction((st) => !st);
         } catch (err) {
             console.error(err);
         }

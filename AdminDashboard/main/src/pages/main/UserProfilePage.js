@@ -70,7 +70,30 @@ export default function UserProfilePage() {
                         </div>
                     </div>
                 </Col>
-                <Col xl={5}>
+                <Col xl={12}>
+                    <Row>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm purple'}
+                                digit={userStat?.totalOrder}
+                                title={'total_orders'}
+                                icon={'shopping_cart'}
+                            />
+                        </Col>
+                        <Col md={6} lg={6}>
+                            <FloatCardComponent
+                                variant={'sm yellow'}
+                                digit={userStat?.totalReview}
+                                title={'total_reviews'}
+                                icon={'hotel_class'}
+                            />
+                        </Col>
+                        {/* <Col xl={12}>
+                            <ActivityCardComponent />
+                        </Col> */}
+                    </Row>
+                </Col>
+                <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
                             <h4 className="mc-card-title">{t('user information')}</h4>
@@ -130,64 +153,8 @@ export default function UserProfilePage() {
                                     </li> */}
                                 </ul>
                             </div>
-                            {/* <div className="mb-4">
-                                <h6 className="mc-divide-title mb-3">{t('biography')}</h6>
-                                <p className="mc-user-bio mb-4">
-                                    It has survived not only five centuries, but also the leap into electronic typesetting,
-                                    remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset
-                                    sheets
-                                </p>
-                            </div>
-                            <div>
-                                <h6 className="mc-divide-title mb-3">{t('elsewhere')}</h6>
-                                <nav className="mc-user-social">
-                                    <AnchorComponent to="#" className="facebook">
-                                        <i className="icofont-facebook"></i>
-                                        <span>facebook</span>
-                                    </AnchorComponent>
-                                    <AnchorComponent to="#" className="twitter">
-                                        <i className="icofont-twitter"></i>
-                                        <span>twitter</span>
-                                    </AnchorComponent>
-                                    <AnchorComponent to="#" className="linkedin">
-                                        <i className="icofont-linkedin"></i>
-                                        <span>linkedin</span>
-                                    </AnchorComponent>
-                                    <AnchorComponent to="#" className="whatsapp">
-                                        <i className="icofont-whatsapp"></i>
-                                        <span>whatsapp</span>
-                                    </AnchorComponent>
-                                    <AnchorComponent to="#" className="youtube">
-                                        <i className="icofont-youtube-play"></i>
-                                        <span>youtube</span>
-                                    </AnchorComponent>
-                                </nav>
-                            </div> */}
                         </div>
                     </div>
-                </Col>
-                <Col xl={7}>
-                    <Row>
-                        <Col md={6} lg={6}>
-                            <FloatCardComponent
-                                variant={'sm purple'}
-                                digit={userStat?.totalOrder}
-                                title={'total_orders'}
-                                icon={'shopping_cart'}
-                            />
-                        </Col>
-                        <Col md={6} lg={6}>
-                            <FloatCardComponent
-                                variant={'sm yellow'}
-                                digit={userStat?.totalReview}
-                                title={'total_reviews'}
-                                icon={'hotel_class'}
-                            />
-                        </Col>
-                        <Col xl={12}>
-                            <ActivityCardComponent />
-                        </Col>
-                    </Row>
                 </Col>
             </Row>
         </PageLayout>
