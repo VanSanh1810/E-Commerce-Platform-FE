@@ -468,7 +468,7 @@ export default function BannerTableComponent({ rowView, currentPage, setPages, s
                             {t('close')}
                         </ButtonComponent>
                         <ButtonComponent type="button" className="btn btn-success" onClick={updateNewBannerAction}>
-                            {t('create')}
+                            {t('update')}
                         </ButtonComponent>
                     </Modal.Footer>
                 </div>

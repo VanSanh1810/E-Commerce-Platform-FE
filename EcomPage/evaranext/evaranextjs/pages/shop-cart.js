@@ -1,4 +1,4 @@
-import { connect } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import Layout from '../components/layout/Layout';
 import debounce from 'lodash.debounce';
 import Link from 'next/link';
@@ -13,7 +13,9 @@ import cartSelected from '../redux/reducer/cartSelected';
 import { clearCartSelected, setCartSelected } from '../redux/action/cartSelected';
 import { toast } from 'react-toastify';
 
-const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice, setSelectedIndexWithPrice }) => {
+const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice, setSelectedIndexWithPrice, user }) => {
+    const dispatch = useDispatch();
+
     const [productData, setProductData] = useState({});
     const [productSelectedVariant, setProductSelectedVariant] = useState([]);
     const [productTreeDetail, setProductTreeDetail] = useState();
@@ -120,6 +122,15 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
             }
         }
     }, [quantity, voucherData]);
+
+    // quantity associated with current product stock
+    useEffect(() => {
+        if (productTreeDetail && productTreeDetail.stock) {
+            if (quantity > productTreeDetail?.stock) {
+                dispatch(decreaseQuantity(id, variant, -quantity + parseInt(productTreeDetail?.stock), user));
+            }
+        }
+    }, [productTreeDetail?.stock, quantity, id, variant, user, dispatch]);
 
     ////////////////////////////////
     const [voucherData, setVoucherData] = useState();
@@ -502,10 +513,11 @@ const Cart = ({
                                                                     quantity={item.quantity ? item.quantity : 0}
                                                                     selectedIndexWithPrice={selectedIndexWithPrice}
                                                                     setSelectedIndexWithPrice={setSelectedIndexWithPrice}
+                                                                    user={user}
                                                                 >
                                                                     <td className="price" data-title="Price">
                                                                         <input
-                                                                            key={`quantity-${item.product}`}
+                                                                            key={`quantity-${item.product}-${item.quantity}`}
                                                                             type="number"
                                                                             defaultValue={item.quantity ? item.quantity : 0}
                                                                             onChange={debounce((e) => {
