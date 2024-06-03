@@ -1021,6 +1021,7 @@ const ShippingCostComponent = ({ shopId, userAddress, total, addressState }) => 
             calculateShipCost();
         }
     }, [shopId, userAddress, addressState]);
+    //
     const fixTotalCost = (_shipCost, _total) => {
         const temp = _shipCost + _total;
         return temp.toFixed(2);

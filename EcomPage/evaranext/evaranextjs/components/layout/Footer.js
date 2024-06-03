@@ -31,7 +31,6 @@ const Footer = () => {
                                     <p className="wow fadeIn animated">
                                         <strong>Hours: </strong>10:00 - 18:00, Mon - Sat
                                     </p>
-                                    <Link href={'/tracking-order-page'}>Tracking my order</Link>
                                     <h5 className="mb-10 mt-30 fw-600 text-grey-4 wow fadeIn animated">Follow Us</h5>
                                     <div className="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0">
                                         <a href="#">

@@ -25,7 +25,7 @@ const ProductId = ({ product }) => {
     }, [userId, product]);
     return (
         <>
-            <Layout parent="Home" sub="Product" subChild={product._id}>
+            <Layout parent="Home" sub="Product" subChild={product.name}>
                 <div className="container">
                     <ProductDetails product={product} />
                 </div>

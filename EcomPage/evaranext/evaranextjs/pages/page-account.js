@@ -10,7 +10,7 @@ import { Modal } from 'react-responsive-modal';
 import AddressStaticData from '../public/static/dataprovince';
 
 function Account({ userLogout, isLoggedIn }) {
-    const [activeIndex, setActiveIndex] = useState(1);
+    const [activeIndex, setActiveIndex] = useState(2);
     const [reloadAction, setReloadAction] = useState(false);
 
     //****************ADDRESS TAB ******************/
@@ -362,12 +362,12 @@ function Account({ userLogout, isLoggedIn }) {
                                     <div className="col-md-4">
                                         <div className="dashboard-menu">
                                             <ul className="nav flex-column" role="tablist">
-                                                <li className="nav-item" onClick={() => handleOnClick(1)}>
+                                                {/* <li className="nav-item" onClick={() => handleOnClick(1)}>
                                                     <a className={activeIndex === 1 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-settings-sliders mr-10"></i>
                                                         Dashboard
                                                     </a>
-                                                </li>
+                                                </li> */}
                                                 <li className="nav-item" onClick={() => handleOnClick(2)}>
                                                     <a className={activeIndex === 2 ? 'nav-link active' : 'nav-link'}>
                                                         <i className="fi-rs-shopping-bag mr-10"></i>
@@ -1526,23 +1526,58 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
     return (
         <form onSubmit={publishReview}>
             <div class="rate">
-                <input type="radio" id="star5" name="rate" value="5" defaultChecked={reviewData?.rating === 5} />
+                <input
+                    key={reviewData?.rating}
+                    type="radio"
+                    id="star5"
+                    name="rate"
+                    value="5"
+                    defaultChecked={reviewData?.rating === 5}
+                />
                 <label for="star5" title="text">
                     5 stars
                 </label>
-                <input type="radio" id="star4" name="rate" value="4" defaultChecked={reviewData?.rating === 4} />
+                <input
+                    key={reviewData?.rating}
+                    type="radio"
+                    id="star4"
+                    name="rate"
+                    value="4"
+                    defaultChecked={reviewData?.rating === 4}
+                />
                 <label for="star4" title="text">
                     4 stars
                 </label>
-                <input type="radio" id="star3" name="rate" value="3" defaultChecked={reviewData?.rating === 3} />
+                <input
+                    key={reviewData?.rating}
+                    type="radio"
+                    id="star3"
+                    name="rate"
+                    value="3"
+                    defaultChecked={reviewData?.rating === 3}
+                />
                 <label for="star3" title="text">
                     3 stars
                 </label>
-                <input type="radio" id="star2" name="rate" value="2" defaultChecked={reviewData?.rating === 2} />
+                <input
+                    key={reviewData?.rating}
+                    type="radio"
+                    id="star2"
+                    name="rate"
+                    value="2"
+                    defaultChecked={reviewData?.rating === 2}
+                />
                 <label for="star2" title="text">
                     2 stars
                 </label>
-                <input type="radio" id="star1" name="rate" value="1" defaultChecked={reviewData?.rating === 1} />
+                <input
+                    key={reviewData?.rating}
+                    type="radio"
+                    id="star1"
+                    name="rate"
+                    value="1"
+                    defaultChecked={reviewData?.rating === 1}
+                />
                 <label for="star1" title="text">
                     1 star
                 </label>

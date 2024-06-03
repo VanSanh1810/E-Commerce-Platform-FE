@@ -4,8 +4,14 @@ import { Badge, Row, Col } from 'react-bootstrap';
 import axiosInstance from '../config/axiosInstance';
 import AddressStaticData from '../public/static/dataprovince';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 
 function TrackOrder() {
+    let Router = useRouter();
+    let code = Router.query.code;
+    let email = Router.query.email;
+    let phone = Router.query.phone;
+
     const [currentOrder, setCurrentOrder] = useState();
     const [shopAd, setShopAd] = useState();
     const [reloadAction, setReloadAction] = useState(false);
@@ -37,6 +43,7 @@ function TrackOrder() {
             setCurrentOrder({ ...result.data.order });
         } catch (e) {
             console.error(e);
+            toast.info(e.response.data.message);
         }
     };
 
@@ -144,6 +151,7 @@ function TrackOrder() {
                                                         placeholder="Found in your order confirmation email"
                                                         type="text"
                                                         className="square"
+                                                        defaultValue={code}
                                                     />
                                                 </div>
                                                 <div className="input-style mb-20">
@@ -153,6 +161,7 @@ function TrackOrder() {
                                                         placeholder="Email you used during checkout"
                                                         type="email"
                                                         className="square"
+                                                        defaultValue={email}
                                                     />
                                                 </div>
                                                 <div className="input-style mb-20">
@@ -162,6 +171,7 @@ function TrackOrder() {
                                                         placeholder="Number you used during checkout"
                                                         type="text"
                                                         className="square"
+                                                        defaultValue={phone}
                                                     />
                                                 </div>
                                                 <button className="submit submit-auto-width" type="submit">

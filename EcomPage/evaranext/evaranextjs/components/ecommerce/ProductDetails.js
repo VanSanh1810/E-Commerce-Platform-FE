@@ -490,7 +490,12 @@ const ProductDetails = ({
                                                         type="text"
                                                         className="qty-val"
                                                         defaultValue={quantity}
-                                                        style={{ border: 'none', height: '30px' }}
+                                                        style={{
+                                                            border: 'none',
+                                                            height: '30px',
+                                                            width: '50px',
+                                                            marginRight: '50px',
+                                                        }}
                                                         onChange={debounce((e) => {
                                                             if (parseInt(e.target.value)) {
                                                                 const stockLeft = product.variantData

@@ -418,9 +418,9 @@ export default function ProductViewPage() {
                                             <div className="mc-review-data">
                                                 <div className="mc-review-head">
                                                     <div className="mc-review-user">
-                                                        <div className="mc-round-avatar sm">
+                                                        {/* <div className="mc-round-avatar sm">
                                                             <img src={item.src} alt="avatar" />
-                                                        </div>
+                                                        </div> */}
                                                         <div className="mc-duel-text sm">
                                                             <h3 className="mc-duel-text-title">{item.name}</h3>
                                                             <p className="mc-duel-text-descrip">

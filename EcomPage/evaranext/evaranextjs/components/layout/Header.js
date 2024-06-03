@@ -247,6 +247,9 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                                     </li>
                                                 </ul> */}
                                             </li>
+                                            <li>
+                                                <Link href={'/tracking-order-page'}>Tracking my order</Link>
+                                            </li>
                                             {/* <li className="position-static">
                                                 <Link href="/#">
                                                     <a>
