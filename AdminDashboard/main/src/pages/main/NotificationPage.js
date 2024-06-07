@@ -2,9 +2,7 @@ import React, { useContext } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
-import { AnchorComponent, ButtonComponent } from '../../components/elements';
 import PageLayout from '../../layouts/PageLayout';
-import notifications from '../../assets/data/notifications.json';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../configs/axiosInstance';
 import { useDispatch } from 'react-redux';
@@ -127,7 +125,7 @@ export default function NotificationPage() {
                                 <div className="mc-notify-media">
                                     {/* <img src={ notification.notify.image } alt="alter" /> */}
                                     <i className={`material-icons ${notification?.target?.icon?.color}`}>
-                                        {notification?.target?.icon?.name}
+                                        {/* {notification?.target?.icon?.name} */}
                                     </i>
                                 </div>
                                 <div className="mc-notify-meta">
@@ -135,7 +133,7 @@ export default function NotificationPage() {
                                     <small>{calculateTimeDifference(notification?.createDate)}</small>
                                 </div>
                             </Link>
-                            <Dropdown bsPrefix="mc-dropdown">
+                            <Dropdown bsPrefix="mc-dropdown" key={`drp-${index}`} autoClose={true}>
                                 <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
                                     <i className="material-icons">more_horiz</i>
                                 </Dropdown.Toggle>

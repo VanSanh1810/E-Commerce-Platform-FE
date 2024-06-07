@@ -9,12 +9,15 @@ import specifics from '../../assets/data/specifics.json';
 import reviews from '../../assets/data/reviews.json';
 import axiosInstance from '../../configs/axiosInstance';
 import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
 // function useQuery() {
 //     return new URLSearchParams(useLocation().search);
 // }
 
 export default function ProductViewPage() {
+    const dispatch = useDispatch();
     const { productId } = useParams();
     // const query = useQ
     const [searchParams, setSearchParams] = useSearchParams();
@@ -153,6 +156,7 @@ export default function ProductViewPage() {
                 const result = await axiosInstance.post(`/api/report/${reportId}`);
             }
             console.log(response.data);
+            dispatch(setToastState({ Tstate: toastType.info, Tmessage: !!action ? 'Product disabled !' : 'Product enabled !' }));
         } catch (e) {
             console.error(e);
         }
@@ -526,5 +530,5 @@ const ReportFragment = ({ reportId }) => {
         };
         fetchReport();
     }, [reportId]);
-    return <div>Report reason : {reportData?.reason}</div>;
+    return <div style={{ color: 'red', marginTop: '10px' }}>Report reason : {reportData?.reason}</div>;
 };

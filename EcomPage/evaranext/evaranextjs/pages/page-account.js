@@ -154,6 +154,8 @@ function Account({ userLogout, isLoggedIn }) {
                     b: 1322,
                 });
                 console.log(result.data);
+                toast.success('Account details changed !');
+                setReloadAction(!reloadAction);
             } catch (e) {
                 console.log(e);
             }

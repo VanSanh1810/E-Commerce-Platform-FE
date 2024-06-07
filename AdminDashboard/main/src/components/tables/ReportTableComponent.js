@@ -3,6 +3,8 @@ import { TranslatorContext } from '../../context/Translator';
 import { Modal, Form } from 'react-bootstrap';
 import { ButtonComponent, AnchorComponent } from '../elements';
 import axiosInstance from '../../configs/axiosInstance';
+import { useDispatch } from 'react-redux';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
 
 export default function ReportTableComponent({ thead, tbody, rowView, currentPage, setPages, reportType, _setReloadAction }) {
     const { t } = useContext(TranslatorContext);
@@ -193,6 +195,7 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
 }
 
 const ReportReviewComponent = ({ reviewId, reportId }) => {
+    const dispatch = useDispatch();
     const [reviewData, setReviewData] = useState();
 
     useEffect(() => {
@@ -219,6 +222,7 @@ const ReportReviewComponent = ({ reviewId, reportId }) => {
                 const result = await axiosInstance.post(`/api/report/${reportId}`);
             }
             console.log(response.data);
+            dispatch(setToastState({ Tstate: toastType.info, Tmessage: !!action ? 'Review disabled !' : 'Review enabled !' }));
         } catch (e) {
             console.error(e);
         }

@@ -785,7 +785,7 @@ const CartCheckout = ({
                                     </div>
                                 </form>
                             )}
-                            {sortedCartItems.map((shop) => {
+                            {sortedCartItems.map((shop, index) => {
                                 return (
                                     <div className="col-md-12">
                                         <div className="order_review">
@@ -828,6 +828,7 @@ const CartCheckout = ({
                                                             </td>
                                                         </tr>
                                                         <ShippingCostComponent
+                                                            key={`${useAddressState}-${index}-${shop.shop._id}`}
                                                             total={
                                                                 shopOrderCheckoutDataList[
                                                                     shopOrderCheckoutDataList.findIndex(
