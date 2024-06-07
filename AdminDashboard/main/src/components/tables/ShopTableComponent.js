@@ -102,9 +102,11 @@ export default function ShopTableComponent({ thead, tbody, rowView, currentPage,
                             <td title={item.createDate}>{Date(item.createDate)}</td>
                             <td>
                                 <div className="mc-table-action">
-                                    <AnchorComponent to={`/shop/${item._id}`} title="View" className="material-icons view">
-                                        visibility
-                                    </AnchorComponent>
+                                    {item.status !== 'pending' ? (
+                                        <AnchorComponent to={`/shop/${item._id}`} title="View" className="material-icons view">
+                                            visibility
+                                        </AnchorComponent>
+                                    ) : null}
                                     <ButtonComponent
                                         title="Edit"
                                         className="material-icons edit"

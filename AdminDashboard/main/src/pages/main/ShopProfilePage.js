@@ -119,8 +119,8 @@ export default function ShopProfilePage() {
                 <Col xl={12}>
                     <div className="mc-card">
                         <div className="mc-card-header">
-                            <h4 className="mc-card-title">{t('user information')}</h4>
-                            <Dropdown bsPrefix="mc-dropdown">
+                            <h4 className="mc-card-title">{t('shop information')}</h4>
+                            {/* <Dropdown bsPrefix="mc-dropdown">
                                 <Dropdown.Toggle bsPrefix="mc-dropdown-toggle">
                                     <i className="material-icons">more_horiz</i>
                                 </Dropdown.Toggle>
@@ -138,7 +138,7 @@ export default function ShopProfilePage() {
                                         <span>{t('download')}</span>
                                     </button>
                                 </Dropdown.Menu>
-                            </Dropdown>
+                            </Dropdown> */}
                         </div>
                         <div className="mc-user-group">
                             <div className="mc-user-profile">

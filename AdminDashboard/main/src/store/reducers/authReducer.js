@@ -7,11 +7,16 @@ const authReducer = createSlice({
     initialState: {
         // adminToken: AdToken ? AdToken : 'null',
         adminToken: '',
+        status: true,
         userId: '',
         isVendor: true,
         shopId: '',
     },
     reducers: {
+        setStatus: (state, action) => {
+            state.status = action.payload;
+            localStorage.setItem('status', action.payload);
+        },
         setUserId: (state, action) => {
             state.userId = action.payload;
             localStorage.setItem('userId', action.payload);
@@ -37,5 +42,5 @@ const authReducer = createSlice({
         },
     },
 });
-export const { setAdminToken, setRole, setShopId, setUserId, logout } = authReducer.actions;
+export const { setAdminToken, setRole, setShopId, setUserId, setStatus, logout } = authReducer.actions;
 export default authReducer.reducer;
