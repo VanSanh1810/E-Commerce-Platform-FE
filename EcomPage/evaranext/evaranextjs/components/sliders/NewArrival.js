@@ -18,8 +18,16 @@ const NewArrival = () => {
                 // With Category
                 const response = await axiosInstance.post('/api/product/recomend', {
                     hisList: [...productTagHistory],
-                })
+                });
                 const temp = [...response.data.data];
+
+                temp = temp.reduce((result, item) => {
+                    if (item.recommendRank > 0) {
+                        result.push(item);
+                    }
+                    return result;
+                }, []);
+
                 temp.sort((a, b) => {
                     b.recommendRank - a.recommendRank;
                 });
