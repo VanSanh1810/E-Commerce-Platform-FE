@@ -108,7 +108,7 @@ const Products = ({}) => {
                             <div className="col-lg-3 primary-sidebar sticky-sidebar">
                                 <div className="widget-category mb-30">
                                     <h5 className="section-title style-1 mb-30 wow fadeIn animated">Sort Type</h5>
-                                    <CategoryProduct setSortType={setSortType} />
+                                    <CategoryProduct setSortType={setSortType} setCurrentPage={setCurrentPage} />
                                 </div>
 
                                 {/* <div className="sidebar-widget price_range range mb-30">

@@ -2,34 +2,40 @@ import { useRouter } from 'next/router';
 import { connect } from 'react-redux';
 import { updateProductCategory } from '../../redux/action/productFiltersAction';
 
-const CategoryProduct = ({ setSortType }) => {
-    // const router = useRouter();
-
-    // const removeSearchTerm = () => {
-    //     router.push({
-    //         pathname: '/products',
-    //     });
-    // };
-
-    // const selectCategory = (e, category) => {
-    //     e.preventDefault();
-    //     removeSearchTerm();
-    //     updateProductCategory(category);
-    //     // router.push('/')
-    // };
+const CategoryProduct = ({ setSortType, setCurrentPage }) => {
     return (
         <>
             <ul className="categories">
-                <li onClick={() => setSortType('')}>
+                <li
+                    onClick={() => {
+                        setSortType('');
+                        setCurrentPage(1);
+                    }}
+                >
                     <a>All</a>
                 </li>
-                <li onClick={() => setSortType('trending')}>
+                <li
+                    onClick={() => {
+                        setSortType('trending');
+                        setCurrentPage(1);
+                    }}
+                >
                     <a>Trending</a>
                 </li>
-                <li onClick={() => setSortType('popular')}>
+                <li
+                    onClick={() => {
+                        setSortType('popular');
+                        setCurrentPage(1);
+                    }}
+                >
                     <a>Popular</a>
                 </li>
-                <li onClick={() => setSortType('new')}>
+                <li
+                    onClick={() => {
+                        setSortType('new');
+                        setCurrentPage(1);
+                    }}
+                >
                     <a>New added</a>
                 </li>
             </ul>
