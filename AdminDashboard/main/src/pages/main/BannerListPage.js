@@ -19,6 +19,8 @@ import { setToastState, toastType } from '../../store/reducers/toastReducer';
 export default function BannerListPage() {
     const dispatch = useDispatch();
 
+    const [reloadAction, setRealoadAction] = useState(false);
+
     const [rowView, setRowView] = useState(6);
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +65,7 @@ export default function BannerListPage() {
             }
         };
         fetchBannerStat();
-    }, []);
+    }, [reloadAction]);
 
     const bannerImgChangeHandler = (e) => {
         console.log(e.target.files);
@@ -123,6 +125,7 @@ export default function BannerListPage() {
                 setSelectedCategory(null);
                 setCreateBannerModal(false);
                 setNewBannerImg(null);
+                setRealoadAction(!reloadAction);
             } catch (err) {
                 console.error(err);
                 // dispatch(setToastState({ Tstate: toastType.error, Tmessage: err }));
@@ -256,6 +259,7 @@ export default function BannerListPage() {
                             setPages={setPages}
                             shopSearchText={shopSearchText}
                             currentStatusSearch={currentStatusSearch}
+                            _setRealoadAction={setRealoadAction}
                         />
                         <PaginationComponent
                             currentPage={currentPage}

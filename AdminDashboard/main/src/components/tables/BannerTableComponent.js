@@ -7,7 +7,14 @@ import { LabelFieldComponent } from '../fields';
 import { setToastState, toastType } from '../../store/reducers/toastReducer';
 import { useDispatch } from 'react-redux';
 
-export default function BannerTableComponent({ rowView, currentPage, setPages, shopSearchText, currentStatusSearch }) {
+export default function BannerTableComponent({
+    rowView,
+    currentPage,
+    setPages,
+    shopSearchText,
+    currentStatusSearch,
+    _setRealoadAction,
+}) {
     const { t } = useContext(TranslatorContext);
     const dispatch = useDispatch();
 
@@ -99,6 +106,7 @@ export default function BannerTableComponent({ rowView, currentPage, setPages, s
                 setUpdateBannerModal(false);
                 setBannerImg(null);
                 setReloadAction(!reloadAction);
+                _setRealoadAction(!reloadAction);
             } catch (err) {
                 console.error(err);
                 // dispatch(setToastState({ Tstate: toastType.error, Tmessage: err }));
@@ -143,6 +151,7 @@ export default function BannerTableComponent({ rowView, currentPage, setPages, s
             const result = await axiosInstance.delete(`/api/banner/${deleteModal}`);
             console.log(result);
             setReloadAction(!reloadAction);
+            _setRealoadAction(!reloadAction);
             setDeleteModal(false);
             dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Banner deleted' }));
         } catch (e) {
