@@ -21,6 +21,7 @@ export default function ProductViewPage() {
     const { productId } = useParams();
     // const query = useQ
     const [searchParams, setSearchParams] = useSearchParams();
+    const [reloadAction, setReloadAction] = useState();
 
     const reviewId = searchParams.get('reviewId');
     const reportId = searchParams.get('reportId');
@@ -82,7 +83,7 @@ export default function ProductViewPage() {
         fetchProduct();
 
         fetchProductReview();
-    }, [productId]);
+    }, [productId, reloadAction]);
 
     const initProductVariantDetailTable = useCallback((node, depth, routeMap) => {
         if (node.detail) {
@@ -142,10 +143,12 @@ export default function ProductViewPage() {
                     min = parseFloat(obj.detail.disPrice) !== 0 ? parseFloat(obj.detail.disPrice) : parseFloat(obj.detail.price);
                 }
             });
-            setPriceRange(min === max ? `${min}` : `${min} - $${max}`);
+            setPriceRange(min === max ? `${min}` : `${min} - ${max}`);
             setProductStock(totalStock);
         }
     }, [productVariantDetailTable]);
+
+    const [confirmModal, setConfirmModal] = useState(false);
 
     const hiddenProductAdminAction = async (action) => {
         try {
@@ -155,6 +158,7 @@ export default function ProductViewPage() {
             if (reportId) {
                 const result = await axiosInstance.post(`/api/report/${reportId}`);
             }
+            setReloadAction(!reloadAction);
             console.log(response.data);
             dispatch(setToastState({ Tstate: toastType.info, Tmessage: !!action ? 'Product disabled !' : 'Product enabled !' }));
         } catch (e) {
@@ -212,21 +216,23 @@ export default function ProductViewPage() {
                                     <i className="material-icons">{a[5].icon}</i>
                                     <h5>{a[5].title}</h5>
                                     <span>:</span>
-                                    {productData.variantData ? (
+                                    {!productData.variantData ? (
                                         <p>
                                             {productData.discountPrice !== 0 ? productData.discountPrice : productData.price} ${' '}
-                                            {productData.discountPrice === 0 ? null : <del>{productData.price} $</del>}
+                                            {productData.discountPrice === productData.price ? null : (
+                                                <del>{productData.price} $</del>
+                                            )}
                                         </p>
                                     ) : (
                                         <p>{priceRange} $</p>
                                     )}
                                 </div>
-                                <div className="mc-product-view-meta">
+                                {/* <div className="mc-product-view-meta">
                                     <i className="material-icons">{a[6].icon}</i>
                                     <h5>{a[6].title}</h5>
                                     <span>:</span>
                                     <p>{productData.stock}</p>
-                                </div>
+                                </div> */}
                                 <div className="mc-product-view-meta">
                                     <i className="material-icons">{a[7].icon}</i>
                                     <h5>{a[7].title}</h5>
@@ -255,7 +261,7 @@ export default function ProductViewPage() {
                                 })}
                                 {!isVendor ? (
                                     <div className="custome-checkbox mt-4">
-                                        <input
+                                        {/* <input
                                             className="form-check-input"
                                             type="checkbox"
                                             name="isHome"
@@ -264,14 +270,24 @@ export default function ProductViewPage() {
                                                 hiddenProductAdminAction(e.target.checked);
                                             }}
                                             defaultChecked={productData?.status === 'disabled' ? true : false}
-                                        />
-                                        <label
+                                        /> */}
+                                        <ButtonComponent
+                                            key={productData?.status === 'disabled'}
+                                            type="button"
+                                            className={`btn btn-${productData?.status === 'disabled' ? 'success' : 'danger'}`}
+                                            onClick={() => {
+                                                setConfirmModal(true);
+                                            }}
+                                        >
+                                            {`${productData?.status === 'disabled' ? 'Enable' : 'Disable'}`}
+                                        </ButtonComponent>
+                                        {/* <label
                                             style={{ userSelect: 'none' }}
                                             className="form-check-label ms-2"
                                             htmlFor="HomeCheckbox"
                                         >
                                             <span>Hidden</span>
-                                        </label>
+                                        </label> */}
                                         {reportId ? (
                                             <div>
                                                 <ReportFragment reportId={reportId} />
@@ -509,6 +525,39 @@ export default function ProductViewPage() {
                             }}
                         >
                             {t('close')}
+                        </ButtonComponent>
+                    </Modal.Footer>
+                </div>
+            </Modal>
+            {/* confirmModal */}
+            <Modal size="lg" show={confirmModal} onHide={() => setConfirmModal(false)} style={{ padding: '10px' }}>
+                <div className="mc-alert-modal" style={{ width: '80vw' }}>
+                    {/* <i className="material-icons">image</i> */}
+                    <Modal.Body>
+                        <h4 className="mt-4">
+                            Are you sure you want to{' '}
+                            {`${productData?.status === 'disabled' ? 'enable this review' : 'disable this review'}`}
+                        </h4>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setConfirmModal(false);
+                            }}
+                        >
+                            {t('close')}
+                        </ButtonComponent>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-success"
+                            onClick={() => {
+                                hiddenProductAdminAction(!productData?.status === 'disabled');
+                                setConfirmModal(false);
+                            }}
+                        >
+                            {'save'}
                         </ButtonComponent>
                     </Modal.Footer>
                 </div>

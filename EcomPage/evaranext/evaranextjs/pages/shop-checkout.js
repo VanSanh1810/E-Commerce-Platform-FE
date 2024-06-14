@@ -1,6 +1,14 @@
 import { connect } from 'react-redux';
 import Layout from '../components/layout/Layout';
-import { clearCart, closeCart, decreaseQuantity, deleteFromCart, increaseQuantity, openCart } from '../redux/action/cart';
+import {
+    clearCart,
+    closeCart,
+    decreaseQuantity,
+    deleteFromCart,
+    deleteMultipleFromCart,
+    increaseQuantity,
+    openCart,
+} from '../redux/action/cart';
 import { clearCartSelected, setCartSelected } from '../redux/action/cartSelected';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -256,6 +264,7 @@ const CartCheckout = ({
     increaseQuantity,
     decreaseQuantity,
     deleteFromCart,
+    deleteMultipleFromCart,
     clearCart,
     cartSelected,
     setCartSelected,
@@ -345,12 +354,16 @@ const CartCheckout = ({
     }, [user]);
 
     const removeItemFromCartAfterPlacedOrder = (_items_) => {
+        let products = [];
+        let variants = [];
         for (let i = 0; i < _items_.length; i++) {
             const shopItems = [..._items_[i].items];
             for (let j = 0; j < shopItems.length; j++) {
-                deleteFromCart(shopItems[j].product, shopItems[j].variant, user);
+                products.push(shopItems[j].product);
+                variants.push(shopItems[j].variant);
             }
         }
+        deleteMultipleFromCart(products, variants, user);
     };
 
     const placeOrder = async () => {
@@ -994,6 +1007,7 @@ const mapDispatchToProps = {
     increaseQuantity,
     decreaseQuantity,
     deleteFromCart,
+    deleteMultipleFromCart,
     openCart,
     clearCart,
     setCartSelected,

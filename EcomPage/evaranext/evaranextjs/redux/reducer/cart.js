@@ -46,6 +46,21 @@ export default (state = [], action) => {
 
             return [...newCartItems];
 
+        case Types.DELETE_MULTIPLE_FROM_CART:
+            let newCartItems2 = [...state];
+            for (let i = 0; i < action.payload.productIds.length; i++) {
+                newCartItems2 = newCartItems2.filter(
+                    (item) =>
+                        item.product !== action.payload.productIds[i] ||
+                        !arraysAreEqual(item.variant, action.payload.productsVariant[i]),
+                );
+            }
+
+            //  deleteProduct(state, action.payload.productId);
+            storage.set('dokani_cart', newCartItems2);
+
+            return [...newCartItems2];
+
         case Types.INCREASE_QUANTITY:
             index = state.findIndex(
                 (product) =>

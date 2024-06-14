@@ -76,6 +76,23 @@ export const deleteFromCart = (productId, productVariant, user) => async (dispat
     }
 };
 
+export const deleteMultipleFromCart = (productIds, productsVariant, user) => async (dispatch) => {
+    try {
+        if (user) {
+            await axiosInstance.put('/api/cart/multiple', {
+                products: JSON.stringify(productIds),
+                variants: JSON.stringify(productsVariant),
+            });
+        }
+        dispatch({
+            type: Types.DELETE_MULTIPLE_FROM_CART,
+            payload: { productIds, productsVariant },
+        });
+    } catch (err) {
+        console.error(err);
+    }
+};
+
 export const increaseQuantity = (productId, variant, gap, user) => async (dispatch) => {
     try {
         const stock = await getProductStock(productId, variant);

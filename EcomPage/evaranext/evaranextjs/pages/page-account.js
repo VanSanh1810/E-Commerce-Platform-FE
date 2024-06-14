@@ -1368,6 +1368,7 @@ function Account({ userLogout, isLoggedIn }) {
                     open={orderReviewModal?._id && orderReviewModal?.items?.length > 0 ? true : false}
                     onClose={() => {
                         setOrderReviewModal({ _id: null, items: [] });
+                        setOrderViewModal(false);
                     }}
                 >
                     <p className="pb-3">Review</p>
@@ -1517,7 +1518,45 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             console.log(result);
-            // dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Product created' }));
+            toast.success('Review published successfully !');
+            setReviewState(1);
+            setReloadAction((st) => !st);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const updateReview = async (e) => {
+        e.preventDefault();
+        //setup form
+        if (parseInt(e.target.rate.value) <= 0) {
+            toast.error('Please provide a valid rating');
+            return;
+        }
+        const form = new FormData();
+        form.append('rating', parseInt(e.target.rate.value));
+        form.append('orderId', orderId);
+        form.append('productId', itemId);
+        form.append('productIndex', productIndex);
+        form.append('comment', e.target.cmt.value);
+        //
+        const arr = Object.values(imgArray);
+        let tempImgLeft = [];
+        arr.forEach((file) => {
+            if (typeof file === 'string') {
+                tempImgLeft.push(file);
+            } else {
+                form.append('images', file);
+            }
+        });
+        form.append('imgLeft', JSON.stringify(tempImgLeft));
+
+        try {
+            const result = await axiosInstance.put(`/api/review/${reviewId}`, form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            console.log(result);
+            toast.success('Review updated successfully !');
             setReviewState(1);
             setReloadAction((st) => !st);
         } catch (err) {
@@ -1526,71 +1565,65 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
     };
 
     return (
-        <form onSubmit={publishReview}>
-            <div class="rate">
+        <form onSubmit={reviewId ? updateReview : publishReview}>
+            <div className="rate">
                 <input
                     key={reviewData?.rating}
                     type="radio"
-                    id="star5"
+                    id={`star5-${itemId}-${itemVariant}`}
                     name="rate"
                     value="5"
                     defaultChecked={reviewData?.rating === 5}
                 />
-                <label for="star5" title="text">
+                <label for={`star5-${itemId}-${itemVariant}`} title="text">
                     5 stars
                 </label>
                 <input
                     key={reviewData?.rating}
                     type="radio"
-                    id="star4"
+                    id={`star4-${itemId}-${itemVariant}`}
                     name="rate"
                     value="4"
                     defaultChecked={reviewData?.rating === 4}
                 />
-                <label for="star4" title="text">
+                <label for={`star4-${itemId}-${itemVariant}`} title="text">
                     4 stars
                 </label>
                 <input
                     key={reviewData?.rating}
                     type="radio"
-                    id="star3"
+                    id={`star3-${itemId}-${itemVariant}`}
                     name="rate"
                     value="3"
                     defaultChecked={reviewData?.rating === 3}
                 />
-                <label for="star3" title="text">
+                <label for={`star3-${itemId}-${itemVariant}`} title="text">
                     3 stars
                 </label>
                 <input
                     key={reviewData?.rating}
                     type="radio"
-                    id="star2"
+                    id={`star2-${itemId}-${itemVariant}`}
                     name="rate"
                     value="2"
                     defaultChecked={reviewData?.rating === 2}
                 />
-                <label for="star2" title="text">
+                <label for={`star2-${itemId}-${itemVariant}`} title="text">
                     2 stars
                 </label>
                 <input
                     key={reviewData?.rating}
                     type="radio"
-                    id="star1"
+                    id={`star1-${itemId}-${itemVariant}`}
                     name="rate"
                     value="1"
                     defaultChecked={reviewData?.rating === 1}
                 />
-                <label for="star1" title="text">
+                <label for={`star1-${itemId}-${itemVariant}`} title="text">
                     1 star
                 </label>
             </div>
-            <textarea
-                name="cmt"
-                rows="1"
-                placeholder="Comments"
-                defaultValue={reviewData?.comment}
-                readOnly={reviewData ? true : false}
-            ></textarea>
+            <textarea name="cmt" rows="1" placeholder="Comments" defaultValue={reviewData?.comment}></textarea>
             <div className="d-flex flex-row justify-content-start align-items-center">
                 {imgArray?.map((img, index) => {
                     return (
@@ -1610,7 +1643,7 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
                 </label>
             </div>
             <div className="d-flex flex-row justify-content-end align-items-center">
-                {reviewState === 0 ? <button type="submit">Publish</button> : null}
+                {reviewState !== 1 ? <button type="submit">{reviewId ? 'Update' : 'Publish'}</button> : null}
             </div>
         </form>
     );

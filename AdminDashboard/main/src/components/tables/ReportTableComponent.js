@@ -175,18 +175,28 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                     <p>Reason : {adminReportModal.reason}</p>
                     <ReportReviewComponent reviewId={adminReportModal.reviewId} reportId={adminReportModal.id} />
                     <Modal.Footer>
-                        <ButtonComponent type="button" className="btn btn-secondary" onClick={() => setAdminReportModal(false)}>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                _setReloadAction(!reloadAction);
+                                setAdminReportModal(false);
+                                setReloadAction(!reloadAction);
+                            }}
+                        >
                             {t('close_popup')}
                         </ButtonComponent>
-                        <ButtonComponent
+                        {/* <ButtonComponent
                             type="button"
                             className="btn btn-success"
                             onClick={() => {
+                                _setReloadAction(!reloadAction);
+                                setReloadAction(!reloadAction);
                                 setAdminReportModal(false);
                             }}
                         >
                             {t('save_changes')}
-                        </ButtonComponent>
+                        </ButtonComponent> */}
                     </Modal.Footer>
                 </div>
             </Modal>
@@ -197,6 +207,10 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
 const ReportReviewComponent = ({ reviewId, reportId }) => {
     const dispatch = useDispatch();
     const [reviewData, setReviewData] = useState();
+
+    const [confirmModal, setConfirmModal] = useState(false);
+
+    const [reloadAction, setReloadAction] = useState(false);
 
     useEffect(() => {
         const fetchReviewData = async () => {
@@ -210,7 +224,7 @@ const ReportReviewComponent = ({ reviewId, reportId }) => {
             }
         };
         fetchReviewData();
-    }, [reviewId]);
+    }, [reviewId, reloadAction]);
 
     const hiddenReviewAction = async (action) => {
         console.log(action);
@@ -222,6 +236,7 @@ const ReportReviewComponent = ({ reviewId, reportId }) => {
                 const result = await axiosInstance.post(`/api/report/${reportId}`);
             }
             console.log(response.data);
+            setReloadAction(!reloadAction);
             dispatch(setToastState({ Tstate: toastType.info, Tmessage: !!action ? 'Review disabled !' : 'Review enabled !' }));
         } catch (e) {
             console.error(e);
@@ -245,7 +260,7 @@ const ReportReviewComponent = ({ reviewId, reportId }) => {
                 </div>
             </div>
             <div className="custome-checkbox mt-4">
-                <input
+                {/* <input
                     className="form-check-input"
                     type="checkbox"
                     name="isHome"
@@ -254,11 +269,55 @@ const ReportReviewComponent = ({ reviewId, reportId }) => {
                         hiddenReviewAction(e.target.checked);
                     }}
                     defaultChecked={reviewData?.hidden ? true : false}
-                />
-                <label style={{ userSelect: 'none' }} className="form-check-label ms-2" htmlFor="HomeCheckbox">
+                /> */}
+                {/* <label style={{ userSelect: 'none' }} className="form-check-label ms-2" htmlFor="HomeCheckbox">
                     <span>Hidden</span>
-                </label>
+                </label> */}
+                <ButtonComponent
+                    key={reviewData?.hidden}
+                    type="button"
+                    className={`btn btn-${reviewData?.hidden ? 'success' : 'danger'}`}
+                    onClick={() => {
+                        // _setReloadAction(!reloadAction);
+                        // setAdminReportModal(false);
+                        // setReloadAction(!reloadAction);
+                        setConfirmModal(true);
+                    }}
+                >
+                    {`${reviewData?.hidden ? 'Enable' : 'Disable'}`}
+                </ButtonComponent>
             </div>
+            <Modal show={confirmModal} onHide={() => setConfirmModal(false)}>
+                <div className="mc-user-modal">
+                    <h4 className="mt-4">
+                        Are you sure you want to {`${reviewData?.hidden ? 'enable this review' : 'disable this review'}`}
+                    </h4>
+                    <Modal.Footer>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setConfirmModal(false);
+                            }}
+                        >
+                            {'close'}
+                        </ButtonComponent>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-success"
+                            onClick={() => {
+                                // _setReloadAction(!reloadAction);
+                                // setReloadAction(!reloadAction);
+                                // setAdminReportModal(false);
+                                hiddenReviewAction(!reviewData?.hidden);
+                                setConfirmModal(false);
+                            }}
+                        >
+                            {'save'}
+                        </ButtonComponent>
+                    </Modal.Footer>
+                </div>
+            </Modal>
         </div>
     );
 };

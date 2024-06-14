@@ -46,6 +46,7 @@ function Test({ products, productFilters, fetchProduct, user, setSelectedConvers
     const [isFollow, setIsFollow] = useState(false);
 
     const selectClassifyHandler = (value) => {
+        setCurrentPage(1);
         setSelectedClassify(value);
     };
 
@@ -95,6 +96,8 @@ function Test({ products, productFilters, fetchProduct, user, setSelectedConvers
                 setShopProduct(result.data.data);
                 setPages(Math.ceil(result.data.pages / limit));
 
+                cratePagination(result.data.pages);
+
                 console.log(currentPage, limit, selectedClassify, sortType, sortPrice);
                 console.log(result.data.data);
             } catch (err) {
@@ -104,13 +107,13 @@ function Test({ products, productFilters, fetchProduct, user, setSelectedConvers
         fetchShopProducts();
     }, [shopId, currentPage, limit, selectedClassify, sortType, sortPrice]);
 
-    // const cratePagination = () => {
-    //     // set pagination
-    //     let arr = new Array(Math.ceil(products.items.length / limit)).fill().map((_, idx) => idx + 1);
+    const cratePagination = (_pages) => {
+        // set pagination
+        let arr = new Array(Math.ceil(_pages / limit)).fill().map((_, idx) => idx + 1);
 
-    //     setPagination(arr);
-    //     setPages(Math.ceil(products.items.length / limit));
-    // };
+        setPagination(arr);
+        setPages(Math.ceil(_pages / limit));
+    };
 
     // const startIndex = currentPage * limit - limit;
     // const endIndex = startIndex + limit;
