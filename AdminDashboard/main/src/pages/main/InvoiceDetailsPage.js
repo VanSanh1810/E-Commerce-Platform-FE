@@ -142,7 +142,7 @@ export default function InvoiceDetailsPage() {
                             <div className="mc-invoice-head">
                                 <img src={qrData} alt="logo" />
                                 <h2>
-                                    {t('invoice')} #{orderData?._id}
+                                    {t('invoice')} #{orderData?.code}
                                 </h2>
                             </div>
                             <div className="mc-invoice-group" style={{ alignItems: 'start' }}>
