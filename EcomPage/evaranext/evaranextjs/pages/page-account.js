@@ -1528,6 +1528,11 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
 
     const updateReview = async (e) => {
         e.preventDefault();
+
+        if (parseInt(reviewData.createDate) - new Date().getTime() > 1000 * 60 * 60 * 24 * 30) {
+            toast.error('You can only edit within 30 days of review !');
+            return;
+        }
         //setup form
         if (parseInt(e.target.rate.value) <= 0) {
             toast.error('Please provide a valid rating');

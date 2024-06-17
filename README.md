@@ -54,7 +54,7 @@ Mongoose schemas to model the application data
     - Place order without login
     - Payment through VNPay service (testing environment)
     - Message the seller (only for logged in users)
-- Running Tests
+- **Running Tests**
     - Go to project root folder
     ```bash
     cd ./EcomPage/evaranext/evaranextjs
@@ -87,7 +87,7 @@ Mongoose schemas to model the application data
     - Manage shop orders (change status, confirm)
     - Change shop profile (image, address, income, shop's classifies)
     - Manage entire platform as admin (product visibility, user status, shop, reports, banner, ship cost)
-- Running Tests
+- **Running Tests**
     - Go to project root folder
     ```bash
     cd ./AdminDashboard/main
