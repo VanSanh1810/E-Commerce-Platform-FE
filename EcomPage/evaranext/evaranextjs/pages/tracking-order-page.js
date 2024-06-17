@@ -55,6 +55,8 @@ function TrackOrder() {
                     const response = await axiosInstance.post(`/api/order/${currentOrder._id}`, {
                         status: 'Done',
                     });
+                    currentOrder.status = 'Done';
+                    toast.success('Order completed !');
                     console.log(response.data);
                     setReloadAction(!reloadAction);
                 } catch (e) {
@@ -74,6 +76,8 @@ function TrackOrder() {
                     const response = await axiosInstance.post(`/api/order/${currentOrder._id}`, {
                         status: 'Cancel',
                     });
+                    currentOrder.status = 'Cancel';
+                    toast.success('Order canceled');
                     console.log(response.data);
                     setReloadAction(!reloadAction);
                 } catch (e) {
