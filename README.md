@@ -112,6 +112,17 @@ Mongoose schemas to model the application data
 | `shopgame@gmail.com` | `123@shop` | **Vendor** |
 | `admin@gmail.com` | `123@admin` | **Admin** |
 
+
+- Test card for payment
+
+|  |     |
+| :-------- | :------- |
+| **Bank** | `NCB` |
+| **Card Number** | `9704198526191432198` |
+| **Name** | `NGUYEN VAN A` |
+| **Date** | `07/15` |
+| **OTP Password** | `123456` |
+
 ## Authors
 
 - [@VanSanh](https://github.com/VanSanh1810)
