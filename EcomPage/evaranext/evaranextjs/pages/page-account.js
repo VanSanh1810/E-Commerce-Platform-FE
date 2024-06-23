@@ -8,8 +8,12 @@ import { toast } from 'react-toastify';
 import { Badge, Row, Col } from 'react-bootstrap';
 import { Modal } from 'react-responsive-modal';
 import AddressStaticData from '../public/static/dataprovince';
+import { useRouter } from 'next/router';
 
 function Account({ userLogout, isLoggedIn }) {
+    let router = useRouter();
+    let _orderId = router.query.orderId;
+
     const [activeIndex, setActiveIndex] = useState(2);
     const [reloadAction, setReloadAction] = useState(false);
 
@@ -140,17 +144,25 @@ function Account({ userLogout, isLoggedIn }) {
     const [userEmail, setUserEmail] = useState();
     const [userStatus, setUserStatus] = useState('active');
 
+    const [userData, setUserData] = useState();
+    const [btnLoading, setBtnLoading] = useState(false);
+
+    const [waiting, setWaiting] = useState(false);
+
     const updateAccountDetailHandler = async (e) => {
         e.preventDefault();
+        if (userName === userData.name) {
+            return;
+        }
         console.log(e.target.dname.value);
-        console.log(e.target.email.value);
-        if (e.target.dname.value.trim() === userName && e.target.email.value.trim() === userEmail) {
+        // console.log(e.target.email.value);
+        if (!e.target.dname.value.trim() && e.target.dname.value.trim() === userName) {
             toast.info('No data changed !');
         } else {
             try {
                 const result = await axiosInstance.patch('/api/user/0', {
                     name: e.target.dname.value,
-                    email: e.target.email.value,
+                    // email: e.target.email.value,
                     b: 1322,
                 });
                 console.log(result.data);
@@ -201,6 +213,25 @@ function Account({ userLogout, isLoggedIn }) {
         }
     };
 
+    const verifyEmailAction = async () => {
+        if (btnLoading) return;
+        try {
+            if (new Date().getTime() - userData.modifyDate < 60000) {
+                toast.success('Wait 60 seconds before sending email again');
+                return;
+            }
+            setBtnLoading(true);
+            const response = await axiosInstance.post('/api/user/verifyEmail');
+            toast.success(response.data.data.message);
+            setReloadAction(!reloadAction);
+            setWaiting(true);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setBtnLoading(false);
+        }
+    };
+
     //****************ORDER TAB ******************/
 
     const [userOrders, setUserOrders] = useState([]);
@@ -225,6 +256,13 @@ function Account({ userLogout, isLoggedIn }) {
                         console.log(response.data.orders);
                         setUserOrders([...response.data.orders]);
                         setTotalPages(Math.ceil(response.data.pages / 5));
+                        // _orderId
+                        if (_orderId) {
+                            const index = [...response.data.orders].findIndex((od) => od._id === _orderId);
+                            if (index !== -1) {
+                                setOrderViewModal([...response.data.orders][index]);
+                            }
+                        }
                     } catch (err) {
                         console.error(err);
                     }
@@ -248,6 +286,7 @@ function Account({ userLogout, isLoggedIn }) {
                         setUserName(result.data.data.name);
                         setUserEmail(result.data.data.email);
                         setUserStatus(result.data.data.status);
+                        setUserData({ ...result.data.data });
                     } catch (e) {
                         console.log(e);
                     }
@@ -259,7 +298,7 @@ function Account({ userLogout, isLoggedIn }) {
             }
         };
         tabAction();
-    }, [activeIndex, reloadAction, currentPage]);
+    }, [activeIndex, reloadAction, currentPage, _orderId]);
 
     const orderActionState = () => {
         // COD - Pending
@@ -352,6 +391,11 @@ function Account({ userLogout, isLoggedIn }) {
             img.src = url;
         });
     }
+
+    const fixTotalCost = (_shipCost, _total) => {
+        const temp = _shipCost + _total;
+        return temp.toFixed(2);
+    };
 
     return (
         <>
@@ -801,16 +845,40 @@ function Account({ userLogout, isLoggedIn }) {
                                                                 </div>
                                                                 <div className="form-group col-md-12">
                                                                     <label>
-                                                                        Email Address
-                                                                        <span className="required">*</span>
+                                                                        Email: {userEmail}{' '}
+                                                                        {/* <span className="required">*</span> */}
                                                                     </label>
-                                                                    <input
+                                                                    {userData?.isVerified ? (
+                                                                        <Badge className="ms-2" bg={'success'}>
+                                                                            Verified
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <button
+                                                                            key={`btn-load-${btnLoading}-${waiting}`}
+                                                                            className="btn btn-small btn-primary"
+                                                                            onClick={waiting ? () => {} : verifyEmailAction}
+                                                                        >
+                                                                            {waiting ? (
+                                                                                <SmallTimer
+                                                                                    key={waiting}
+                                                                                    setWaiting={setWaiting}
+                                                                                    endDateTime={new Date().getTime() + 60000}
+                                                                                />
+                                                                            ) : btnLoading ? (
+                                                                                'Processing...'
+                                                                            ) : (
+                                                                                'Verify now'
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+
+                                                                    {/* <p
                                                                         required=""
                                                                         className="form-control square"
                                                                         name="email"
                                                                         type="email"
                                                                         defaultValue={userEmail}
-                                                                    />
+                                                                    ></p> */}
                                                                 </div>
                                                                 <div className="form-group col-md-12">
                                                                     <label>
@@ -1295,7 +1363,7 @@ function Account({ userLogout, isLoggedIn }) {
                                             <span className="title">Total</span>
                                             <span className="clone">:</span>
                                             <span className={`digit`}>
-                                                {orderViewModal?.total + orderViewModal?.shippingCost}$
+                                                {fixTotalCost(orderViewModal?.shippingCost, orderViewModal?.total)} $
                                             </span>
                                         </li>
                                     </ul>
@@ -1336,7 +1404,7 @@ function Account({ userLogout, isLoggedIn }) {
                                         Review
                                     </button>
                                 ) : null}
-                                {orderViewModal?.status === 'Pending' ? (
+                                {orderViewModal?.status === 'Pending' && orderViewModal?.onlPayStatus !== 'Confirmed' ? (
                                     <button
                                         onClick={() => {
                                             cancelOrderAction(orderViewModal._id);
@@ -1652,4 +1720,37 @@ const StarReview = ({ reviewId, itemId, itemVariant, itemVariantName, orderId, p
             </div>
         </form>
     );
+};
+
+const SmallTimer = ({ endDateTime, setWaiting }) => {
+    const [time, setTime] = useState(new Date().toLocaleTimeString());
+
+    const getPartsofTimeDuration = (duration) => {
+        const seconds = Math.floor(duration / 1000);
+
+        return seconds;
+    };
+
+    useEffect(() => {
+        if (!endDateTime || endDateTime - new Date().getTime() <= 1) {
+            setWaiting(false);
+            return;
+        }
+        const timeout = setTimeout(() => {
+            const date = new Date();
+            setTime(date.toLocaleTimeString());
+        }, 1000);
+        return () => {
+            clearTimeout(timeout);
+        };
+    }, [time]);
+
+    const now = Date.now(); // Number of milliseconds from begining of time
+
+    const future = new Date(endDateTime); // The day we leave for Japan
+
+    const timeDif = future.getTime() - now;
+    const timeParts = getPartsofTimeDuration(timeDif);
+
+    return <span>Avalable in {timeParts}s</span>;
 };

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { TranslatorContext } from '../../context/Translator';
 import { Link } from 'react-router-dom';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Modal } from 'react-bootstrap';
 import { FloatCardComponent } from '../../components/cards';
 import ProductsTableComponent from '../../components/tables/ProductsTableComponent';
 import LabelFieldComponent from '../../components/fields/LabelFieldComponent';
@@ -10,6 +10,7 @@ import PageLayout from '../../layouts/PageLayout';
 import products from '../../assets/data/products.json';
 import axiosInstance from '../../configs/axiosInstance';
 import { debounce } from 'lodash';
+import { ButtonComponent } from '../../components/elements';
 
 export default function ProductListPage() {
     const { t, n } = useContext(TranslatorContext);
@@ -18,7 +19,12 @@ export default function ProductListPage() {
     const [sortPrice, setSortPrice] = useState('lowToHigh');
     const [pages, setPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedCategory, setSelectedCategory] = useState('null');
     const [productSearchText, setProductSearchText] = useState('');
+
+    const [cateData, setCateData] = useState([]);
+    const [cateModal, setCateModal] = useState(false);
+    const [categoryTree, setCategoryTree] = useState([null]);
 
     const [totalProduct, setTotalProduct] = useState(0);
     const [totalCate, setTotalCate] = useState(0);
@@ -38,6 +44,17 @@ export default function ProductListPage() {
             setTotalCate(response.data.total);
         };
         fetchTotalCate();
+        ////////////////////////////////
+        const fetchCate = async () => {
+            try {
+                const result = await axiosInstance.get('/api/category');
+                // console.log(result);
+                setCateData([...result.data.data]);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchCate();
     }, []);
 
     useEffect(() => {
@@ -90,7 +107,7 @@ export default function ProductListPage() {
                 <Col xl={12}>
                     <div className="mc-card">
                         <Row>
-                            <Col xs={12} sm={6} md={4} lg={4}>
+                            <Col xs={12} sm={6} md={3} lg={3}>
                                 <LabelFieldComponent
                                     label={t('show_by')}
                                     option={['6 row', '12 row', '24 row']}
@@ -113,7 +130,7 @@ export default function ProductListPage() {
                                     fieldSize="w-100 h-md mb-4"
                                 />
                             </Col> */}
-                            <Col xs={12} sm={6} md={4} lg={4}>
+                            <Col xs={12} sm={6} md={3} lg={3}>
                                 <label className="mc-label-field-title">{'Sort price'}</label>
                                 <select
                                     style={{ backgroundImage: 'url(/images/dropdown.svg)' }}
@@ -130,7 +147,20 @@ export default function ProductListPage() {
                                     <option value={'highToLow'}>High To Low</option>
                                 </select>
                             </Col>
-                            <Col xs={12} sm={6} md={4} lg={4}>
+                            <Col xs={12} sm={6} md={3} lg={3}>
+                                <LabelFieldComponent
+                                    style={{ cursor: 'pointer' }}
+                                    type={'text'}
+                                    label={t('Category')}
+                                    fieldSize="mb-4 w-100 h-md"
+                                    readOnly={true}
+                                    onClick={() => {
+                                        setCateModal(true);
+                                    }}
+                                    value={cateData?.find((obj) => obj._id === selectedCategory)?.name}
+                                />
+                            </Col>
+                            <Col xs={12} sm={6} md={3} lg={3}>
                                 <LabelFieldComponent
                                     type="search"
                                     label={t('search_by')}
@@ -156,6 +186,7 @@ export default function ProductListPage() {
                                     currentPage={currentPage}
                                     setPages={setPages}
                                     productSearchText={productSearchText}
+                                    selectedCategory={selectedCategory}
                                 />
                                 <PaginationComponent
                                     currentPage={currentPage}
@@ -168,6 +199,90 @@ export default function ProductListPage() {
                     </div>
                 </Col>
             </Row>
+            <Modal size="lg" show={cateModal} onHide={() => setCateModal(false)} style={{ padding: '10px' }}>
+                <div className="mc-alert-modal" style={{ width: '80vw' }}>
+                    <i className="material-icons">account_tree</i>
+                    <h3>Select Category</h3>
+                    <p>Chose category for your product</p>
+                    <Modal.Body>
+                        <Col>
+                            <div className="container px-3 py-1">
+                                <div style={{ overflowX: 'scroll' }} className="d-flex flex-row pb-2">
+                                    {categoryTree.map((category, index) => {
+                                        return (
+                                            <div className="cate-container">
+                                                <ul>
+                                                    {cateData.map((data) => {
+                                                        if (data.root?._id === category || data.root === category) {
+                                                            return (
+                                                                <li
+                                                                    className={
+                                                                        selectedCategory === data._id
+                                                                            ? 'selected cate-item'
+                                                                            : 'cate-item'
+                                                                    }
+                                                                    onClick={() => {
+                                                                        setSelectedCategory(data._id);
+                                                                        if (categoryTree[index + 1]) {
+                                                                            var tempArr = [...categoryTree];
+                                                                            tempArr.splice(index + 1);
+                                                                            tempArr.push(data._id);
+                                                                            setCategoryTree(tempArr);
+                                                                        } else {
+                                                                            setCategoryTree([...categoryTree, data._id]);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {data.name}
+                                                                    {data.child?.length > 0 ? (
+                                                                        <i className="material-icons">keyboard_arrow_right</i>
+                                                                    ) : null}
+                                                                </li>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </Col>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setCateModal(false);
+                            }}
+                        >
+                            {t('close')}
+                        </ButtonComponent>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-success"
+                            onClick={() => {
+                                setCateModal(false);
+                            }}
+                        >
+                            {t('Select')}
+                        </ButtonComponent>
+                        <ButtonComponent
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => {
+                                setCategoryTree([null]);
+                                setSelectedCategory(null);
+                                setCateModal(false);
+                            }}
+                        >
+                            {t('Clear')}
+                        </ButtonComponent>
+                    </Modal.Footer>
+                </div>
+            </Modal>
         </PageLayout>
     );
 }

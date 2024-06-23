@@ -196,7 +196,7 @@ function TrackOrder() {
                                         <div className="mc-invoice-head">
                                             {/* <img src="images/logo.webp" alt="logo" /> */}
                                             <h2>
-                                                {'invoice'} #{currentOrder?._id}
+                                                {'invoice'} #{currentOrder?.code}
                                             </h2>
                                         </div>
                                         <div className="mc-invoice-group" style={{ alignItems: 'start' }}>
@@ -351,7 +351,7 @@ function TrackOrder() {
                                                     <span className="title">Total</span>
                                                     <span className="clone">:</span>
                                                     <span className={`digit`}>
-                                                        {currentOrder?.total + currentOrder?.shippingCost}$
+                                                        {(currentOrder?.total + currentOrder?.shippingCost).toFixed(2)}$
                                                     </span>
                                                 </li>
                                             </ul>
@@ -394,7 +394,7 @@ function TrackOrder() {
                                                 Review
                                             </button>
                                         ) : null} */}
-                                        {currentOrder?.status === 'Pending' ? (
+                                        {currentOrder?.status === 'Pending' && currentOrder?.onlPayStatus !== 'Confirmed' ? (
                                             <button
                                                 onClick={() => {
                                                     cancelOrderAction(currentOrder._id);

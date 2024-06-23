@@ -15,6 +15,7 @@ export default function ProductsTableComponent({
     currentPage,
     setPages,
     productSearchText,
+    selectedCategory,
     _shopId,
 }) {
     const { t } = useContext(TranslatorContext);
@@ -32,10 +33,10 @@ export default function ProductsTableComponent({
                 const pathString = isVendor
                     ? `/api/product?shopId=${shopId}&sortPrice=${sortPrice}&currentPage=${currentPage}&limit=${rowView}&searchText=${
                           productSearchText || ''
-                      }`
+                      }&category=${selectedCategory ? selectedCategory : ''}`
                     : `/api/product/?sortPrice=${sortPrice}&currentPage=${currentPage}&limit=${rowView}&searchText=${
                           productSearchText || ''
-                      }&shopId=${_shopId ? _shopId : ''}`;
+                      }&shopId=${_shopId ? _shopId : ''}&category=${selectedCategory ? selectedCategory : ''}`;
                 const results = await axiosInstance.get(pathString);
                 console.log(results);
                 const listProducts = [...results.data.data];
@@ -52,7 +53,7 @@ export default function ProductsTableComponent({
             }
         };
         fetchAllProducts();
-    }, [shopId, isVendor, sortPrice, rowView, currentPage, setPages, productSearchText, _shopId]);
+    }, [shopId, isVendor, sortPrice, rowView, currentPage, setPages, productSearchText, _shopId, selectedCategory]);
 
     const priceRange = (routePath) => {
         let min;

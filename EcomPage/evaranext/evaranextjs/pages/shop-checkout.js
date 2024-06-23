@@ -443,7 +443,11 @@ const CartCheckout = ({
                     if (!paymentMethod) {
                         window.location.href = response.data.url;
                     } else {
-                        router.push('/page-account');
+                        if (user) {
+                            router.push('/page-account');
+                        } else {
+                            router.push('/');
+                        }
                     }
                     toast.success('Order placed !');
                 } catch (e) {

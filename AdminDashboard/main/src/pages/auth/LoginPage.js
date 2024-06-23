@@ -36,7 +36,7 @@ export default function LoginPage() {
             dispatch(setStatus(result.data.data.status));
         } catch (e) {
             console.log(e);
-            dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Wrong username or password' }));
+            dispatch(setToastState({ Tstate: toastType.error, Tmessage: e.response.data.data.message }));
         }
     };
 

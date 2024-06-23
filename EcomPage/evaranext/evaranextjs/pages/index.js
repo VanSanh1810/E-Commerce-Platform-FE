@@ -18,9 +18,10 @@ import CategorySlider from './../components/sliders/Category';
 import Intro1 from './../components/sliders/Intro1';
 import NewArrival from './../components/sliders/NewArrival';
 import axiosInstance from '../config/axiosInstance';
+import { useRouter } from 'next/router';
+import { toast } from 'react-toastify';
 
 export default function Home() {
-    useEffect(() => {});
 
     return (
         <>
