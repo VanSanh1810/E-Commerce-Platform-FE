@@ -19,7 +19,7 @@ export default function PaginationComponent({ currentPage, setCurrentPage, pages
     }, [currentPage, pageViewable]);
     return (
         <div className="mc-paginate">
-            <p className="mc-paginate-title">
+            <p style={{ visibility: 'hidden' }} className="mc-paginate-title">
                 {t('showing ')}
                 <b> {rowShow} </b>
                 {t('of')}
