@@ -81,7 +81,7 @@ const Header = ({ totalCartItems, totalCompareItems, toggleClick, totalWishlistI
                                             <i className="fi-rs-user"></i>
                                             {user ? (
                                                 <Link href="/page-account">
-                                                    <a>Wellcome</a>
+                                                    <a>Profile</a>
                                                 </Link>
                                             ) : (
                                                 <Link href="/page-login-register">

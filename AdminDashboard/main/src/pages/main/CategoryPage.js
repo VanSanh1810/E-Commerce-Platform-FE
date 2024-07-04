@@ -7,9 +7,12 @@ import { LabelFieldComponent } from '../../components/fields';
 import { ButtonComponent } from '../../components/elements';
 import Modal from 'react-bootstrap/Modal';
 import axiosInstance from '../../configs/axiosInstance';
+import { setToastState, toastType } from '../../store/reducers/toastReducer';
+import { useDispatch } from 'react-redux';
 
 export default function CategoryPage() {
     const { t, n } = useContext(TranslatorContext);
+    const dispatch = useDispatch();
 
     const [createCateModal, setCreateCateModal] = useState(false);
     const [deleteCateModal, setDeleteCateModal] = useState(false);
@@ -33,6 +36,9 @@ export default function CategoryPage() {
 
     const createCateHandler = async (root, isCreate) => {
         if (isCreate) {
+            if (!cateName.trim()) {
+                dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Category name not be empty' }));
+            }
             try {
                 const result = await axiosInstance.post('/api/category', {
                     name: cateName,
@@ -45,6 +51,9 @@ export default function CategoryPage() {
                 console.log(err);
             }
         } else {
+            if (!cateName.trim()) {
+                dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Category name not be empty' }));
+            }
             try {
                 const result = await axiosInstance.patch(`/api/category/${selectedCategory}`, {
                     name: cateName,

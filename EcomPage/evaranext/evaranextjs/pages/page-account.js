@@ -640,7 +640,8 @@ function Account({ userLogout, isLoggedIn }) {
                                                                                 </span>
                                                                             </td>
                                                                             <td>
-                                                                                ${items.total} for {items.totalItem} item
+                                                                                ${items.total.toFixed(2)} for {items.totalItem}{' '}
+                                                                                item
                                                                             </td>
                                                                             <td>
                                                                                 <button

@@ -755,7 +755,7 @@ export default function ProductUploadPage() {
             } else {
                 //variant empty
                 validateData(true);
-                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Please provide all variant detail' }));
+                dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Please provide all variant detail' }));
             }
         } else {
             if (!validateData(false)) {
