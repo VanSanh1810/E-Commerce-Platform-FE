@@ -38,7 +38,9 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
         const fetchAllReports = async () => {
             try {
                 const result = await axiosInstance.get(
-                    `/api/report?&currentPage=${currentPage}&limit=${rowView}&reportType=${reportType === 'all' ? '' : ''}`,
+                    `/api/report?&currentPage=${currentPage}&limit=${rowView}&reportType=${
+                        reportType === 'all' ? '' : reportType
+                    }`,
                 );
                 console.log(result.data);
                 setData(result.data.reports);
@@ -70,7 +72,7 @@ export default function ReportTableComponent({ thead, tbody, rowView, currentPag
                 </thead>
                 <tbody className="mc-table-body even">
                     {data?.map((item, index) => (
-                        <tr key={index}>
+                        <tr key={item._id}>
                             <td title="id">
                                 <div className="mc-table-check">
                                     <p>#{item._id}</p>

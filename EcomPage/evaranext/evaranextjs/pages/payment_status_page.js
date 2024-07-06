@@ -72,7 +72,7 @@ const Test = () => {
                                         border: '1px solid #000',
                                     }}
                                 >
-                                    <h5>Code : {item.orderId}</h5>
+                                    <h5>Code : {item.code}</h5>
                                     <h5>Total: {item.price.toFixed(2)}$</h5>
                                     <button
                                         className="btn btn-small d-block"
