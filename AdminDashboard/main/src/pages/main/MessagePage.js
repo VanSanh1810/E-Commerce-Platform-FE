@@ -10,6 +10,7 @@ import { SocketIOContext } from '../../context/SocketIOContext';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { setReload } from '../../store/reducers/notificationReducer';
+import { debounce } from 'lodash';
 
 export default function MessagePage() {
     const { t } = useContext(TranslatorContext);
@@ -196,7 +197,7 @@ export default function MessagePage() {
                                     type="text"
                                     placeholder={t('type_a_message')}
                                     defaultValue={messToSend}
-                                    onChange={(e) => setMessToSend(e.target.value)}
+                                    onChange={debounce((e) => setMessToSend(e.target.value), 1000)}
                                 />
                                 <ButtonComponent type="submit" className="material-icons">
                                     send

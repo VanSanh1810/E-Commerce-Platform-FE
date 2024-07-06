@@ -116,9 +116,9 @@ export default function CategoryPage() {
                 <Col xl={12}>
                     <div className="mc-card">
                         <Row>
-                            <Col xl={12}>
+                            <Col xl={12} className='mb-2'>
                                 <Row>
-                                    <Col xl={6}>
+                                    {/* <Col xl={6}>
                                         <LabelFieldComponent type="text" label={t('Category name')} fieldSize="mb-4 w-100 h-md" />
                                     </Col>
                                     <Col xl={2}>
@@ -128,7 +128,7 @@ export default function CategoryPage() {
                                             icon="search"
                                             onClick={() => setCreateCateModal(true)}
                                         />
-                                    </Col>
+                                    </Col> */}
                                     {selectedCategory ? (
                                         <>
                                             <Col xl={2}>
@@ -158,7 +158,7 @@ export default function CategoryPage() {
                                 </Row>
                                 <Row>
                                     <Col>
-                                        <div className="container px-3 py-1">
+                                        <div className="container px-3 py-4">
                                             <div style={{ overflowX: 'scroll' }} className="d-flex flex-row pb-2">
                                                 {categoryTree.map((category, index) => {
                                                     return (

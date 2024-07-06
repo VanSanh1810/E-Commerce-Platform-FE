@@ -6,6 +6,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedConversation } from '../../../redux/action/conversation';
 import { SocketIOContext } from '../../../contexts/SocketIOContext';
+import { debounce } from 'lodash';
 //for displaying the model view/Window
 const ModalWindow = ({ visible, setReloadAction, reloadAction }) => {
     const dispatch = useDispatch();
@@ -182,7 +183,7 @@ const ModalWindow = ({ visible, setReloadAction, reloadAction }) => {
                                             type="text"
                                             placeholder={'type a message'}
                                             defaultValue={messToSend}
-                                            onChange={(e) => setMessToSend(e.target.value)}
+                                            onChange={debounce((e) => setMessToSend(e.target.value), 1000)}
                                         />
                                         <button className="btn btn-primary" onClick={sendMess}>
                                             <svg
