@@ -96,9 +96,9 @@ export default function OrderTableComponent({
                                     <AnchorComponent title="View" to={`/order/${item._id}`} className="material-icons view">
                                         visibility
                                     </AnchorComponent>
-                                    <AnchorComponent title="Download" href="#" className="material-icons download" download>
+                                    {/* <AnchorComponent title="Download" href="#" className="material-icons download" download>
                                         download
-                                    </AnchorComponent>
+                                    </AnchorComponent> */}
                                     {/* <ButtonComponent
                                         title="Delete"
                                         className="material-icons delete"

@@ -112,7 +112,7 @@ export default function ProductsCardComponent() {
                     <LabelFieldComponent
                         type="search"
                         label={t('search_by')}
-                        placeholder={t('id') + ' / ' + t('name')}
+                        placeholder={t('name')}
                         labelDir="label-col"
                         fieldSize="mb-4 w-100 h-md"
                         onChange={debounce(

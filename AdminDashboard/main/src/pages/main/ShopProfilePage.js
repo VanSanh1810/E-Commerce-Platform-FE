@@ -69,9 +69,9 @@ export default function ShopProfilePage() {
     }, [uid]);
 
     const floats = [
-        { title: 'total_orders', digit: shopStat?.totalOrder, icon: 'shopping_cart', variant: 'sm purple' },
-        { title: 'total_reviews', digit: shopStat?.totalOrder, icon: 'hotel_class', variant: 'sm yellow' },
-        { title: 'total_products', digit: shopStat?.totalProduct, icon: 'shopping_bag', variant: 'sm green' },
+        { title: 'total orders', digit: shopStat?.totalOrder, icon: 'shopping_cart', variant: 'sm purple' },
+        { title: 'total reviews', digit: shopStat?.totalOrder, icon: 'hotel_class', variant: 'sm yellow' },
+        { title: 'total products', digit: shopStat?.totalProduct, icon: 'shopping_bag', variant: 'sm green' },
     ];
     return (
         <PageLayout>
@@ -102,7 +102,7 @@ export default function ShopProfilePage() {
                             <FloatCardComponent
                                 variant={'sm purple'}
                                 digit={shopStat?.totalOrder}
-                                title={'total_orders'}
+                                title={'total orders'}
                                 icon={'shopping_cart'}
                             />
                         </Col>
@@ -110,7 +110,7 @@ export default function ShopProfilePage() {
                             <FloatCardComponent
                                 variant={'sm green'}
                                 digit={shopStat?.totalProduct}
-                                title={'total_products'}
+                                title={'total products'}
                                 icon={'shopping_bag'}
                             />
                         </Col>
@@ -262,7 +262,7 @@ export default function ShopProfilePage() {
                                 <LabelFieldComponent
                                     type="search"
                                     label={t('search_by')}
-                                    placeholder={t('id') + ' / ' + t('name')}
+                                    placeholder={t('name')}
                                     labelDir="label-col"
                                     fieldSize="mb-4 w-100 h-md"
                                     onChange={debounce(

@@ -46,6 +46,7 @@ export default function ProductUploadPage() {
 
     const addClassifyHandler = async (e) => {
         if (!newClassifyName.trim()) {
+            dispatch(setToastState({ Tstate: toastType.error, Tmessage: 'Please provide classify name !' }));
             return;
         }
         try {

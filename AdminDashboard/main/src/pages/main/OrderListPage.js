@@ -29,10 +29,10 @@ export default function OrderListPage() {
                 const response = await axiosInstance.get('/api/stat/orderTypeCount');
                 console.log(response.data);
                 const floats = [
-                    { title: 'pending_orders', digit: response.data.pendingOrder, icon: 'pending', variant: 'lg purple' },
-                    { title: 'shipped_orders', digit: response.data.shippedOrder, icon: 'local_shipping', variant: 'lg blue' },
-                    { title: 'recieved_orders', digit: response.data.recievedOrder, icon: 'shopping_bag', variant: 'lg green' },
-                    { title: 'cancelled_orders', digit: response.data.cancelOrder, icon: 'remove_circle', variant: 'lg red' },
+                    { title: 'pending orders', digit: response.data.pendingOrder, icon: 'pending', variant: 'lg purple' },
+                    { title: 'shipped orders', digit: response.data.shippedOrder, icon: 'local_shipping', variant: 'lg blue' },
+                    { title: 'recieved orders', digit: response.data.recievedOrder, icon: 'shopping_bag', variant: 'lg green' },
+                    { title: 'cancelled orders', digit: response.data.cancelOrder, icon: 'remove_circle', variant: 'lg red' },
                 ];
 
                 setOrderStatData([...floats]);

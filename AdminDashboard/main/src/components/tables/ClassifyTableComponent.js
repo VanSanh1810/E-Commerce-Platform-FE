@@ -70,7 +70,7 @@ export default function ClassifyTableComponent({ thead, tbody, reload, setReload
                         </th>
                         <th>{t('Name')}</th>
                         <th>{t('Created')}</th>
-                        <th>{t('Total product')}</th>
+                        {/* <th>{t('Total product')}</th> */}
                         <th>{t('Action')}</th>
                         {/* {thead.map((item, index) => (
                             
@@ -99,7 +99,7 @@ export default function ClassifyTableComponent({ thead, tbody, reload, setReload
                                 </div>
                             </td>
                             <td>{Date(item.createDate)}</td>
-                            <td>{item.product?.length ? item.product.length : 0}</td>
+                            {/* <td>{item.product?.length ? item.product.length : 0}</td> */}
                             <td>
                                 <div className="mc-table-action">
                                     {/* <AnchorComponent to="/product-view" title="View" className="material-icons view">{ item.action.view }</AnchorComponent> */}

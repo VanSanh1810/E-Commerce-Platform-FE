@@ -178,7 +178,7 @@ export default function ProductsTableComponent({
                                     <p>({item.totalReviews})</p>
                                 </div>
                             </td>
-                            <td>{item.ordersCount}</td>
+                            {/* <td>{item.ordersCount}</td> */}
                             <td>
                                 <p className={`mc-table-badge ${productSatusView(item.status)}`}>{item.status}</p>
                             </td>
