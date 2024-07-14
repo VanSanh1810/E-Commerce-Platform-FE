@@ -100,7 +100,7 @@ export default function BannerTableComponent({
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 console.log(result);
-                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Banner created' }));
+                dispatch(setToastState({ Tstate: toastType.success, Tmessage: 'Banner updated' }));
                 setBannerObject({});
                 setSelectedCategory(null);
                 setUpdateBannerModal(false);

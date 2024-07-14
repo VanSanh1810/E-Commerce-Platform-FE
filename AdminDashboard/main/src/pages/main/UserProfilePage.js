@@ -76,7 +76,7 @@ export default function UserProfilePage() {
                             <FloatCardComponent
                                 variant={'sm purple'}
                                 digit={userStat?.totalOrder}
-                                title={'total_orders'}
+                                title={'total orders'}
                                 icon={'shopping_cart'}
                             />
                         </Col>
@@ -84,7 +84,7 @@ export default function UserProfilePage() {
                             <FloatCardComponent
                                 variant={'sm yellow'}
                                 digit={userStat?.totalReview}
-                                title={'total_reviews'}
+                                title={'total reviews'}
                                 icon={'hotel_class'}
                             />
                         </Col>

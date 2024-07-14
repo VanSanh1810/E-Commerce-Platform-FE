@@ -99,7 +99,7 @@ const Intro1 = () => {
                         </SwiperSlide>
                     );
                 })}
-                <SwiperSlide>
+                {/* <SwiperSlide>
                     <div className="single-hero-slider single-animation-wrap">
                         <div className="container">
                             <div className="row align-items-center slider-animated-1">
@@ -170,7 +170,7 @@ const Intro1 = () => {
                             </div>
                         </div>
                     </div>
-                </SwiperSlide>
+                </SwiperSlide> */}
             </Swiper>
 
             <div className="slider-arrow hero-slider-1-arrow">
