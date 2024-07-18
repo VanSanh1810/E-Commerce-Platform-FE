@@ -12,8 +12,18 @@ import { useCallback } from 'react';
 import cartSelected from '../redux/reducer/cartSelected';
 import { clearCartSelected, setCartSelected } from '../redux/action/cartSelected';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 
-const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice, setSelectedIndexWithPrice, user }) => {
+const CartItemData = ({
+    id,
+    variant,
+    quantity,
+    children,
+    selectedIndexWithPrice,
+    setSelectedIndexWithPrice,
+    user,
+    reloadAction,
+}) => {
     const dispatch = useDispatch();
 
     const [productData, setProductData] = useState({});
@@ -22,6 +32,12 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
     const [isProductExist, setIsProductExist] = useState(true);
 
     const inputCheckbox = useRef();
+
+    useEffect(() => {
+        if (inputCheckbox.current) {
+            inputCheckbox.current.checked = false;
+        }
+    }, [inputCheckbox]);
 
     useEffect(() => {
         const accessVariantDetail = (node, indexArr, depth) => {
@@ -90,7 +106,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
         fetchProductData();
         // console.log(id);
         // console.log(variant);
-    }, []);
+    }, [reloadAction]);
 
     useEffect(() => {
         if (inputCheckbox) {
@@ -102,6 +118,9 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     ...tempArr,
                     {
                         proIndex: id + variant.join(),
+                        _id: id,
+                        variant: variant,
+                        quantity: quantity,
                         price: !voucherData?.discount
                             ? (productTreeDetail?.disPrice
                                   ? productTreeDetail?.disPrice === 0
@@ -116,6 +135,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                                               : productTreeDetail?.disPrice
                                           : productTreeDetail?.price) * quantity,
                                   ),
+                                  quantity,
                               ),
                     },
                 ]);
@@ -150,14 +170,20 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
         }
     }, [productData]);
 
-    const calculateVoucherPrice = (price) => {
+    const calculateVoucherPrice = (price, quantity) => {
         // console.log(typeof price);
+        let _quantity;
+        if (!quantity || quantity === 0) {
+            _quantity = 1;
+        } else {
+            _quantity = quantity;
+        }
         if (typeof price === 'number') {
-            const discountAmount = (parseFloat(price) / 100) * parseFloat(voucherData.discount);
+            const discountAmount = (parseFloat(price) / _quantity / 100) * parseFloat(voucherData.discount);
             if (discountAmount <= parseFloat(voucherData.maxValue)) {
-                return parseFloat(price) - discountAmount;
+                return parseFloat(price) - discountAmount * _quantity;
             } else {
-                return parseFloat(price) - parseFloat(voucherData.maxValue);
+                return parseFloat(price) - parseFloat(voucherData.maxValue) * _quantity;
             }
         } else {
             if (typeof price === 'string') {
@@ -205,6 +231,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     <td>
                         {productTreeDetail?.stock > 0 ? (
                             <input
+                                key={id + variant.join() + reloadAction}
                                 ref={inputCheckbox}
                                 id={id + variant.join()}
                                 style={{ fontSize: '12px', height: 'unset' }}
@@ -226,6 +253,7 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                                                                   : productTreeDetail?.disPrice
                                                               : productTreeDetail?.price) * quantity,
                                                       ),
+                                                      quantity,
                                                   );
                                             setSelectedIndexWithPrice([
                                                 ...selectedIndexWithPrice,
@@ -278,24 +306,33 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     </td>
                     <td className="price" data-title="price">
                         {productTreeDetail?.stock > 0 ? (
-                            <span>
-                                {!voucherData?.discount
-                                    ? productTreeDetail?.disPrice
-                                        ? productTreeDetail?.disPrice === 0
-                                            ? productTreeDetail?.price
-                                            : productTreeDetail?.disPrice
-                                        : productTreeDetail?.price
-                                    : calculateVoucherPrice(
-                                          parseFloat(
-                                              productTreeDetail?.disPrice
-                                                  ? productTreeDetail?.disPrice === 0
-                                                      ? productTreeDetail?.price
-                                                      : productTreeDetail?.disPrice
-                                                  : productTreeDetail?.price,
-                                          ),
-                                      )}
-                                $
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {(productTreeDetail?.disPrice !== 0 &&
+                                    productTreeDetail?.price !== productTreeDetail?.disPrice) ||
+                                voucherData?.discount ? (
+                                    <span style={{ textDecoration: 'line-through', color: '#797878' }}>
+                                        {productTreeDetail?.disPrice ? `${productTreeDetail?.price}$` : null}
+                                    </span>
+                                ) : null}
+                                <span>
+                                    {!voucherData?.discount
+                                        ? productTreeDetail?.disPrice
+                                            ? productTreeDetail?.disPrice === 0
+                                                ? productTreeDetail?.price
+                                                : productTreeDetail?.disPrice
+                                            : productTreeDetail?.price
+                                        : calculateVoucherPrice(
+                                              parseFloat(
+                                                  productTreeDetail?.disPrice
+                                                      ? productTreeDetail?.disPrice === 0
+                                                          ? productTreeDetail?.price
+                                                          : productTreeDetail?.disPrice
+                                                      : productTreeDetail?.price,
+                                              ),
+                                          )}
+                                    $
+                                </span>
+                            </div>
                         ) : (
                             <span>-</span>
                         )}
@@ -309,24 +346,27 @@ const CartItemData = ({ id, variant, quantity, children, selectedIndexWithPrice,
                     )}
                     <td className="price" data-title="subPrice">
                         {productTreeDetail?.stock > 0 ? (
-                            <span>
-                                {!voucherData?.discount
-                                    ? (productTreeDetail?.disPrice
-                                          ? productTreeDetail?.disPrice === 0
-                                              ? productTreeDetail?.price
-                                              : productTreeDetail?.disPrice
-                                          : productTreeDetail?.price) * quantity
-                                    : calculateVoucherPrice(
-                                          parseFloat(
-                                              (productTreeDetail?.disPrice
-                                                  ? productTreeDetail?.disPrice === 0
-                                                      ? productTreeDetail?.price
-                                                      : productTreeDetail?.disPrice
-                                                  : productTreeDetail?.price) * quantity,
-                                          ),
-                                      )}
-                                $
-                            </span>
+                            <>
+                                <span>
+                                    {!voucherData?.discount
+                                        ? (productTreeDetail?.disPrice
+                                              ? productTreeDetail?.disPrice === 0
+                                                  ? productTreeDetail?.price
+                                                  : productTreeDetail?.disPrice
+                                              : productTreeDetail?.price) * quantity
+                                        : calculateVoucherPrice(
+                                              parseFloat(
+                                                  (productTreeDetail?.disPrice
+                                                      ? productTreeDetail?.disPrice === 0
+                                                          ? productTreeDetail?.price
+                                                          : productTreeDetail?.disPrice
+                                                      : productTreeDetail?.price) * quantity,
+                                              ),
+                                              quantity,
+                                          )}
+                                    $
+                                </span>
+                            </>
                         ) : (
                             <span>-</span>
                         )}
@@ -355,10 +395,16 @@ const Cart = ({
     setCartSelected,
     clearCartSelected,
 }) => {
+    const router = useRouter();
+
     const [selectedIndexWithPrice, setSelectedIndexWithPrice] = useState([]);
     const [totalSelectedProductPrice, settotalSelectedProductPrice] = useState(0);
 
     const [sortedCartItems, setSortedCartItems] = useState([]);
+    const [validateItemsArray, setValidateItemsArray] = useState([]);
+
+    const [loading, setLoading] = useState(false);
+    const [reloadAction, setReloadAction] = useState(false);
 
     const isAllInShop = (shopId) => {
         if (sortedCartItems.length > 0) {
@@ -385,7 +431,7 @@ const Cart = ({
             totalPrice += item.price;
         });
         settotalSelectedProductPrice(totalPrice);
-    }, [selectedIndexWithPrice, cartItems]);
+    }, [selectedIndexWithPrice, cartItems, reloadAction]);
 
     useEffect(() => {
         // clearCartSelected();
@@ -399,11 +445,11 @@ const Cart = ({
         }
         console.log(tempArray);
         setCartSelected([...tempArray]);
-    }, [selectedIndexWithPrice]);
+    }, [selectedIndexWithPrice, reloadAction]);
 
-    useEffect(() => {
-        console.log(cartSelected);
-    }, [cartSelected]);
+    // useEffect(() => {
+    //     console.log(cartSelected);
+    // }, [cartSelected]);
 
     useEffect(() => {
         const initCartItemSortByShop = async () => {
@@ -427,9 +473,46 @@ const Cart = ({
                 }
             }
             setSortedCartItems([...resultArray]);
+            setValidateItemsArray([...resultArray]);
         };
         initCartItemSortByShop();
-    }, [cartItems]);
+    }, [cartItems, reloadAction]);
+
+    const validateCartToCheckout = async () => {
+        // selectedIndexWithPrice
+        setLoading(true);
+        try {
+            const data = JSON.stringify(selectedIndexWithPrice);
+            console.log(JSON.stringify(selectedIndexWithPrice));
+            const response = await axiosInstance.post('/api/order/validateProduct', {
+                data: data,
+            });
+            console.log(response.data);
+            switch (response.data.code) {
+                case -1:
+                    router.push(`/shop-checkout?sessionData=${data}`);
+                    break;
+                case 0:
+                    toast.error('Some products discount are not available !. Please check your cart');
+                    setSelectedIndexWithPrice([]);
+                    setReloadAction(!reloadAction);
+                    break;
+                case 1:
+                    toast.error('Some products stock are not enough !. Please check your cart');
+                    setSelectedIndexWithPrice([]);
+                    setReloadAction(!reloadAction);
+                    break;
+                case 2:
+                    toast.error('Some products are not available!. Please check your cart');
+                    setSelectedIndexWithPrice([]);
+                    setReloadAction(!reloadAction);
+                    break;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+        setLoading(false);
+    };
 
     return (
         <>
@@ -479,7 +562,10 @@ const Cart = ({
                                             {sortedCartItems.map((shop, index) => {
                                                 return (
                                                     <>
-                                                        <tr style={null} key={selectedIndexWithPrice}>
+                                                        <tr
+                                                            style={null}
+                                                            key={selectedIndexWithPrice + reloadAction + shop.shop._id}
+                                                        >
                                                             <td>
                                                                 <input
                                                                     style={{ fontSize: '12px', height: 'unset' }}
@@ -514,13 +600,19 @@ const Cart = ({
                                                                     selectedIndexWithPrice={selectedIndexWithPrice}
                                                                     setSelectedIndexWithPrice={setSelectedIndexWithPrice}
                                                                     user={user}
+                                                                    reloadAction={reloadAction}
                                                                 >
                                                                     <td className="price" data-title="Price">
                                                                         <input
                                                                             key={`quantity-${item.product}-${item.quantity}`}
                                                                             type="number"
+                                                                            min={1}
                                                                             defaultValue={item.quantity ? item.quantity : 0}
                                                                             onChange={debounce((e) => {
+                                                                                if (e.target.value <= 0) {
+                                                                                    e.target.value = 1;
+                                                                                    return;
+                                                                                }
                                                                                 if (e.target.value) {
                                                                                     const gap = e.target.value - item.quantity;
                                                                                     console.log(gap);
@@ -657,15 +749,20 @@ const Cart = ({
                                                 <a
                                                     href="/shop-checkout"
                                                     className="btn"
-                                                    onClick={(e) => {
-                                                        if (cartSelected?.length === 0) {
-                                                            e.preventDefault();
-                                                            toast.error('Please select products to process checkout');
+                                                    onClick={async (e) => {
+                                                        e.preventDefault();
+                                                        if (!loading) {
+                                                            if (cartSelected?.length === 0) {
+                                                                e.preventDefault();
+                                                                toast.error('Please select products to process checkout');
+                                                            } else {
+                                                                await validateCartToCheckout();
+                                                            }
                                                         }
                                                     }}
                                                 >
                                                     <i className="fi-rs-box-alt mr-10"></i>
-                                                    Proceed To CheckOut
+                                                    {loading ? 'Processing' : 'Proceed To CheckOut'}
                                                 </a>
                                             </Link>
                                         </div>

@@ -364,8 +364,9 @@ const ProductDetails = ({
                                                                       )}
                                                             </span>
                                                         </ins>
-                                                        {product.discountPrice !== 0 &&
-                                                        product.price !== product.discountPrice ? (
+                                                        {(product.discountPrice !== 0 &&
+                                                            product.price !== product.discountPrice) ||
+                                                        voucherData?.discount ? (
                                                             <>
                                                                 <ins>
                                                                     <span className="old-price font-md ml-15">
@@ -399,7 +400,8 @@ const ProductDetails = ({
                                                                       )}
                                                             </span>
                                                         </ins>
-                                                        {producDistPrice !== 0 && productPrice !== producDistPrice ? (
+                                                        {(producDistPrice !== 0 && productPrice !== producDistPrice) ||
+                                                        voucherData?.discount ? (
                                                             <>
                                                                 <ins>
                                                                     <span className="old-price font-md ml-15">

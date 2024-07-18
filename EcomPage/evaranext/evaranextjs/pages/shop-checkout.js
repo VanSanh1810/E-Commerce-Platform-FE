@@ -115,6 +115,7 @@ const ShopCheckoutItems = ({ id, variant, quantity, setShopOrderCheckoutDataList
                                   : productTreeDetail?.disPrice
                               : productTreeDetail?.price) * quantity,
                       ),
+                      quantity,
                   );
             setShopOrderCheckoutDataList([...shopOrderCheckoutDataListClone]);
         }
@@ -137,14 +138,20 @@ const ShopCheckoutItems = ({ id, variant, quantity, setShopOrderCheckoutDataList
     //     }
     // }, [productData]);
 
-    const calculateVoucherPrice = (price) => {
+    const calculateVoucherPrice = (price, quantity) => {
         // console.log(typeof price);
+        let _quantity;
+        if (!quantity || quantity === 0) {
+            _quantity = 1;
+        } else {
+            _quantity = quantity;
+        }
         if (typeof price === 'number') {
-            const discountAmount = (parseFloat(price) / 100) * parseFloat(voucherData.discount);
+            const discountAmount = (parseFloat(price) / _quantity / 100) * parseFloat(voucherData.discount);
             if (discountAmount <= parseFloat(voucherData.maxValue)) {
-                return parseFloat(price) - discountAmount;
+                return parseFloat(price) - discountAmount * _quantity;
             } else {
-                return parseFloat(price) - parseFloat(voucherData.maxValue);
+                return parseFloat(price) - parseFloat(voucherData.maxValue) * _quantity;
             }
         } else {
             if (typeof price === 'string') {
@@ -246,6 +253,7 @@ const ShopCheckoutItems = ({ id, variant, quantity, setShopOrderCheckoutDataList
                                                   : productTreeDetail?.disPrice
                                               : productTreeDetail?.price) * quantity,
                                       ),
+                                      quantity,
                                   )}
                             $
                         </span>
@@ -366,10 +374,48 @@ const CartCheckout = ({
         deleteMultipleFromCart(products, variants, user);
     };
 
+    const validateCartToCheckout = async () => {
+        // selectedIndexWithPrice
+        try {
+            const data = router.query.sessionData;
+            // console.log(JSON.stringify(selectedIndexWithPrice));
+            const response = await axiosInstance.post('/api/order/validateProduct', {
+                data: data,
+            });
+            console.log(response.data);
+            switch (response.data.code) {
+                case -1:
+                    router.push('/shop-checkout');
+                    return true;
+                case 0:
+                    toast.error('Some products discount are not available !. Please check your cart');
+                    router.push('/shop-cart');
+                    return false;
+                case 1:
+                    toast.error('Some products stock are not enough !. Please check your cart');
+                    router.push('/shop-cart');
+                    return false;
+                case 2:
+                    toast.error('Some products are not available!. Please check your cart');
+                    router.push('/shop-cart');
+                    return false;
+                default:
+                    return false;
+            }
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
+    };
+
     const placeOrder = async () => {
         if (useAddressState) {
             // user address
             if (!isObject(selectedShippingAddress)) {
+                const result = await validateCartToCheckout();
+                if (!result) {
+                    return;
+                }
                 try {
                     setIsLoading(true);
                     const response = await axiosInstance.post('/api/order/placeOrder', {
@@ -429,6 +475,10 @@ const CartCheckout = ({
                 return true;
             };
             if (isObject(selectedShippingAddress) && validateNewAddress(selectedShippingAddress)) {
+                const result = await validateCartToCheckout();
+                if (!result) {
+                    return;
+                }
                 try {
                     setIsLoading(true);
                     const response = await axiosInstance.post('/api/order/placeOrder', {
@@ -459,9 +509,8 @@ const CartCheckout = ({
             } else {
                 toast.error('Please provide shipping address');
             }
-
-            console.log(selectedShippingAddress);
-            console.log(isObject(selectedShippingAddress));
+            // console.log(selectedShippingAddress);
+            // console.log(isObject(selectedShippingAddress));
         }
     };
 

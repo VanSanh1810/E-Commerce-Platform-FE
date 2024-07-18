@@ -251,7 +251,8 @@ const SingleProduct = ({ product, addToCart, addToCompare, addToWishlist, openQu
                                                   )}
                                         </span>
                                         {/* <span>${product.discountPrice !== 0 ? product.discountPrice : product.price}</span> */}
-                                        {product.discountPrice !== 0 && product.price !== product.discountPrice ? (
+                                        {(product.discountPrice !== 0 && product.price !== product.discountPrice) ||
+                                        voucherData?.discount ? (
                                             <span className="old-price">
                                                 {product.discountPrice ? `$ ${product.price}` : null}
                                             </span>
