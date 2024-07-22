@@ -20,7 +20,7 @@ An ecommerce platform built with MERN stack, and utilizes third party API's. Thi
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Admins manage and control the entire platform components
 
-> This project have an API service associated with it. You can find it [here](https://gitlab.com/kltl-ute/242k/02-be).
+> This project have an API service associated with it. You can find it [here](https://gitlab.com/kltl-ute/242k/02-be](https://github.com/VanSanh1810/E-Commerce-Platform-BE).
 
 
 ## Tech Stack
